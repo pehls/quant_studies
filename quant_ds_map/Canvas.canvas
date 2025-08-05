@@ -1,0 +1,26 @@
+{
+	"nodes":[
+		{"id":"7dc1853b8197c1fd","type":"group","x":-310,"y":-560,"width":5990,"height":1560,"label":"Intermediate"},
+		{"id":"a3d3bc539a0415be","type":"group","x":-280,"y":-460,"width":2080,"height":1060,"label":"Advanced Statistical Modelling for Finance"},
+		{"id":"57e20afaa81e55e0","x":2000,"y":-460,"width":2080,"height":1060,"type":"group","label":"Machine Learning for Algorithmic Trading"},
+		{"id":"0450378b69e95956","type":"file","file":"quant_studies/quant_ds_map/1_Intermediate/1. Advanced Statistical Modeling for Finance/1 - Time Series Analysis - ARIMA, GARCH Models.md","x":-240,"y":-400,"width":600,"height":400},
+		{"id":"dc1ee523682c4d99","type":"file","file":"quant_studies/quant_ds_map/1_Intermediate/1. Advanced Statistical Modeling for Finance/2 - Bayesian Statistics and Financial Applications.md","x":400,"y":-400,"width":600,"height":400},
+		{"id":"04f7a1bd5acafbcc","type":"file","file":"quant_studies/quant_ds_map/1_Intermediate/1. Advanced Statistical Modeling for Finance/3 - Copula Models for Dependence Structures.md","x":1040,"y":-400,"width":605,"height":400},
+		{"id":"3971ab90df337d8f","type":"file","file":"quant_studies/quant_ds_map/1_Intermediate/1. Advanced Statistical Modeling for Finance/4 - Extreme Value Theory (EVT) in Risk Management.md","x":-240,"y":120,"width":600,"height":400},
+		{"id":"c492be52f8cbead1","x":400,"y":120,"width":600,"height":400,"type":"file","file":"quant_studies/quant_ds_map/1_Intermediate/1. Advanced Statistical Modeling for Finance/5 - Statistical Arbitrage - Models, Implementation, and Risk Management for Quantitative Data Science.md"},
+		{"id":"f56aaca43baf2a40","x":1040,"y":120,"width":605,"height":400,"type":"file","file":"quant_studies/quant_ds_map/1_Intermediate/1. Advanced Statistical Modeling for Finance/6 - Monte Carlo Simulation for Option Pricing.md"},
+		{"id":"6c52b597cb9bcc2a","x":2040,"y":-400,"width":605,"height":400,"type":"file","file":"quant_studies/quant_ds_map/1_Intermediate/2. Machine learning for Algorithmic Trading/1 - Supervised Learning - Regression and Classification in Finance.md"},
+		{"id":"7ae8c2e4a3f77095","x":2720,"y":-400,"width":605,"height":400,"type":"file","file":"quant_studies/quant_ds_map/1_Intermediate/2. Machine learning for Algorithmic Trading/2 - Unsupervised Learning - Clustering and Dimensionality Reduction for Portfolio Optimization.md"},
+		{"id":"3837249d495c2d4c","x":3400,"y":-400,"width":605,"height":400,"type":"file","file":"quant_studies/quant_ds_map/1_Intermediate/2. Machine learning for Algorithmic Trading/3 - Reinforcement Learning for Trading Strategy Development.md"}
+	],
+	"edges":[
+		{"id":"fa49a4d58cd0563f","fromNode":"0450378b69e95956","fromSide":"right","toNode":"dc1ee523682c4d99","toSide":"left"},
+		{"id":"4a9625d20fb86d9e","fromNode":"dc1ee523682c4d99","fromSide":"right","toNode":"04f7a1bd5acafbcc","toSide":"left"},
+		{"id":"94e01d57b4f34c89","fromNode":"04f7a1bd5acafbcc","fromSide":"bottom","toNode":"3971ab90df337d8f","toSide":"top"},
+		{"id":"76d58ae302ad4ae6","fromNode":"3971ab90df337d8f","fromSide":"right","toNode":"c492be52f8cbead1","toSide":"left"},
+		{"id":"93ce551cb1902c4d","fromNode":"c492be52f8cbead1","fromSide":"right","toNode":"f56aaca43baf2a40","toSide":"left"},
+		{"id":"fa5e9830ccd09443","fromNode":"a3d3bc539a0415be","fromSide":"right","toNode":"57e20afaa81e55e0","toSide":"left"},
+		{"id":"cc11ff5fc6376df6","fromNode":"6c52b597cb9bcc2a","fromSide":"right","toNode":"7ae8c2e4a3f77095","toSide":"left"},
+		{"id":"74db9f7207ddb99e","fromNode":"7ae8c2e4a3f77095","fromSide":"right","toNode":"3837249d495c2d4c","toSide":"left"}
+	]
+}
