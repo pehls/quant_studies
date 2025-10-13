@@ -167,19 +167,47 @@ The ARIMA model is a composite model that combines three distinct components, de
 
 - AR(p) - Autoregressive Component: This part of the model assumes that the current value of the series, Yt​, can be explained as a linear function of its own past values. The parameter p is the order of the AR component, indicating how many lagged observations are included in the model. An AR(p) model is expressed as:
     
-    Yt​=c+ϕ1​Yt−1​+ϕ2​Yt−2​+⋯+ϕp​Yt−p​+ϵt​
+    $$Y_t = c + \sum_{i=1}^p \phi_i Y_{t-i} + \epsilon_t$$
     
-    where ϕi​ are the model parameters and ϵt​ is white noise.
+    - **Yt​**: The **value of the time series** at the current time period _t_.
     
-- **I(d) - Integrated Component:** This is not a model component in itself but represents the preprocessing step of differencing. The parameter `d` specifies how many times the raw data series was differenced to achieve stationarity.4 For example, if we are modeling log returns derived from log prices, we have taken one difference, so
+	- **c**: A **constant term**, also known as the intercept or drift. It represents the mean or baseline level of the series.
     
-    d=1.
+	- **p**: The **order** of the autoregressive model. It specifies how many previous (lagged) time periods are included in the model to predict the current value.
     
+	- **ϕi​**: The **model parameters** (coefficients) for each lagged value, where the subscript _i_ ranges from 1 to _p_. Each ϕi​ quantifies the influence of the observation at lag _i_ on the current value.
+    
+	- **Yt−i​**: The **lagged value** of the time series at a past time period, specifically _i_ periods before the current time _t_.
+    
+	- **ϵt​**: The **error term** at time _t_, commonly referred to as white noise. It represents the random, unpredictable shocks or innovations to the series that are not explained by the past values. It is assumed to be a random variable with a mean of zero and constant variance.
+    
+- **I(d) - Integrated Component:** This is not a model component in itself but represents the preprocessing step of differencing. The parameter `d` specifies how many times the raw data series was differenced to achieve stationarity. For example, if we are modeling log returns derived from log prices, we have taken one difference, so
+    
+    $$\Delta Y_t = Y_t - Y_{t-1}$$ $$\Delta^d Y_t$$
+    **In short:**
+
+	- **Delta**: The **differencing operator**.
+    
+	- **Y_t**: The value of the series at time **t**.
+    
+	- **Y_t−1**: The value of the series at the previous time period, **t-1**.
+    
+- **d**: The **order of differencing**, indicating how many times the operation is performed.
 - MA(q) - Moving Average Component: This component models the current value of the series as a function of past forecast errors. This allows the model to account for shocks or unexpected events that affected previous forecasts. The parameter q is the order of the MA component. An MA(q) model is expressed as:
     
-    Yt​=μ+ϵt​+θ1​ϵt−1​+θ2​ϵt−2​+⋯+θq​ϵt−q​
+    $$Y_t = \mu + \sum_{i=1}^q \theta_i \epsilon_{t-i} + \epsilon_t$$
     
-    where μ is the mean of the series and θi​ are the model parameters.
+    - **Y_t**: The **value of the time series** at the current time _t_.
+    
+	- **mu**: The **mean** or expectation of the series. This acts as a baseline.
+    
+	- **q**: The **order** of the MA model. It specifies how many past error terms are included in the model.
+    
+	- **theta_i**: The **model parameters**. These are the coefficients that determine the weight or influence of each past error term (epsilon_t−i) on the current value of the series.
+    
+	- **epsilon_t−i**: The **past error terms**. These represent the unexpected shocks or forecast errors from previous time periods. For example, epsilon_t−1 is the error from one period ago.
+    
+	- **epsilon_t**: The **current error term** at time _t_. This is the new, unpredictable shock that occurs at the present moment.
     
 
 An ARIMA(p,d,q) model combines these three elements to model a non-stationary time series by differencing it `d` times and then fitting an ARMA(p,q) model to the resulting stationary series.
@@ -370,9 +398,17 @@ The first major breakthrough was the **Autoregressive Conditional Heteroskedasti
 
 The formula for an ARCH(q) model is:
 
-![[Pasted image 20250628230938.png]]
 
-Here, σt2​ is the conditional variance, ϵt−i2​ are past squared residuals (shocks), and ω and αi​ are parameters to be estimated. The model directly captures the idea that large past shocks lead to a higher conditional variance today.
+$$\sigma_t^2 = \omega + \sum_{i=1}^q \alpha_i \epsilon_{t-i}^2$$
+- **sigma_t2**: This is the **conditional variance** at time _t_. It represents the one-period ahead forecast for the variance, given all past information. In simple terms, it's the model's prediction of volatility for the next period.
+    
+- **omega**: Pronounced "omega," this is a **constant term**. It represents the long-run average variance.
+    
+- **q**: The **order** of the ARCH model, indicating how many past squared errors (shocks) are included to model the current variance.
+    
+- **alpha_i**: Pronounced "alpha," these are the **model parameters** or coefficients. Each alpha_i measures the weight or impact of a past shock (epsilon_t−i2) on the current conditional variance. For the model to be stable, the sum of all alpha_i coefficients must be less than 1.
+    
+- **epsilon_t−i2**: The **squared error term** from _i_ periods ago. The error term (epsilon) represents the unpredictable shock or "news" at a given time. By squaring it, the model captures the magnitude (but not the direction) of these past shocks. Large past shocks, whether positive or negative, lead to a higher prediction for current variance.
 
 ### The GARCH Model (Bollerslev, 1986)
 
@@ -382,28 +418,38 @@ While revolutionary, the ARCH model often required a large number of lags (`q`) 
 
 The standard GARCH(1,1) model is by far the most common formulation:
 
-![[Pasted image 20250628230950.png]]
+$$\sigma_t^2 = \omega + \alpha_1 \epsilon_{t-1}^2 + \beta_1 \sigma_{t-1}^2$$
 
 This model is more parsimonious and effective. Its components can be interpreted as follows:
 
-- ω: A constant term, related to the long-run average variance.
+- **sigma_t2**: This is the **conditional variance** for the current period _t_. It represents the one-step-ahead forecast of volatility, given all available past information.
     
-- α1​ϵt−12​: The **ARCH term**, which represents the influence of the previous period's shock. A larger α1​ means volatility reacts more intensely to market events.
+- **omega**: The **constant term** (omega). This is related to the long-run average variance. If there were no shocks and no persistence, the variance would settle at this level.
     
-- β1​σt−12​: The **GARCH term**, which represents the influence of the previous period's conditional variance. A larger β1​ indicates greater persistence in volatility; it takes longer for volatility to revert to its mean after a shock.
+- **alpha_1epsilon_t−12**: This is the **ARCH term**. It represents the influence of past news or shocks on today's volatility.
     
+    - **alpha_1** (alpha): The **ARCH parameter** measures the immediate reaction of volatility to market shocks. A larger alpha_1 indicates that volatility is highly sensitive to recent market events.
+        
+    - **epsilon_t−12**: The **squared shock** from the previous period (_t-1_).
+        
+- **beta_1sigma_t−12**: This is the **GARCH term**, the key innovation over the ARCH model. It represents the influence of past volatility on today's volatility.
+    
+    - **beta_1** (beta): The **GARCH parameter** measures the **persistence** of volatility. A larger beta_1 means that volatility is "sticky" and takes a long time to revert to its long-run average after a shock.
+        
+    - **sigma_t−12**: The **conditional variance** from the previous period (_t-1_). This term introduces a memory of the previous volatility level into the current forecast.
+        
 
-The sum α1​+β1​ measures **volatility persistence**. A value close to 1 implies that shocks to volatility are highly persistent and decay slowly, which is a common finding in financial data.6 For the model to be stationary, we require
+The sum of **alpha_1+beta_1** is a crucial metric that indicates the overall persistence of volatility shocks. The closer this sum is to 1, the longer the memory of the shocks, and the more persistent the volatility is.
 
-$α1​+β1​<1$.
+For the model to be stationary, we require $α1​+β1​<1$.
 
 ### The Leverage Effect and Asymmetric GARCH Models
 
 A key limitation of the standard GARCH model is its symmetric response to shocks. The model uses squared residuals (ϵt−12​), so the sign of the shock is lost. It predicts the same increase in volatility for a +2% return as for a -2% return. However, empirical evidence consistently shows that negative shocks ("bad news") tend to increase volatility more than positive shocks ("good news") of the same magnitude. This is known as the **leverage effect**.24 To address this, several asymmetric GARCH models were developed.
 
-- **Exponential GARCH (EGARCH):** Proposed by Nelson (1991), the EGARCH model specifies the conditional variance in logarithmic form, which ensures that the variance is always positive without needing non-negativity constraints on the parameters. It includes a term that explicitly accounts for the sign of the shock, allowing for an asymmetric response.25
+- **Exponential GARCH (EGARCH):** Proposed by Nelson (1991), the EGARCH model specifies the conditional variance in logarithmic form, which ensures that the variance is always positive without needing non-negativity constraints on the parameters. It includes a term that explicitly accounts for the sign of the shock, allowing for an asymmetric response.
     
-- **GJR-GARCH (Glosten-Jagannathan-Runkle GARCH):** This model, also known as Threshold GARCH, extends the standard GARCH model by adding an extra term that is activated only when the previous shock was negative.24 The GJR-GARCH(1,1) equation is:
+- **GJR-GARCH (Glosten-Jagannathan-Runkle GARCH):** This model, also known as Threshold GARCH, extends the standard GARCH model by adding an extra term that is activated only when the previous shock was negative. The GJR-GARCH(1,1) equation is:
     
     $$ \sigma_t^2 = \omega + \alpha_1 \epsilon_{t-1}^2 + \gamma_1 I_{t-1} \epsilon_{t-1}^2 + \beta_1 \sigma_{t-1}^2 $$
     
@@ -411,17 +457,17 @@ A key limitation of the standard GARCH model is its symmetric response to shocks
     
 
 
-| Table 2: GARCH Model Family Comparison |                                      |                                                                                    |                                                                                                                |
-| -------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **Model**                              | **Core Equation**                    | **Key Feature**                                                                    | **Primary Use Case**                                                                                           |
-| GARCH                                  | ![[Pasted image 20250628231238.png]] | Symmetric response to shocks                                                       | Baseline volatility modeling where asymmetry is not a concern.                                                 |
-| EGARCH                                 | ![[Pasted image 20250628231342.png]] | Models log-variance, no constraints needed. Captures leverage effect via γ term.   | Modeling series with leverage effects, ensures positive variance by construction.                              |
-| GJR-GARCH                              | ![[Pasted image 20250628231347.png]] | Adds a threshold term for negative shocks. Simple and direct way to model leverage | Most common choice for modeling equity returns due to its direct and intuitive capture of the leverage effect. |
+| Table 2: GARCH Model Family Comparison |                                                                                                                                                                             |                                                                                    |                                                                                                                |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Model**                              | **Core Equation**                                                                                                                                                           | **Key Feature**                                                                    | **Primary Use Case**                                                                                           |
+| GARCH                                  | $$\sigma_t^2 = \omega + \alpha_1 \epsilon_{t-1}^2 + \beta_1 \sigma_{t-1}^2$$                                                                                                | Symmetric response to shocks                                                       | Baseline volatility modeling where asymmetry is not a concern.                                                 |
+| EGARCH                                 | $$\log(\sigma_t^2) = \omega + \beta_1 \log(\sigma_{t-1}^2) + \alpha_1 \left\| \frac{\epsilon_{t-1}}{\sigma_{t-1}} \right\| + \gamma_1 \frac{\epsilon_{t-1}}{\sigma_{t-1}}$$ | Models log-variance, no constraints needed. Captures leverage effect via γ term.   | Modeling series with leverage effects, ensures positive variance by construction.                              |
+| GJR-GARCH                              | $$\sigma_t^2 = \omega + (\alpha_1 + \gamma_1 I_{t-1}) \epsilon_{t-1}^2 + \beta_1 \sigma_{t-1}^2$$                                                                           | Adds a threshold term for negative shocks. Simple and direct way to model leverage | Most common choice for modeling equity returns due to its direct and intuitive capture of the leverage effect. |
 
 
 ### Python in Practice: Fitting GARCH Models
 
-We can now model the conditional variance of the ARIMA residuals using the `arch` library in Python. We will fit GARCH, EGARCH, and GJR-GARCH models and compare them. It is also common practice to assume a Student's t-distribution for the errors to better capture the "fat tails" often seen in financial returns.24
+We can now model the conditional variance of the ARIMA residuals using the `arch` library in Python. We will fit GARCH, EGARCH, and GJR-GARCH models and compare them. It is also common practice to assume a Student's t-distribution for the errors to better capture the "fat tails" often seen in financial returns.
 
 
 
@@ -469,17 +515,17 @@ When analyzing the output, we look for several key things:
 
 ## A Holistic Approach: The ARIMA-GARCH Combined Model
 
-We have now established two distinct but complementary modeling frameworks: ARIMA for the conditional mean and GARCH for the conditional variance. The ARIMA-GARCH model is not a single, integrated estimation but rather a two-step process that combines these frameworks. This decoupling is powerful because it asserts that the process governing the _level_ of returns can be different from the process governing their _risk_.4
+We have now established two distinct but complementary modeling frameworks: ARIMA for the conditional mean and GARCH for the conditional variance. The ARIMA-GARCH model is not a single, integrated estimation but rather a two-step process that combines these frameworks. This decoupling is powerful because it asserts that the process governing the _level_ of returns can be different from the process governing their _risk_.
 
 ### The Two-Step Methodology
 
-The complete workflow for building a combined ARIMA-GARCH model is as follows 4:
+The complete workflow for building a combined ARIMA-GARCH model is as follows:
 
 1. **Model the Mean:** Select and fit the best possible ARIMA(p,d,q) model to the stationary returns series. The goal is to produce residuals that have no remaining linear autocorrelation.
     
 2. **Extract Residuals:** Obtain the standardized residuals from the fitted ARIMA model.
     
-3. **Test for ARCH Effects:** Formally test the _squared_ residuals for autocorrelation using the Ljung-Box test or Engle's ARCH-LM test. A significant result confirms the presence of conditional heteroskedasticity (ARCH effects) and justifies proceeding with a GARCH model.4
+3. **Test for ARCH Effects:** Formally test the _squared_ residuals for autocorrelation using the Ljung-Box test or Engle's ARCH-LM test. A significant result confirms the presence of conditional heteroskedasticity (ARCH effects) and justifies proceeding with a GARCH model.
     
 4. **Model the Variance:** Select and fit the most appropriate GARCH-family model (e.g., GARCH, GJR-GARCH) to the ARIMA residuals. The choice of GARCH model should be guided by tests for asymmetry and information criteria.
     
@@ -493,7 +539,7 @@ The final combined model provides two distinct sets of forecasts:
 - **A forecast for the conditional variance** (the expected volatility of that return), generated by the GARCH component.
     
 
-This dual output is invaluable for applications like options pricing, portfolio optimization, and, as we will see, dynamic risk management.27
+This dual output is invaluable for applications like options pricing, portfolio optimization, and, as we will see, dynamic risk management.
 
 ### Python in Practice: Full Implementation
 
@@ -537,24 +583,24 @@ The models we build are static snapshots of a dynamic and evolving world. While 
 
 ### Inherent Model Limitations
 
-- **Linearity of ARIMA:** The ARMA component assumes that the relationships in the conditional mean are linear. It cannot capture complex, non-linear patterns that may exist in financial data.13
+- **Linearity of ARIMA:** The ARMA component assumes that the relationships in the conditional mean are linear. It cannot capture complex, non-linear patterns that may exist in financial data.
     
 - **Exogenous Variables:** The basic ARIMA model does not account for external factors (exogenous variables), although extensions like ARIMAX exist.
     
-- **Distributional Assumptions:** While GARCH models can incorporate non-normal distributions like the Student's t, these are still parametric assumptions. They may not fully capture the extreme "fat tails" or skewness present in true financial return distributions, potentially leading to an underestimation of extreme risks.18
+- **Distributional Assumptions:** While GARCH models can incorporate non-normal distributions like the Student's t, these are still parametric assumptions. They may not fully capture the extreme "fat tails" or skewness present in true financial return distributions, potentially leading to an underestimation of extreme risks.
     
 
 ### The Threat of Structural Breaks
 
-Perhaps the greatest threat to any time series model is a **structural break**. These are abrupt, significant changes in the underlying data-generating process, often caused by major economic events like financial crises, sudden policy shifts by central banks, or technological disruptions.28
+Perhaps the greatest threat to any time series model is a **structural break**. These are abrupt, significant changes in the underlying data-generating process, often caused by major economic events like financial crises, sudden policy shifts by central banks, or technological disruptions.
 
-A structural break violates the core assumption of constant parameters that underpins both ARIMA and GARCH models. A model estimated on data from a pre-crisis period may become completely invalid and produce dangerously misleading forecasts in the post-crisis regime.28 Detecting these breaks using methods like the CUSUM test is an advanced topic, but awareness of their existence is crucial for any practitioner.
+A structural break violates the core assumption of constant parameters that underpins both ARIMA and GARCH models. A model estimated on data from a pre-crisis period may become completely invalid and produce dangerously misleading forecasts in the post-crisis regime. Detecting these breaks using methods like the CUSUM test is an advanced topic, but awareness of their existence is crucial for any practitioner.
 
 ### Robust Validation: Walk-Forward Analysis
 
 Given the limitations and the arrow of time, how can we reliably validate a model's performance? Standard machine learning techniques like k-fold cross-validation are inappropriate for time series data because they shuffle the data, allowing future information to "leak" into the training set and inflate performance metrics.
 
-The correct approach is **walk-forward validation**, also known as a rolling forecast. This method respects the temporal order of the data and mimics how a model would be used in a real-time environment.30 The process is as follows:
+The correct approach is **walk-forward validation**, also known as a rolling forecast. This method respects the temporal order of the data and mimics how a model would be used in a real-time environment. The process is as follows:
 
 1. Train the model on an initial window of historical data (e.g., the first 1000 days).
     
@@ -575,7 +621,7 @@ This project synthesizes all the concepts from the chapter to build and evaluate
 
 ### Objective & Context
 
-The objective is to build, forecast, and backtest a dynamic **1-day 99% Value at Risk (VaR)** model for the S&P 500 index. VaR is a cornerstone of financial risk management that answers the question: "What is the minimum loss I can expect to exceed over a given time horizon, with a given probability?" A 1-day 99% VaR of $1 million means there is a 1% chance of losing at least $1 million by the next day.5 Using a GARCH model to forecast volatility allows our VaR estimate to adapt to changing market conditions, making it far superior to static methods based on a simple historical standard deviation.5
+The objective is to build, forecast, and backtest a dynamic **1-day 99% Value at Risk (VaR)** model for the S&P 500 index. VaR is a cornerstone of financial risk management that answers the question: "What is the minimum loss I can expect to exceed over a given time horizon, with a given probability?" A 1-day 99% VaR of $1 million means there is a 1% chance of losing at least $1 million by the next day. Using a GARCH model to forecast volatility allows our VaR estimate to adapt to changing market conditions, making it far superior to static methods based on a simple historical standard deviation.
 
 ### Questions for the Analyst
 

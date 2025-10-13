@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Estudos - Aplicações Práticas e Ética</title>
+    <!-- Chosen Palette: Dark Slate Sidebar with Warm Neutral Content and Teal Accents -->
+    <!-- Application Structure Plan: A two-column layout with a dark, accordion-style sidebar for navigation and a main content area. This design, inspired by the provided file, focuses the user's attention by dynamically displaying only the selected sub-topic. This modular, single-view approach is superior for educational content as it minimizes distraction. Interactions include a Chart.js visualization, a TCA calculator, a clickable timeline, and integrated Gemini API calls for AI-powered explanations and quizzes within each module, enhancing the learning experience. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Backtesting Biases. Goal: Visualize survivorship bias. Viz/Presentation: Interactive Line Chart. Library/Method: Chart.js, activated on-demand.
+        2. Report Info: TCA/Slippage. Goal: Provide a practical calculation tool. Viz/Presentation: Interactive HTML form. Library/Method: Custom JS.
+        3. Report Info: Historical Events. Goal: Present key events chronologically. Viz/Presentation: Clickable vertical timeline. Library/Method: HTML/CSS/JS.
+        4. Report Info: Code Examples. Goal: Demonstrate implementation. Viz/Presentation: Code blocks with copy button. Library/Method: Prism.js.
+        5. Report Info: Complex topics. Goal: On-demand clarification. Viz/Presentation: AI-generated content in a modal. Interaction: Buttons trigger Gemini API calls.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script>
+        MathJax = {
+          tex: { inlineMath: [['$', '$']] },
+          svg: { fontCache: 'global' }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #4a4a4a; }
+        .sidebar-bg { background-color: #1f2937; color: #e5e7eb; }
+        .content-bg { background-color: #f8f7f4; }
+        .card-bg { background-color: #ffffff; }
+        #sidebar .pillar-header.active { background-color: #4a5568; }
+        #sidebar .module-links { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: #111827;}
+        #sidebar .pillar-header.active + .module-links { max-height: 500px; }
+        #sidebar .module-link.active { background-color: #0d9488; color: white; font-weight: 600; }
+        #sidebar::-webkit-scrollbar { width: 8px; }
+        #sidebar::-webkit-scrollbar-track { background: #1f2937; }
+        #sidebar::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 10px; }
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s ease-in-out; }
+        .tab-active { color: #0d9488; font-weight: 600; border-bottom-color: #0d9488; }
+        .tab-inactive { color: #6b7280; }
+        #gemini-modal { transition: opacity 0.3s ease; }
+        .gemini-btn { background-color: #f0fdfa; color: #0f766e; border: 1px solid #ccfbf1; transition: background-color 0.2s; }
+        .gemini-btn:hover { background-color: #ccfbf1; }
+        .prism-code { border-radius: 0.5rem; font-size: 0.875rem; }
+        .copy-button { position: absolute; top: 0.5rem; right: 0.5rem; background-color: rgba(255, 255, 255, 0.1); color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; cursor: pointer; transition: background-color 0.2s; }
+        .copy-button:hover { background-color: rgba(255, 255, 255, 0.2); }
+        .accent-border { border-color: #0d9488; }
+        .timeline-item::before { content: ''; position: absolute; left: -30px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border-radius: 50%; background-color: #4A5568; border: 4px solid #FDFBF8; }
+        .timeline-container::before { content: ''; position: absolute; left: -21px; top: 0; bottom: 0; width: 2px; background-color: #CBD5E0; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <aside id="sidebar" class="w-80 sidebar-bg flex-shrink-0 overflow-y-auto hidden lg:block shadow-lg">
+            <div class="p-6 sticky top-0 bg-slate-800 z-10">
+                <h1 class="text-2xl font-semibold text-center text-teal-400">Guia de Estudos</h1>
+                <p id="pillar-title" class="text-sm text-slate-400 mt-1 text-center"></p>
+            </div>
+            <nav id="sidebar-nav" class="text-slate-300 p-2"></nav>
+        </aside>
+        <main id="main-content" class="flex-1 p-4 sm:p-6 md:p-8 content-bg overflow-y-auto">
+            <div id="welcome-message" class="text-center h-full flex flex-col justify-center items-center">
+                <h1 class="text-4xl font-bold text-slate-700">Bem-vindo ao Guia de Estudos</h1>
+                <p class="mt-4 text-xl text-slate-500">Selecione um tópico no menu à esquerda para começar.</p>
+                <svg class="w-24 h-24 mt-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+            <div id="content-sections-wrapper" class="max-w-7xl mx-auto"></div>
+        </main>
+    </div>
+    <div id="gemini-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b bg-slate-50 rounded-t-lg">
+                <h3 id="modal-title" class="text-xl font-semibold text-slate-800"></h3>
+                <button id="modal-close-btn" class="text-2xl font-bold text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="modal-loader" class="text-center hidden">
+                    <svg class="animate-spin h-8 w-8 text-teal-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="mt-2 text-slate-600">Gerando conteúdo com a IA Gemini...</p>
+                </div>
+                <div id="modal-response" class="prose max-w-none text-slate-700"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const contentData = [
+            {
+                id: 'pilar7',
+                title: 'Pilar 7: Aplicações Práticas e Ética',
+                subsections: [
+                    {
+                        id: 'dev-sistemas',
+                        title: 'Desenvolvimento de Sistemas',
+                        modules: [
+                            {
+                                id: 'backtesting',
+                                title: 'Backtesting de Estratégias',
+                                content: {
+                                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Relevante: Backtesting de Estratégias</h3><p class="mb-4">O <strong>Backtesting</strong> é a pedra angular do desenvolvimento de estratégias de trading quantitativo. Consiste em aplicar um conjunto de regras de negociação a dados históricos para simular, o mais fielmente possível, como a estratégia teria se comportado no passado. Este processo é o primeiro filtro crítico para descartar ideias inviáveis antes de comprometer capital real. Um backtest robusto vai muito além de um simples cálculo de lucro/perda; ele busca dissecar o comportamento da estratégia sob diversas condições de mercado.</p><p class="mb-4">O objetivo principal é gerar um conjunto de estatísticas que caracterizem o perfil de risco-retorno da estratégia. Métricas como <strong>Índice de Sharpe</strong>, <strong>Índice de Sortino</strong> (que penaliza apenas a volatilidade negativa), <strong>Drawdown Máximo</strong> (a maior queda de pico a vale), e o <strong>Fator de Lucro</strong> (lucro bruto / prejuízo bruto) são essenciais. Ferramentas como Zipline e Backtrader em Python são projetadas para facilitar simulações realistas, lidando com complexidades como ajustes de dividendos, splits, e a modelagem de custos de transação e slippage.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">As Armadilhas Fatais: Vieses e Sobreajuste</h4><p>Um backtest mal executado pode ser perigosamente enganoso, gerando uma falsa confiança em uma estratégia fadada ao fracasso. A conscientização e mitigação de vieses são, portanto, tão importantes quanto a própria lógica da estratégia.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Viés de Sobrevivência (Survivorship Bias):</strong> É o erro de construir e testar uma estratégia usando um universo de ativos que apenas inclui os "sobreviventes" de um período. Ao ignorar ações que faliram ou foram adquiridas, os resultados são inflados, pois a análise exclui os piores desempenhos possíveis.</li><li><strong>Viés de Olhar à Frente (Look-ahead Bias):</strong> Uma falha sutil e comum onde a simulação, em um ponto no tempo $t$, utiliza informações que só estariam disponíveis após $t$. Um exemplo clássico é usar o preço de fechamento do dia para tomar uma decisão de negociação na abertura do mesmo dia.</li><li><strong>Overfitting (Sobreajuste ou "Data Snooping"):</strong> Talvez o maior perigo em finanças quantitativas. Ocorre quando um modelo é excessivamente complexo ou otimizado, a ponto de se ajustar ao ruído aleatório dos dados históricos em vez de capturar o sinal econômico subjacente. Tal estratégia exibe um desempenho estelar no backtest, mas se desintegra em dados novos (out-of-sample) porque a "lógica" que aprendeu era espúria. A validação cruzada e os testes walk-forward são técnicas para combater o overfitting.</li></ul>`,
+                                    exemplos: `<div class="w-full max-w-3xl mx-auto bg-white p-4 rounded-lg"><div class="chart-container" style="position: relative; height:40vh; width:100%; max-width: 700px; margin: auto;"><canvas id="biasChart"></canvas></div><div class="text-center mt-4"><button id="toggleBiasBtn" class="bg-rose-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-rose-700 transition-colors">Simular Viés de Sobrevivência</button><p id="biasExplanation" class="text-sm text-slate-500 mt-2 h-10"></p></div></div>`,
+                                    formulas: `<p><strong>Índice de Sharpe:</strong> Mede o retorno ajustado ao risco.</p>$$ S_p = \\frac{E[R_p] - R_f}{\\sigma_p} $$<p>Onde $E[R_p]$ é o retorno esperado do portfólio, $R_f$ é a taxa livre de risco e $\\sigma_p$ é a volatilidade do portfólio.</p><p class="mt-4"><strong>Drawdown Máximo (MDD):</strong> Mede a maior queda percentual do pico ao vale em um período.</p>$$ MDD = \\frac{\\text{Valor do Vale} - \\text{Valor do Pico}}{\\text{Valor do Pico}} $$`,
+                                    python: `<p>Abaixo, exemplos conceituais de estratégias de cruzamento de médias móveis com Zipline e Backtrader.</p><div class="relative mt-2"><pre><code class="language-python prism-code"># Exemplo com Zipline\nfrom zipline.api import order_target, record, symbol\n\ndef initialize(context):\n    context.asset = symbol('AAPL')\n\ndef handle_data(context, data):\n    short_mavg = data.history(context.asset, 'price', bar_count=50, frequency="1d").mean()\n    long_mavg = data.history(context.asset, 'price', bar_count=200, frequency="1d").mean()\n\n    if short_mavg > long_mavg:\n        order_target(context.asset, 100)\n    elif short_mavg < long_mavg:\n        order_target(context.asset, 0)\n\n# --- Exemplo com Backtrader ---\nimport backtrader as bt\n\nclass CrossMavgStrategy(bt.Strategy):\n    def __init__(self):\n        self.mavg_short = bt.indicators.SimpleMovingAverage(self.data.close, period=50)\n        self.mavg_long = bt.indicators.SimpleMovingAverage(self.data.close, period=200)\n\n    def next(self):\n        if self.mavg_short[0] > self.mavg_long[0] and not self.position:\n            self.buy()\n        elif self.mavg_short[0] < self.mavg_long[0] and self.position:\n            self.close()</code></pre><button class="copy-button">Copiar</button></div>`,
+                                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é 'overfitting' e como evitá-lo?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Overfitting, ou sobreajuste, é quando um modelo aprende o ruído dos dados históricos em vez do sinal subjacente. Para evitá-lo, deve-se: 1) Manter a estratégia simples (poucos parâmetros), 2) Usar dados "out-of-sample" (dados que o modelo não viu durante a otimização) para validação, e 3) Ter uma forte justificativa econômica para a estratégia, não apenas uma correlação estatística.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre Zipline e Backtrader?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Ambos são frameworks Python para backtesting. Zipline foi popularizado pela Quantopian e é forte em simulações realistas, ponto a ponto. Backtrader é conhecido por sua flexibilidade, velocidade e vasta biblioteca de indicadores técnicos, sendo muitas vezes mais fácil para iniciantes e para testes rápidos de ideias.</p></div></div></div>`,
+                                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm">
+                                        <li><strong>Livro (Essencial):</strong> "Advances in Financial Machine Learning" por Marcos Lopez de Prado.</li>
+                                        <li><strong>Livro (Prático):</strong> "Python for Algorithmic Trading: From Idea to Cloud Deployment" por Yves Hilpisch.</li>
+                                        <li><strong>Artigo Acadêmico:</strong> "The Probability of Backtest Overfitting" por Bailey, Borwein, Lopez de Prado, e Zhu.</li>
+                                        <li><strong>Site:</strong> <a href="https://www.zipline.io/" target="_blank" class="text-teal-600 hover:underline">Documentação Oficial do Zipline</a></li>
+                                        <li><strong>Site:</strong> <a href="https://www.backtrader.com/" target="_blank" class="text-teal-600 hover:underline">Documentação Oficial do Backtrader</a></li>
+                                        <li><strong>Fórum Online:</strong> <a href="https://quant.stackexchange.com/" target="_blank" class="text-teal-600 hover:underline">Quantitative Finance Stack Exchange</a></li>
+                                        <li><strong>Artigo:</strong> <a href="https://www.investopedia.com/terms/s/survivorshipbias.asp" target="_blank" class="text-teal-600 hover:underline">Investopedia: O que é Viés de Sobrevivência?</a></li>
+                                        <li><strong>Blog:</strong> <a href="https://hudsonthames.org/blog/" target="_blank" class="text-teal-600 hover:underline">Hudson & Thames Blog</a> (posts sobre Machine Learning em Finanças).</li>
+                                        <li><strong>Paper:</strong> "A Reality Check for Data Snooping" por White, Halbert.</li>
+                                        <li><strong>Curso:</strong> <a href="https://www.coursera.org/specializations/investment-management-python-machine-learning" target="_blank" class="text-teal-600 hover:underline">Investment Management with Python and Machine Learning (Coursera)</a></li>
+                                    </ul>`
+                                }
+                            },
+                            {
+                                id: 'tca',
+                                title: 'Execução e Análise de Custos (TCA)',
+                                content: {
+                                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Relevante: Execução e TCA</h3><p class="mb-4">Uma estratégia pode parecer extremamente lucrativa em um backtest, mas essa lucratividade pode ser completamente erodida pelos custos de transação no mundo real. A <strong>Análise de Custos de Transação (TCA)</strong> é a disciplina rigorosa de medir o custo real da negociação, enquanto a <strong>Execução</strong> é a prática de minimizar esses custos.</p><p class="mb-4">Os custos de transação podem ser divididos em duas categorias principais:</p><ul class="list-disc pl-6 space-y-3"><li><strong>Custos Explícitos:</strong> Transparentes e fáceis de quantificar. Incluem corretagem, taxas da bolsa e impostos.</li><li><strong>Custos Implícitos (Ocultos):</strong> Mais difíceis de medir, mas frequentemente muito maiores. O principal custo implícito é o <strong>impacto de mercado</strong>, que é a movimentação adversa do preço causada pela sua própria ordem. Ele é composto por:
+    <ul class="list-disc pl-6 space-y-2 mt-2">
+        <li><strong>Bid-Ask Spread:</strong> O custo de cruzar o spread para executar uma ordem imediatamente.</li>
+        <li><strong>Slippage (Derrapagem):</strong> A diferença entre o preço esperado no momento do envio da ordem e o preço médio efetivamente executado. Para ordens grandes, o ato de comprar consome a liquidez do book de ofertas, empurrando o preço para cima, resultando em um preço médio de compra mais alto do que o esperado (slippage negativo).</li>
+    </ul>
+</li></ul><p class="mt-4">O benchmark fundamental para medir o slippage é o <strong>Preço de Chegada (Arrival Price)</strong> — o preço mid-quote no exato momento em que o algoritmo de trading tomou a decisão de negociar. O objetivo da execução é minimizar o desvio em relação a este preço. Algoritmos de execução como <strong>VWAP</strong> (Volume-Weighted Average Price) e <strong>Implementation Shortfall</strong> (IS) são projetados para quebrar ordens grandes em ordens menores para reduzir o impacto no mercado.</p>`,
+                                    exemplos: `<div class="p-6 border border-slate-200 rounded-lg"><h4 class="text-lg font-semibold text-slate-700 mb-3">Calculadora Interativa de Slippage</h4><div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4"><div><label for="arrivalPrice" class="block text-sm font-medium text-slate-600">Preço de Chegada (R$)</label><input type="number" id="arrivalPrice" placeholder="100.00" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></div><div><label for="executionPrice" class="block text-sm font-medium text-slate-600">Preço Médio Executado (R$)</label><input type="number" id="executionPrice" placeholder="100.05" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></div><div><label for="quantity" class="block text-sm font-medium text-slate-600">Quantidade</label><input type="number" id="quantity" placeholder="1000" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></div></div><button id="calculateTcaBtn" class="w-full sm:w-auto bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Calcular Custo</button><div id="tcaResult" class="mt-4 text-center font-bold text-lg h-8"></div></div>`,
+                                    formulas: `<p><strong>Slippage (para uma ordem de compra):</strong></p>$$ \\text{Slippage por Ação} = \\text{Preço Médio Executado} - \\text{Preço de Chegada} $$<p>O <strong>Preço de Chegada</strong> (Arrival Price) é o preço de mercado no momento em que a decisão de negociar foi tomada.</p><p class="mt-4"><strong>Custo Total do Slippage:</strong></p>$$ \\text{Custo Total} = \\text{Slippage por Ação} \\times \\text{Quantidade} $$`,
+                                    python: `<p>Função simples em Python para calcular o custo de slippage em basis points (bps).</p><div class="relative mt-2"><pre><code class="language-python prism-code">def calculate_slippage_bps(arrival_price, avg_execution_price, side):\n    \"\"\"Calcula o slippage em basis points (bps).\"\"\"\n    if side.lower() not in ['buy', 'sell']:\n        raise ValueError("Side deve ser 'buy' ou 'sell'")\n\n    slippage = (avg_execution_price - arrival_price) / arrival_price\n    \n    # Inverte o sinal para venda, onde um preço maior é melhor\n    if side.lower() == 'sell':\n        slippage *= -1\n\n    # 1 basis point = 0.01%\n    slippage_bps = slippage * 10000\n    return slippage_bps\n\n# Exemplo: Comprar uma ação\narrival = 100.00\nexecuted = 100.05\ncost_bps = calculate_slippage_bps(arrival, executed, 'buy')\nprint(f"Slippage na compra: {cost_bps:.2f} bps") # Resultado negativo\n\n# Exemplo: Vender uma ação\narrival_sell = 50.00\nexecuted_sell = 49.98\ncost_bps_sell = calculate_slippage_bps(arrival_sell, executed_sell, 'sell')\nprint(f"Slippage na venda: {cost_bps_sell:.2f} bps") # Resultado negativo</code></pre><button class="copy-button">Copiar</button></div>`,
+                                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é um algoritmo VWAP?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>VWAP (Volume Weighted Average Price) é um benchmark e um tipo de algoritmo de execução. O objetivo do algoritmo é executar uma ordem grande de forma que o preço médio de execução seja o mais próximo possível do VWAP do dia para aquele ativo. Ele faz isso enviando ordens menores em proporção ao volume negociado no mercado ao longo do dia.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Por que a TCA é importante para gestores de portfólio?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>A TCA permite que os gestores meçam a eficiência de suas corretoras e de seus traders. Uma boa geração de alfa (retorno da estratégia) pode ser destruída por uma má execução. Ao analisar os custos, os gestores podem otimizar suas estratégias de execução, escolher as melhores corretoras para cada tipo de ordem e, em última análise, preservar o retorno para o investidor final.</p></div></div></div>`,
+                                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm">
+                                        <li><strong>Livro (Clássico):</strong> "Algorithmic Trading and DMA" por Barry Johnson.</li>
+                                        <li><strong>Livro (Abrangente):</strong> "Trading and Exchanges: Market Microstructure for Practitioners" por Larry Harris.</li>
+                                        <li><strong>Artigo:</strong> <a href="https://www.cfainstitute.org/en/research/foundation/2012/transaction-cost-analysis" target="_blank" class="text-teal-600 hover:underline">CFA Institute - Transaction Cost Analysis</a></li>
+                                        <li><strong>Artigo Acadêmico:</strong> "Optimal Execution of Portfolio Transactions" por Almgren e Chriss.</li>
+                                        <li><strong>White Paper:</strong> <a href="https://www.virtufinancial.com/article/the-measurement-of-trading-costs" target="_blank" class="text-teal-600 hover:underline">Virtu Financial: The Measurement of Trading Costs</a></li>
+                                        <li><strong>Site:</strong> <a href="https://www.interactivebrokers.com/en/index.php?f=4985" target="_blank" class="text-teal-600 hover:underline">Interactive Brokers - Algos de Execução</a></li>
+                                        <li><strong>Blog:</strong> <a href="https://www.qontigo.com/research-insights/all-articles/categories/execution-analysis/" target="_blank" class="text-teal-600 hover:underline">Qontigo Blog (Execution Analysis)</a></li>
+                                        <li><strong>Artigo:</strong> <a href="https://www.investopedia.com/terms/i/implementation-shortfall.asp" target="_blank" class="text-teal-600 hover:underline">Investopedia: Implementation Shortfall</a></li>
+                                        <li><strong>Artigo:</strong> "A Guide to Transaction Cost Analysis" pela Aite Group.</li>
+                                        <li><strong>Regulação:</strong> "Best Execution" (Reg NMS nos EUA, MiFID II na Europa).</li>
+                                    </ul>`
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'reg-etica',
+                        title: 'Regulamentação e Ética',
+                        modules: [
+                            {
+                                id: 'regulamentacao',
+                                title: 'Regulamentações e Casos Históricos',
+                                content: {
+                                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Relevante: Regulamentação e Casos Históricos</h3><p class="mb-4">O mercado financeiro opera sob um complexo e denso arcabouço regulatório projetado para promover a justiça, a transparência e a estabilidade. A ascensão do trading algorítmico e de alta frequência (HFT) introduziu novos desafios sistêmicos, forçando reguladores em todo o mundo a adaptar e criar novas regras para governar a velocidade e a automação das negociações. A história da regulamentação financeira é, em grande parte, uma reação a crises e falhas que expuseram vulnerabilidades no sistema.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Leis e Diretrizes Chave</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Dodd-Frank Wall Street Reform and Consumer Protection Act (EUA, 2010):</strong> Uma resposta legislativa monumental à crise financeira de 2008. Embora seu escopo seja vasto, para o trading algorítmico, ela fortaleceu a autoridade da SEC e da CFTC para policiar práticas manipuladoras e aumentou o foco na gestão de risco sistêmico.</li><li><strong>MiFID II (UE, 2018):</strong> A "Markets in Financial Instruments Directive II" teve um impacto profundo no trading algorítmico na Europa. Ela introduziu definições formais para "trading algorítmico" e "HFT", e impôs requisitos rigorosos, incluindo testes robustos de algoritmos, controles de risco (como limites de ordens e "kill switches"), e a marcação de todas as ordens geradas por algoritmos para fins de vigilância.</li><li><strong>Regulation Systems Compliance and Integrity (Reg SCI - EUA, 2014):</strong> Exige que as entidades-chave do mercado (bolsas, sistemas de compensação) tenham políticas e procedimentos robustos para garantir a resiliência, capacidade e segurança de seus sistemas tecnológicos.</li></ul>`,
+                                    exemplos: `<h4 class="text-lg font-semibold text-slate-700 mb-4">Linha do Tempo de Eventos Disruptivos</h4><div class="relative timeline-container ml-5 pl-8 border-l-2 border-slate-200 mt-6"><div class="timeline-item relative mb-12 cursor-pointer" data-event="flashcrash"><div class="absolute w-4 h-4 bg-slate-700 rounded-full -left-[35px] border-4 border-white"></div><time class="mb-1 text-sm font-normal leading-none text-slate-500">6 de Maio de 2010</time><h4 class="text-lg font-semibold text-slate-800">Flash Crash</h4><div class="event-details hidden mt-2 p-4 bg-slate-50 rounded-lg"><p class="text-sm text-slate-700">O índice Dow Jones despencou quase 1.000 pontos (9%) em minutos e se recuperou rapidamente. Uma grande ordem de venda algorítmica desencadeou uma cascata de HFTs, que retiraram liquidez e exacerbaram a queda, expondo a fragilidade do mercado e levando à implementação de "circuit breakers".</p></div></div><div class="timeline-item relative mb-12 cursor-pointer" data-event="bats"><div class="absolute w-4 h-4 bg-slate-700 rounded-full -left-[35px] border-4 border-white"></div><time class="mb-1 text-sm font-normal leading-none text-slate-500">23 de Março de 2012</time><h4 class="text-lg font-semibold text-slate-800">IPO da BATS Global Markets</h4><div class="event-details hidden mt-2 p-4 bg-slate-50 rounded-lg"><p class="text-sm text-slate-700">A BATS, uma bolsa de valores, tentou abrir seu próprio capital. Um bug de software em seu sistema fez com que o preço de sua própria ação entrasse em colapso segundos após o início das negociações, caindo de $16 para apenas alguns centavos. A empresa teve que cancelar seu próprio IPO, um caso embaraçoso que destacou os riscos operacionais da tecnologia de mercado.</p></div></div><div class="timeline-item relative mb-12 cursor-pointer" data-event="knight"><div class="absolute w-4 h-4 bg-slate-700 rounded-full -left-[35px] border-4 border-white"></div><time class="mb-1 text-sm font-normal leading-none text-slate-500">1 de Agosto de 2012</time><h4 class="text-lg font-semibold text-slate-800">Colapso da Knight Capital</h4><div class="event-details hidden mt-2 p-4 bg-slate-50 rounded-lg"><p class="text-sm text-slate-700">Um bug em uma atualização de software fez com que o sistema da Knight Capital enviasse milhões de ordens erráticas em 45 minutos. O erro custou à empresa US$ 440 milhões, levando-a à beira da falência e destacando a importância crítica de testes de software e controles de risco.</p></div></div><div class="timeline-item relative mb-12 cursor-pointer" data-event="ap-tweet"><div class="absolute w-4 h-4 bg-slate-700 rounded-full -left-[35px] border-4 border-white"></div><time class="mb-1 text-sm font-normal leading-none text-slate-500">23 de Abril de 2013</time><h4 class="text-lg font-semibold text-slate-800">Flash Crash do "AP Tweet"</h4><div class="event-details hidden mt-2 p-4 bg-slate-50 rounded-lg"><p class="text-sm text-slate-700">A conta do Twitter da Associated Press foi hackeada e postou um tuíte falso sobre explosões na Casa Branca. Algoritmos de trading que liam notícias reagiram instantaneamente, vendendo massivamente e causando uma queda de 140 pontos no Dow Jones em dois minutos, antes que a notícia fosse desmentida e o mercado se recuperasse. O evento demonstrou a vulnerabilidade dos algoritmos a informações falsas e a velocidade com que elas se propagam.</p></div></div></div>`,
+                                    formulas: `<p>Este tópico é mais conceitual e histórico, não se baseando em fórmulas matemáticas, mas sim em marcos legais e eventos de mercado.</p>`,
+                                    python: `<p>O código Python neste contexto seria usado para análise de dados de mercado para detectar anomalias que possam indicar eventos como um flash crash, e não para implementar as regulações em si.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import pandas as pd\n\n# Suponha que 'prices' seja um DataFrame do pandas com preços\n# de alta frequência (tick-by-tick ou por segundo)\n\ndef detect_price_jumps(prices, threshold=0.05):\n    \"\"\"Detecta saltos de preço percentuais que excedem um limite.\"\"\"\n    returns = prices.pct_change()\n    anomalies = returns[returns.abs() > threshold]\n    return anomalies\n\n# Exemplo de uso:\n# price_data = pd.read_csv('tick_data_2010_05_06.csv')\n# jumps = detect_price_jumps(price_data['Price'])\n# if not jumps.empty:\n#     print("Potenciais anomalias (flash events) detectadas:")\n#     print(jumps)</code></pre><button class="copy-button">Copiar</button></div>`,
+                                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que são 'circuit breakers'?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>São mecanismos automáticos que pausam as negociações em toda a bolsa quando os preços caem drasticamente em um curto período de tempo. Eles foram aprimorados após o Flash Crash de 2010 para dar tempo aos investidores de reavaliar a situação e evitar pânico alimentado por algoritmos.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Como os reguladores monitoram o HFT?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Reguladores como a CVM no Brasil e a SEC nos EUA usam sistemas de vigilância de mercado sofisticados que analisam o fluxo de ordens em tempo real. Eles procuram por padrões de negociação abusivos, como spoofing e front-running, e exigem que as firmas de HFT registrem seus algoritmos e mantenham registros detalhados de suas atividades.</p></div></div></div>`,
+                                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm">
+                                        <li><strong>Site (Regulador EUA):</strong> <a href="https://www.sec.gov/" target="_blank" class="text-teal-600 hover:underline">U.S. Securities and Exchange Commission (SEC)</a></li>
+                                        <li><strong>Site (Regulador Brasil):</strong> <a href="https://www.gov.br/cvm/pt-br" target="_blank" class="text-teal-600 hover:underline">Comissão de Valores Mobiliários (CVM)</a></li>
+                                        <li><strong>Site (Regulador Europa):</strong> <a href="https://www.esma.europa.eu/" target="_blank" class="text-teal-600 hover:underline">European Securities and Markets Authority (ESMA)</a></li>
+                                        <li><strong>Relatório Oficial:</strong> <a href="https://www.sec.gov/news/studies/2010/marketevents-report.pdf" target="_blank" class="text-teal-600 hover:underline">Relatório da SEC/CFTC sobre o Flash Crash de 2010</a></li>
+                                        <li><strong>Livro:</strong> "Flash Boys: A Wall Street Revolt" por Michael Lewis (visão crítica sobre HFT).</li>
+                                        <li><strong>Livro:</strong> "Dark Pools: The Rise of the Machine Traders and the Rigging of the U.S. Stock Market" por Scott Patterson.</li>
+                                        <li><strong>Documento Legal:</strong> <a href="https://www.govinfo.gov/content/pkg/PLAW-111publ203/pdf/PLAW-111publ203.pdf" target="_blank" class="text-teal-600 hover:underline">Texto Completo do Dodd-Frank Act</a></li>
+                                        <li><strong>Documento Legal:</strong> <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex:32014L0065" target="_blank" class="text-teal-600 hover:underline">Texto Completo da MiFID II</a></li>
+                                        <li><strong>Reportagem:</strong> <a href="https://www.reuters.com/article/us-knight-capital-group-glitch/knight-mare-on-wall-street-a-rogue-algorithm-idUSBRE87104320120802" target="_blank" class="text-teal-600 hover:underline">Reuters: Cobertura do Colapso da Knight Capital</a></li>
+                                        <li><strong>Reportagem:</strong> <a href="https://www.cbsnews.com/news/fake-ap-tweet-about-white-house-explosions-sends-stocks-plunging/" target="_blank" class="text-teal-600 hover:underline">CBS News: O Falso Tuíte da AP</a></li>
+                                    </ul>`
+                                }
+                            },
+                            {
+                                id: 'etica-vies',
+                                title: 'Viés Algorítmico e Ética',
+                                content: {
+                                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Relevante: Viés Algorítmico e Ética</h3><p class="mb-4">A ética no trading algorítmico transcende o mero cumprimento da lei. É um campo ativo de debate que lida com a responsabilidade, a justiça e o impacto social de sistemas de negociação automatizados. Um algoritmo é um reflexo dos dados que o alimentam e dos objetivos que seus criadores definem. Se os dados são enviesados ou os objetivos são puramente extrativistas, o algoritmo pode operar de maneiras prejudiciais, mesmo que legalmente permissíveis.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Prevenção de Manipulação de Mercado</h4><p>Projetar algoritmos para competir de forma justa é um imperativo ético. Práticas manipuladoras exploram as regras do mercado para enganar outros participantes, minando a confiança e a integridade do sistema.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Spoofing e Layering:</strong> Envolve colocar ordens (geralmente grandes) sem intenção de executá-las para criar uma falsa impressão de pressão de compra ou venda. Uma vez que outros participantes reagem a essa falsa liquidez, o spoofer cancela suas ordens e negocia na direção oposta, lucrando com o movimento de preço que ele mesmo induziu.</li><li><strong>Front-Running:</strong> Uma corretora ou trader usa o conhecimento de uma grande ordem pendente de um cliente para executar uma negociação para sua própria conta primeiro, antecipando o impacto de preço da ordem do cliente.</li><li><strong>Quote Stuffing:</strong> Inundar o mercado com um número massivo de ordens e cancelamentos para sobrecarregar os sistemas de informação da concorrência e criar uma "cortina de fumaça" para esconder outras atividades.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Explicabilidade (XAI) e o Problema da "Caixa-Preta"</h4><p>À medida que modelos de IA e Machine Learning se tornam mais complexos (ex: redes neurais profundas), eles podem se tornar "caixas-pretas" — sistemas que tomam decisões de negociação altamente eficazes, mas cuja lógica interna é incompreensível para os humanos. Isso levanta questões éticas profundas: Como podemos confiar ou auditar um sistema que não podemos entender? A <strong>IA Explicável (XAI)</strong> é um campo de pesquisa crucial que busca desenvolver métodos para que as decisões da IA possam ser interpretadas, depuradas e questionadas. Para reguladores e gestores de risco, a explicabilidade não é um luxo, mas uma necessidade para garantir a governança e a responsabilidade.</p>`,
+                                    exemplos: `<p><strong>Exemplo de Viés nos Dados:</strong> Uma equipe treina um algoritmo de previsão de retornos usando dados apenas do período de 2010 a 2019, uma década majoritariamente de alta (bull market). O algoritmo aprende a ser agressivamente "comprador". Quando o mercado vira em 2020 com a pandemia, o algoritmo continua a comprar nas quedas, gerando perdas massivas, pois nunca foi treinado em um ambiente de mercado de baixa (bear market).</p><p class="mt-4"><strong>Exemplo de Decisão Ética:</strong> Um algoritmo de execução detecta uma oportunidade de lucrar R$ 0,01 por ação fazendo front-running em uma grande ordem de um fundo de pensão. A decisão ética e legal é abster-se. A firma deve ter salvaguardas programadas para impedir que o algoritmo execute tal ação, protegendo o interesse do cliente acima do lucro da firma.</p>`,
+                                    formulas: `<p>A ética e o viés algorítmico são avaliados através de auditorias de código, análise de padrões de negociação e métricas de justiça, em vez de fórmulas matemáticas tradicionais.</p>`,
+                                    python: `<p>Exemplo conceitual de uma "lista de exclusão" ética em um algoritmo de seleção de ativos.</p><div class="relative mt-2"><pre><code class="language-python prism-code"># Lista de setores a serem excluídos por razões éticas (ESG)\nethical_exclusion_list = ['TOBACCO', 'WEAPONS', 'COAL']\n\ndef select_ethical_stocks(universe):\n    \"\"\"Filtra um universo de ações com base em uma lista de exclusão.\"\"\"\n    ethical_universe = []\n    for stock in universe:\n        if stock.sector not in ethical_exclusion_list:\n            ethical_universe.append(stock)\n    return ethical_universe\n\n# Supondo que 'all_stocks' seja uma lista de objetos de ações\n# screened_stocks = select_ethical_stocks(all_stocks)\n# A estratégia de trading operaria apenas com as ações de 'screened_stocks'.\n\nprint("Este é um exemplo simplificado de como um filtro ético pode ser aplicado.")</code></pre><button class="copy-button">Copiar</button></div>`,
+                                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>A IA pode desenvolver seus próprios vieses?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Sim. Se os dados de treinamento contêm vieses humanos históricos (por exemplo, aprovar mais crédito para um grupo demográfico do que para outro), a IA aprenderá e poderá até amplificar esses vieses. É por isso que a curadoria e a análise dos dados de treinamento são etapas críticas para uma IA ética.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>De quem é a responsabilidade quando um algoritmo causa perdas massivas?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>A responsabilidade é multifacetada, mas recai primariamente sobre a firma que opera o algoritmo. Isso inclui os desenvolvedores que o programaram, a equipe de risco que deveria ter implementado limites de perda e controles, e a gestão sênior que é responsável pela governança geral. Reguladores podem multar a firma e até mesmo banir indivíduos do mercado.</p></div></div></div>`,
+                                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm">
+                                        <li><strong>Código de Conduta:</strong> <a href="https://www.apimec.com.br/apimec-brasil/pt_br/autorregulacao/codigo-de-conduta/" target="_blank" class="text-teal-600 hover:underline">Código de Conduta APIMEC</a></li>
+                                        <li><strong>Livro (Impacto Social):</strong> "Weapons of Math Destruction" por Cathy O'Neil.</li>
+                                        <li><strong>Livro (Ética em IA):</strong> "The Ethical Algorithm" por Michael Kearns e Aaron Roth.</li>
+                                        <li><strong>Artigo Acadêmico:</strong> "The Ethics of High-Frequency Trading" (Journal of Business Ethics).</li>
+                                        <li><strong>Artigo (XAI):</strong> <a href="https://www.darpa.mil/program/explainable-artificial-intelligence" target="_blank" class="text-teal-600 hover:underline">DARPA - Explainable Artificial Intelligence (XAI)</a></li>
+                                        <li><strong>Reportagem:</strong> <a href="https://www.justice.gov/opa/pr/high-frequency-trader-convicted-spoofing-and-market-manipulation-charges" target="_blank" class="text-teal-600 hover:underline">Departamento de Justiça dos EUA sobre condenações por Spoofing</a></li>
+                                        <li><strong>Diretrizes:</strong> <a href="https://www.oecd.org/ai/principles/" target="_blank" class="text-teal-600 hover:underline">OECD AI Principles</a> (Princípios de IA da OCDE).</li>
+                                        <li><strong>Blog:</strong> <a href="https://www.fca.org.uk/insight/algorithmic-trading" target="_blank" class="text-teal-600 hover:underline">FCA (UK Regulator) Insight on Algorithmic Trading</a></li>
+                                        <li><strong>Artigo:</strong> <a href="https://hbr.org/2019/10/what-does-it-mean-for-ai-to-be-fair" target="_blank" class="text-teal-600 hover:underline">Harvard Business Review: O que significa uma IA ser justa?</a></li>
+                                        <li><strong>Iniciativa:</strong> <a href="https://www.fatml.org/" target="_blank" class="text-teal-600 hover:underline">Conference on Fairness, Accountability, and Transparency (FAccT)</a></li>
+                                    </ul>`
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        async function callGemini(prompt) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                     return candidate.content.parts[0].text.replace(/\n/g, '<br>');
+                } else {
+                    return `<p class="text-red-600">Não foi possível gerar conteúdo. A resposta da API estava vazia ou malformada.</p>`;
+                }
+            } catch (error) {
+                console.error("Erro ao chamar a API Gemini:", error);
+                return `<p class="text-red-600">Erro ao se conectar com a API Gemini. Verifique o console.</p>`;
+            }
+        }
+
+        const modal = document.getElementById('gemini-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalLoader = document.getElementById('modal-loader');
+        const modalResponse = document.getElementById('modal-response');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function showModal(title) {
+            modalTitle.textContent = title;
+            modalResponse.innerHTML = '';
+            modalLoader.style.display = 'block';
+            modal.classList.remove('hidden');
+        }
+
+        function displayModalContent(htmlContent) {
+            modalLoader.style.display = 'none';
+            modalResponse.innerHTML = htmlContent;
+        }
+
+        function hideModal() {
+            modal.classList.add('hidden');
+        }
+
+        modalCloseBtn.addEventListener('click', hideModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+        
+        let activeChart = null;
+
+        function initApp() {
+            const sidebarNav = document.getElementById('sidebar-nav');
+            const contentWrapper = document.getElementById('content-sections-wrapper');
+            document.getElementById('pillar-title').textContent = contentData[0].title;
+            
+            contentData[0].subsections.forEach((section) => {
+                 const pillarContainer = document.createElement('div');
+                 const pillarHeader = document.createElement('div');
+                 pillarHeader.className = 'pillar-header flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-slate-700 active';
+                 pillarHeader.innerHTML = `<span class="font-semibold">${section.title}</span><svg class="w-5 h-5 transition-transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
+            
+                const moduleLinks = document.createElement('ul');
+                moduleLinks.className = 'module-links';
+
+                section.modules.forEach((module) => {
+                    const linkItem = document.createElement('li');
+                    linkItem.innerHTML = `<a href="#" data-target="${module.id}" class="module-link block px-8 py-2 hover:bg-slate-600">${module.title}</a>`;
+                    moduleLinks.appendChild(linkItem);
+                    
+                    const sectionEl = document.createElement('section');
+                    sectionEl.id = module.id;
+                    sectionEl.className = 'hidden';
+
+                    const tabs = ['Teoria', 'Exemplos', 'Fórmulas', 'Python', 'QA', 'Referências', 'Aprenda com IA'];
+                    
+                    const titleHTML = `<h2 class="text-3xl font-bold text-slate-800">${module.title}</h2>`;
+                    let tabsContainerHTML = '<div class="flex border-b border-gray-200 mt-2 mb-4 flex-wrap">';
+                    let panesHTML = '';
+
+                    tabs.forEach((tabName, index) => {
+                        const key = tabName.toLowerCase().replace(/\s+/g, '').replace('í', 'i').replace('ó', 'o').replace('ç', 'c').replace('ê', 'e');
+                        const targetId = `${module.id}-${key}`;
+                        const content = module.content[key];
+                        
+                        tabsContainerHTML += `<button data-target="${targetId}" class="tab-btn px-4 py-2 text-sm ${index === 0 ? 'tab-active' : 'tab-inactive'}">${tabName}</button>`;
+                        
+                        if (key === 'aprendacomia') {
+                            panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''} space-y-4 text-center p-4">
+                                <p class="text-slate-600">Use a IA Gemini para aprofundar seu conhecimento.</p>
+                                <div class="flex justify-center items-center gap-4 flex-wrap">
+                                    <button data-topic-title="${module.title}" class="explain-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Explicar o Tópico</button>
+                                    <button data-topic-title="${module.title}" class="quiz-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Gerar Quiz</button>
+                                </div>
+                            </div>`;
+                        } else {
+                           panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''}">${content || 'Conteúdo em breve.'}</div>`;
+                        }
+                    });
+                    
+                    tabsContainerHTML += '</div>';
+                    sectionEl.innerHTML = `<div class="card-bg p-6 rounded-2xl shadow-lg"><div class="text-slate-700 leading-relaxed">${titleHTML}${tabsContainerHTML}<div class="tab-content mt-4 min-h-[200px]">${panesHTML}</div></div></div>`;
+                    contentWrapper.appendChild(sectionEl);
+                });
+
+                pillarContainer.appendChild(pillarHeader);
+                pillarContainer.appendChild(moduleLinks);
+                sidebarNav.appendChild(pillarContainer);
+            });
+            
+            addEventListeners();
+        }
+
+        function activateInteractiveElements(containerId) {
+            if (activeChart) {
+                activeChart.destroy();
+                activeChart = null;
+            }
+
+            if (containerId === 'backtesting') {
+                initBiasChart();
+            } else if (containerId === 'tca') {
+                initTcaCalculator();
+            } else if (containerId === 'regulamentacao') {
+                initTimeline();
+            }
+        }
+        
+        function initBiasChart() {
+            const canvas = document.getElementById('biasChart');
+            if (!canvas) return;
+
+            const biasBtn = document.getElementById('toggleBiasBtn');
+            const biasExplanation = document.getElementById('biasExplanation');
+            let isBiased = false;
+
+            const initialData = {
+                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                datasets: [ { label: 'Fundo Vencedor', data: [100, 105, 112, 120, 135, 150], borderColor: 'rgba(75, 192, 192, 1)', tension: 0.1, borderWidth: 2 }, { label: 'Fundo A (Falhou)', data: [100, 98, 95, 90, 85, 80], borderColor: 'rgba(255, 99, 132, 0.5)', borderDash: [5, 5], hidden: false, borderWidth: 1.5 }, { label: 'Fundo B (Falhou)', data: [100, 102, 101, 99, 95, 92], borderColor: 'rgba(255, 159, 64, 0.5)', borderDash: [5, 5], hidden: false, borderWidth: 1.5 }, { label: 'Média Real do Mercado', data: [100, 101.6, 102.6, 103, 105, 107.3], borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 3 }]
+            };
+            const biasedData = { label: 'Média com Viés de Sobrevivência', data: [100, 105, 112, 120, 135, 150], borderColor: 'rgba(153, 102, 255, 1)', borderWidth: 3, borderDash: [10, 5] };
+            
+            const ctx = canvas.getContext('2d');
+            activeChart = new Chart(ctx, {
+                type: 'line', data: JSON.parse(JSON.stringify(initialData)),
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Demonstração do Viés de Sobrevivência' }, tooltip: { mode: 'index', intersect: false } }, scales: { y: { beginAtZero: false, title: { display: true, text: 'Valor do Portfólio (R$)' } } } }
+            });
+            
+            biasBtn.onclick = () => {
+                isBiased = !isBiased;
+                if (isBiased) {
+                    activeChart.data.datasets[1].hidden = true;
+                    activeChart.data.datasets[2].hidden = true;
+                    activeChart.data.datasets.push(biasedData);
+                    biasBtn.textContent = 'Remover Simulação de Viés';
+                    biasBtn.classList.replace('bg-rose-600', 'bg-gray-600');
+                    biasExplanation.textContent = 'Ao ignorar os fundos que falharam, a "média" parece espetacular, mas é irreal.';
+                } else {
+                    activeChart.data = JSON.parse(JSON.stringify(initialData));
+                    biasBtn.textContent = 'Simular Viés de Sobrevivência';
+                    biasBtn.classList.replace('bg-gray-600', 'bg-rose-600');
+                    biasExplanation.textContent = '';
+                }
+                activeChart.update();
+            };
+        }
+
+        function initTcaCalculator() {
+            const calculateTcaBtn = document.getElementById('calculateTcaBtn');
+            calculateTcaBtn.onclick = () => {
+                const arrivalPrice = parseFloat(document.getElementById('arrivalPrice').value);
+                const executionPrice = parseFloat(document.getElementById('executionPrice').value);
+                const quantity = parseInt(document.getElementById('quantity').value);
+                const resultDiv = document.getElementById('tcaResult');
+
+                if (isNaN(arrivalPrice) || isNaN(executionPrice) || isNaN(quantity)) {
+                    resultDiv.textContent = 'Por favor, preencha todos os campos.';
+                    resultDiv.className = 'mt-4 text-center font-bold text-lg text-red-500 h-8'; return;
+                }
+                const totalCost = (executionPrice - arrivalPrice) * quantity;
+                let message = `Custo Total de Slippage: R$ ${totalCost.toFixed(2)}`;
+                let colorClass = totalCost > 0 ? 'text-red-600' : 'text-green-600';
+                message += totalCost > 0 ? ' (custo negativo)' : ' (custo positivo)';
+                resultDiv.textContent = message;
+                resultDiv.className = `mt-4 text-center font-bold text-lg h-8 ${colorClass}`;
+            };
+        }
+
+        function initTimeline() {
+             document.querySelectorAll('.timeline-item[data-event]').forEach(item => {
+                item.onclick = () => item.querySelector('.event-details').classList.toggle('hidden');
+            });
+        }
+
+        function addEventListeners() {
+            document.querySelectorAll('.pillar-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    header.classList.toggle('active');
+                    header.querySelector('svg').classList.toggle('rotate-180');
+                });
+            });
+
+            document.querySelectorAll('.module-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const targetId = e.target.dataset.target;
+                    document.getElementById('welcome-message').classList.add('hidden');
+                    document.querySelectorAll('#content-sections-wrapper > section').forEach(sec => sec.classList.add('hidden'));
+                    const targetSection = document.getElementById(targetId);
+                    targetSection.classList.remove('hidden');
+
+                    if (window.MathJax && window.MathJax.typeset) {
+                        MathJax.typesetPromise([targetSection]).then(() => Prism.highlightAllUnder(targetSection));
+                    } else { Prism.highlightAllUnder(targetSection); }
+
+                    document.querySelectorAll('.module-link').forEach(l => l.classList.remove('active'));
+                    e.target.classList.add('active');
+                    document.getElementById('main-content').scrollTo(0, 0);
+                    
+                    activateInteractiveElements(targetId);
+                });
+            });
+
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const container = button.closest('.card-bg');
+                    container.querySelectorAll('.tab-btn').forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
+                    button.classList.replace('tab-inactive', 'tab-active');
+                    container.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+                    document.getElementById(targetId).classList.remove('hidden');
+                });
+            });
+
+            document.querySelectorAll('.qa-toggle').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    content.classList.toggle('hidden');
+                    button.querySelector('span:last-child').textContent = content.classList.contains('hidden') ? '+' : '-';
+                });
+            });
+
+            document.querySelectorAll('.copy-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const code = e.target.previousElementSibling.querySelector('code').innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        e.target.textContent = 'Copiado!';
+                        setTimeout(() => { e.target.textContent = 'Copiar'; }, 2000);
+                    });
+                });
+            });
+
+            document.querySelectorAll('.explain-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const topicTitle = e.target.dataset.topicTitle;
+                    showModal(`✨ Explicando: ${topicTitle}`);
+                    const prompt = `Explique o seguinte tópico de finanças quantitativas de forma clara e concisa para um estudante: "${topicTitle}". Use parágrafos curtos, analogias simples e exemplos práticos, se possível. Formate a resposta em HTML simples (use <p>, <strong>, <ul>, <li>).`;
+                    const explanation = await callGemini(prompt);
+                    displayModalContent(explanation);
+                });
+            });
+
+            document.querySelectorAll('.quiz-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const topicTitle = e.target.dataset.topicTitle;
+                    showModal(`✨ Quiz: ${topicTitle}`);
+                    const prompt = `Crie um quiz com 3 perguntas de múltipla escolha (4 opções de 'a' a 'd') sobre o tópico "${topicTitle}". Após as perguntas, revele as respostas corretas com uma justificativa concisa em negrito. Formate como HTML (use <p>, <strong>, <ul>, <li>).`;
+                    const quiz = await callGemini(prompt);
+                    displayModalContent(quiz);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
+
+

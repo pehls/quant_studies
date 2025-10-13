@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação de Monte Carlo para Precificação de Opções</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    
+    <!-- Prism.js for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <!-- Chart.js for interactive plots -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #d1d5db; }
+        .content-page { @apply bg-gray-800 p-6 md:p-8 rounded-2xl shadow-lg; }
+        h1, h2, h3 { @apply text-white font-bold tracking-tight; }
+        h1 { @apply text-4xl md:text-5xl mb-4; }
+        h2 { @apply text-3xl border-b-2 border-cyan-500 pb-2 mb-6 mt-8; }
+        h3 { @apply text-2xl mb-4 mt-6; }
+        p, li { @apply text-lg leading-relaxed text-gray-300; }
+        a { @apply text-cyan-400 hover:text-cyan-300 transition-colors; }
+        pre[class*="language-"] { @apply rounded-xl text-sm; }
+        .gemini-analysis { @apply bg-gradient-to-r from-gray-700 to-gray-800 border-l-4 border-purple-500 p-6 rounded-lg my-6 shadow-inner; }
+        .gemini-analysis h4 { @apply text-xl font-semibold text-purple-300 mb-2 flex items-center; }
+        .gemini-analysis p { @apply text-base text-gray-200; }
+        .katex-display { overflow-x: auto; overflow-y: hidden; }
+        .katex { font-size: 1.1em !important; }
+        table { @apply w-full text-left border-collapse my-6; }
+        th, td { @apply p-3 border border-gray-600; }
+        th { @apply bg-gray-700 text-white font-semibold; }
+        .active-link { @apply bg-cyan-500 text-white shadow-md; }
+        .gemini-btn { @apply bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors; }
+        .gemini-result-container { @apply bg-gray-900/50 p-4 rounded-lg mt-4 border border-gray-700; }
+        .loader { @apply w-8 h-8 border-4 border-dashed rounded-full animate-spin border-cyan-400 mx-auto; }
+        
+        @media print {
+            body { background-color: white; color: black; }
+            #sidebar, #menu-toggle, .gemini-btn, #export-menu { display: none; }
+            main { padding: 0; }
+            .content-page { display: block !important; box-shadow: none; border-radius: 0; margin-bottom: 2rem; page-break-before: always; }
+            .content-page:first-child { page-break-before: auto; }
+            h1, h2, h3, p, li { color: black; }
+            h2 { border-color: #ccc; }
+            pre[class*="language-"] { background-color: #f5f5f5 !important; color: black !important; border: 1px solid #ccc; white-space: pre-wrap; word-wrap: break-word; }
+            .gemini-analysis { background: #eef2ff !important; border-color: #8b5cf6 !important; }
+            canvas { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="relative min-h-screen md:flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-gray-800 text-gray-100 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-20 flex flex-col justify-between">
+            <div>
+                <a href="#" class="text-white flex items-center space-x-2 px-4">
+                    <svg class="w-8 h-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311a7.5 7.5 0 0 1-7.5 0c1.433-2.123 2.12-4.59 2.12-7.043V6.75a4.5 4.5 0 0 1 .9-2.625m5.1 0a4.5 4.5 0 0 0 .9 2.625v3.707c0 2.452.687 4.92 2.12 7.043a7.5 7.5 0 0 0-7.5 0m-3.75-.189a6.01 6.01 0 0 0-1.5.189" /></svg>
+                    <span class="text-2xl font-extrabold">MC Quant</span>
+                </a>
+                <nav class="mt-6">
+                    <a href="#" data-target="intro" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Introdução</a>
+                    <a href="#" data-target="gbm" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">GBM</a>
+                    <a href="#" data-target="pricing" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Precificação Europeia</a>
+                    <a href="#" data-target="exotics" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Opções Exóticas</a>
+                    <a href="#" data-target="greeks" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Cálculo das Gregas</a>
+                    <a href="#" data-target="project" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Projeto Final: SPX</a>
+                    <a href="#" data-target="references" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Referências</a>
+                </nav>
+            </div>
+            <div class="px-4 pb-4">
+                <div class="relative">
+                    <button id="export-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                        Exportar Conteúdo
+                    </button>
+                    <div id="export-menu" class="absolute bottom-full mb-2 w-full bg-gray-600 rounded-lg shadow-lg hidden">
+                        <a href="#" id="export-pdf" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-t-lg">Exportar para PDF</a>
+                        <a href="#" id="export-md" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-b-lg">Exportar para Markdown</a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 p-6 md:p-10">
+            <div id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-30">
+                <button id="menu-toggle" class="text-white bg-gray-800 p-2 rounded-md focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            
+            <section id="intro" class="content-page">
+                <header class="text-center mb-12">
+                    <h1 class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Simulação de Monte Carlo para Precificação de Opções</h1>
+                    <p class="text-xl text-gray-400 mt-2">O Poder da Simulação Onde as Fórmulas Analíticas Falham</p>
+                </header>
+                <p>Este capítulo explora uma das técnicas mais poderosas e flexíveis para precificar derivativos: a <strong>Simulação de Monte Carlo</strong>. Enquanto modelos analíticos como o Black-Scholes-Merton (BSM) fornecem uma base teórica essencial, sua aplicabilidade prática é limitada por premissas simplificadoras. A simulação, por outro lado, oferece um framework robusto para avaliar uma vasta gama de instrumentos financeiros sob condições de mercado mais realistas.</p>
+                <p class="mt-4">A ideia central é modelar a incerteza do preço futuro de um ativo simulando um grande número de caminhos de preços possíveis que ele poderia seguir. Para cada caminho, o payoff da opção no vencimento é calculado. A média de todos esses payoffs, descontada ao valor presente, fornece uma estimativa do preço justo da opção. A flexibilidade para acomodar payoffs complexos e dinâmicas de preços realistas torna a Simulação de Monte Carlo uma ferramenta indispensável para engenheiros financeiros e analistas quantitativos.</p>
+            </section>
+
+            <section id="gbm" class="content-page hidden">
+                <h2>Modelando a Dinâmica de Preços de Ativos: Movimento Browniano Geométrico (GBM)</h2>
+                <p>Para simular os caminhos dos preços dos ativos, precisamos de um modelo matemático que descreva sua evolução ao longo do tempo. O modelo mais utilizado em finanças quantitativas é o <strong>Movimento Browniano Geométrico (GBM)</strong>. Ele modela o preço de um ativo, $S_t$, como um processo estocástico que satisfaz a seguinte equação diferencial estocástica (SDE):</p>
+                <div class="my-4 text-center">
+                    $dS_t = \mu S_t dt + \sigma S_t dW_t$
+                </div>
+                <p>Para a simulação em computador, nós discretizamos esta equação. A fórmula para passar do preço no tempo $t$, $S_t$, para o preço em $t+\Delta t$, $S_{t+\Delta t}$, é:</p>
+                <div class="my-4 text-center">
+                    $S_{t+\Delta t} = S_t \exp\left( \left(\mu - \frac{1}{2}\sigma^2\right)\Delta t + \sigma Z \sqrt{\Delta t} \right)$
+                </div>
+                <p>Onde $Z \sim N(0,1)$ é uma variável aleatória normal padrão. Esta equação é o motor da nossa simulação de Monte Carlo.</p>
+
+                <h3>Implementação em Python: Simulando um Único Caminho de Ativo</h3>
+                <div class="my-6"><canvas id="gbmChart" height="200"></canvas></div>
+                <pre><code class="language-python" id="code-gbm">
+import numpy as np
+import matplotlib.pyplot as plt
+
+def simulate_gbm_path(S0, mu, sigma, T, n_steps):
+    """Simula um único caminho de Movimento Browniano Geométrico."""
+    dt = T / n_steps
+    # Gera choques aleatórios de uma distribuição normal padrão
+    Z = np.random.standard_normal(size=n_steps)
+    
+    drift = (mu - 0.5 * sigma**2) * dt
+    diffusion = sigma * np.sqrt(dt) * Z
+    
+    # Calcula os log-retornos
+    log_returns = drift + diffusion
+    
+    # Soma cumulativamente os log-retornos e exponencia para obter o caminho de preços
+    path = S0 * np.exp(np.cumsum(log_returns))
+    
+    return np.insert(path, 0, S0)
+
+# Parâmetros de Simulação
+S0 = 100.0; mu = 0.05; sigma = 0.20; T = 1.0; n_steps = 252
+price_path = simulate_gbm_path(S0, mu, sigma, T, n_steps)
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-gbm" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-gbm" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+            
+            <section id="pricing" class="content-page hidden">
+                <h2>Precificando uma Opção Europeia com Monte Carlo</h2>
+                <p>O conceito de <strong>avaliação neutra ao risco</strong> é a pedra angular da precificação de derivativos moderna. Ele nos permite simplificar o problema de precificação substituindo a taxa de derivação do mundo real, $\mu$, pela taxa de juros livre de risco, $r$. O preço justo de qualquer derivativo é simplesmente seu payoff futuro esperado, calculado sob a medida neutra ao risco, e então descontado ao presente pela taxa livre de risco.</p>
+                
+                <h3>Implementação Completa em Python</h3>
+                <pre><code class="language-python" id="code-european">
+import numpy as np
+
+def monte_carlo_european_price(S0, K, T, r, sigma, option_type='call', n_simulations=100000):
+    """Precifica uma opção europeia usando simulação de Monte Carlo."""
+    # Gera preços terminais de ativos aleatórios usando a solução de forma fechada para GBM
+    Z = np.random.standard_normal(n_simulations)
+    ST = S0 * np.exp((r - 0.5 * sigma**2) * T + sigma * np.sqrt(T) * Z)
+    
+    # Calcula o payoff para cada preço terminal simulado
+    if option_type == 'call':
+        payoff = np.maximum(ST - K, 0)
+    elif option_type == 'put':
+        payoff = np.maximum(K - ST, 0)
+    
+    # Desconta o payoff médio de volta para o presente
+    option_price = np.exp(-r * T) * np.mean(payoff)
+    
+    return option_price
+
+# Parâmetros de Exemplo
+S0 = 100.0; K = 105.0; T = 1.0; r = 0.05; sigma = 0.20
+call_price_mc = monte_carlo_european_price(S0, K, T, r, sigma, option_type='call')
+print(f"Preço da Opção de Compra Europeia por Monte Carlo: ${call_price_mc:.4f}")
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-european" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-european" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="exotics" class="content-page hidden">
+                <h2>Expandindo o Horizonte: Precificação de Opções Exóticas</h2>
+                <p>O verdadeiro poder da simulação de Monte Carlo é percebido na precificação de opções exóticas, cujas características complexas tornam as soluções analíticas intratáveis.</p>
+                
+                <h3>Opções Asiáticas</h3>
+                <p>Uma opção asiática é uma opção dependente do caminho cujo payoff é determinado pelo preço médio do ativo subjacente durante um período especificado. Para precificar uma opção asiática, devemos simular o caminho completo do preço do ativo para cada execução.</p>
+                <pre><code class="language-python" id="code-asian">
+def monte_carlo_asian_option(S0, K, T, r, sigma, n_simulations=10000, n_steps=100):
+    """Precifica uma opção de compra asiática de média aritmética."""
+    dt = T / n_steps
+    Z = np.random.standard_normal((n_simulations, n_steps))
+    log_returns = (r - 0.5 * sigma**2) * dt + sigma * np.sqrt(dt) * Z
+    price_paths = S0 * np.exp(np.cumsum(log_returns, axis=1))
+    
+    average_prices = np.mean(price_paths, axis=1)
+    payoffs = np.maximum(average_prices - K, 0)
+    
+    return np.exp(-r * T) * np.mean(payoffs)
+
+asian_call_price = monte_carlo_asian_option(100.0, 100.0, 1.0, 0.05, 0.20)
+print(f"Preço da Opção de Compra Asiática: ${asian_call_price:.4f}")
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-asian" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-asian" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="greeks" class="content-page hidden">
+                <h2>Estimando Sensibilidades: As Gregas via Simulação</h2>
+                <p>As "Gregas" são um conjunto de medidas de risco que quantificam a sensibilidade de uma opção a mudanças em diferentes parâmetros de mercado. Com a simulação de Monte Carlo, podemos aproximar as derivadas numericamente usando o <strong>método de diferenças finitas</strong> ("bump-and-revalue").</p>
+                <pre><code class="language-python" id="code-greeks">
+def monte_carlo_delta(S0, K, T, r, sigma, option_type, n_simulations, dS=0.01):
+    """Calcula o Delta usando o método de diferença central."""
+    price_up = monte_carlo_european_price(S0 + dS, K, T, r, sigma, option_type, n_simulations)
+    price_down = monte_carlo_european_price(S0 - dS, K, T, r, sigma, option_type, n_simulations)
+    return (price_up - price_down) / (2 * dS)
+
+def monte_carlo_vega(S0, K, T, r, sigma, option_type, n_simulations, d_sigma=0.01):
+    """Calcula o Vega aumentando a volatilidade."""
+    price_up = monte_carlo_european_price(S0, K, T, r, sigma + d_sigma, option_type, n_simulations)
+    price_down = monte_carlo_european_price(S0, K, T, r, sigma - d_sigma, option_type, n_simulations)
+    return (price_up - price_down) / (2 * d_sigma)
+
+# Calcular Gregas para nossa opção de compra europeia de exemplo
+delta_mc = monte_carlo_delta(100.0, 105.0, 1.0, 0.05, 0.20, 'call', 50000)
+vega_mc = monte_carlo_vega(100.0, 105.0, 1.0, 0.05, 0.20, 'call', 50000)
+print(f"Delta por Monte Carlo: {delta_mc:.4f}")
+print(f"Vega por Monte Carlo: {vega_mc:.4f}")
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-greeks" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-greeks" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="project" class="content-page hidden">
+                <h2>Projeto Final: Precificação e Hedging de uma Opção de Índice do Mundo Real</h2>
+                <p>Este projeto integra todos os conceitos para precificar uma opção de compra europeia próxima do dinheiro no Índice S&P 500 (SPX) e analisar suas principais sensibilidades de risco.</p>
+                <pre><code class="language-python" id="code-project-spx">
+import yfinance as yf
+from datetime import datetime
+import numpy as np
+
+# 1. Coletar Dados do Mundo Real
+spx = yf.Ticker("^GSPC")
+S0 = spx.history(period='1d')['Close'].iloc[0]
+K = 5500.0
+T = (datetime(2024, 9, 20) - datetime(2024, 6, 28)).days / 365.25
+r = 0.053 # Taxa de juros livre de risco aproximada
+hist_data = spx.history(period="1y")
+hist_data['log_return'] = np.log(hist_data['Close'] / hist_data['Close'].shift(1))
+sigma = hist_data['log_return'][-100:].std() * np.sqrt(252)
+
+# 2. Análise usando as funções do capítulo
+# bsm_price = black_scholes_price(S0, K, T, r, sigma, 'call')
+# mc_price = monte_carlo_european_price(S0, K, T, r, sigma, 'call', 100000)
+# delta = monte_carlo_delta(S0, K, T, r, sigma, 'call', 50000)
+# vega = monte_carlo_vega(S0, K, T, r, sigma, 'call', 50000)
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-project-spx" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-project-spx" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="references" class="content-page hidden">
+                <h2>Referências</h2>
+                <ul class="list-decimal list-inside space-y-2">
+                    <li>What are call and put options? - Vanguard</li>
+                    <li>The Role Of Monte Carlo Simulation In Option Pricing - FasterCapital</li>
+                    <li>Risk-Neutral Valuation Essentials - Number Analytics</li>
+                    <li>E muitas outras fontes acadêmicas e de praticantes...</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+            
+            const menuLinks = document.querySelectorAll('.nav-link');
+            const contentPages = document.querySelectorAll('.content-page');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const exportBtn = document.getElementById('export-btn');
+            const exportMenu = document.getElementById('export-menu');
+            const exportPdfBtn = document.getElementById('export-pdf');
+            const exportMdBtn = document.getElementById('export-md');
+
+            const showPage = (targetId) => {
+                contentPages.forEach(page => page.classList.add('hidden'));
+                const targetPage = document.getElementById(targetId);
+                if (targetPage) targetPage.classList.remove('hidden');
+                menuLinks.forEach(link => {
+                    link.classList.remove('active-link');
+                    if (link.dataset.target === targetId) link.classList.add('active-link');
+                });
+            };
+
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage(link.dataset.target);
+                    if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                });
+            });
+
+            menuToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+            exportBtn.addEventListener('click', () => exportMenu.classList.toggle('hidden'));
+            
+            document.addEventListener('click', (e) => {
+                if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+                    exportMenu.classList.add('hidden');
+                }
+            });
+
+            showPage('intro');
+
+            // --- Export Logic ---
+            exportPdfBtn.addEventListener('click', (e) => { e.preventDefault(); window.print(); exportMenu.classList.add('hidden'); });
+            exportMdBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                let markdownContent = '';
+                document.querySelectorAll('.content-page').forEach(page => {
+                    Array.from(page.children).forEach(el => {
+                        switch(el.tagName) {
+                            case 'HEADER': markdownContent += `# ${el.querySelector('h1').textContent.trim()}\n\n> ${el.querySelector('p').textContent.trim()}\n\n`; break;
+                            case 'H2': markdownContent += `## ${el.textContent.trim()}\n\n`; break;
+                            case 'H3': markdownContent += `### ${el.textContent.trim()}\n\n`; break;
+                            case 'P': markdownContent += `${el.textContent.trim()}\n\n`; break;
+                            case 'UL': case 'OL': Array.from(el.children).forEach(li => { markdownContent += `* ${li.textContent.trim()}\n`; }); markdownContent += '\n'; break;
+                            case 'PRE': markdownContent += `\`\`\`${el.querySelector('code').className.replace('language-', '')}\n${el.textContent}\n\`\`\`\n\n`; break;
+                            case 'DIV':
+                                if (el.classList.contains('katex-display')) { markdownContent += `$$${el.querySelector('.katex-mathml annotation').textContent}$$\n\n` }
+                                break;
+                        }
+                    });
+                    markdownContent += '---\n\n';
+                });
+                const blob = new Blob([markdownContent], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'monte_carlo_options.md';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                exportMenu.classList.add('hidden');
+            });
+
+            // --- Gemini API Logic ---
+            const geminiButtons = document.querySelectorAll('.gemini-btn');
+            async function callGemini(prompt, resultContainer, button) {
+                button.disabled = true;
+                resultContainer.innerHTML = '<div class="loader"></div>';
+                resultContainer.classList.remove('hidden');
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        resultContainer.innerHTML = `<pre class="whitespace-pre-wrap text-base font-sans">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
+                    } else {
+                        resultContainer.innerHTML = '<p class="text-red-400">Não foi possível obter uma resposta da IA.</p>';
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    resultContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro ao chamar a API: ${error.message}.</p>`;
+                } finally {
+                    button.disabled = false;
+                }
+            }
+            geminiButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const type = button.dataset.type;
+                    const contentElement = document.getElementById(targetId);
+                    const resultContent = contentElement.textContent;
+                    const resultContainer = document.getElementById(`result-${targetId}`);
+                    let prompt = `Explique o seguinte código Python, linha por linha, de forma clara para um estudante de finanças quantitativas. Foque na intuição por trás de cada passo. Responda em português do Brasil.\n\n\`\`\`python\n${resultContent}\n\`\`\``;
+                    if (prompt) callGemini(prompt, resultContainer, button);
+                });
+            });
+
+            // --- Charting Logic ---
+            const generateDateLabels = (numPoints, startDate = '2023-01-01') => Array.from({length: numPoints}, (_, i) => new Date(new Date(startDate).setDate(i + 1)));
+            const ctxGbm = document.getElementById('gbmChart').getContext('2d');
+            const pathData = Array.from({length: 253}, (_, i) => 100 * Math.exp(i * (0.05 - 0.5*0.2**2)/252 + 0.2 * Math.sqrt(i/252) * (Math.random()-0.5)*2));
+            new Chart(ctxGbm, { type: 'line', data: { labels: generateDateLabels(253), datasets: [{ label: 'Caminho do Preço do Ativo', data: pathData, borderColor: 'rgb(59, 130, 246)', tension: 0.1, pointRadius: 0 }] }, options: { responsive: true, plugins: { title: { display: true, text: 'Exemplo de Caminho de Movimento Browniano Geométrico', color: 'white' } }, scales: { x: { type: 'time', time: { unit: 'month' }, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} }, y: { title: { display: true, text: 'Preço do Ativo', color: 'white' }, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} } } } });
+        });
+    </script>
+</body>
+</html>

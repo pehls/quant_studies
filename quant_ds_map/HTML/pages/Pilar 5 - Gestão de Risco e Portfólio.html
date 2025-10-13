@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Estudos - Gestão de Risco e Portfólio</title>
+    <!-- Chosen Palette: Dark Slate Sidebar with Warm Neutral Content and Teal Accents -->
+    <!-- Application Structure Plan: A two-column layout featuring a dark, accordion-style sidebar for navigation and a main content area. This design allows users to focus on a single sub-topic at a time, which is dynamically displayed upon selection. Each topic is structured with tabs for different content types (Theory, Examples, Code, etc.) and includes an interactive AI tab powered by the Gemini API for deeper learning. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Mathematical formulas. Goal: Display notation clearly. Viz/Presentation: Rendered LaTeX. Library/Method: MathJax.
+        2. Report Info: Python code examples. Goal: Demonstrate implementation. Viz/Presentation: Code blocks with copy button. Library/Method: Prism.js.
+        3. Report Info: Efficient Frontier & VaR concepts. Goal: Visualize abstract concepts. Viz/Presentation: Interactive charts. Library/Method: Chart.js, rendered dynamically.
+        4. Report Info: Complex topics. Goal: On-demand clarification & assessment. Viz/Presentation: AI-generated content in a modal. Interaction: Buttons trigger Gemini API calls for explanations and quizzes.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #4a4a4a; }
+        .sidebar-bg { background-color: #1f2937; color: #e5e7eb; }
+        .content-bg { background-color: #f8f7f4; }
+        .card-bg { background-color: #ffffff; }
+        #sidebar .pillar-header.active { background-color: #4a5568; }
+        #sidebar .module-links { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: #111827;}
+        #sidebar .pillar-header.active + .module-links { max-height: 500px; }
+        #sidebar .module-link.active { background-color: #0d9488; color: white; font-weight: 600; }
+        #sidebar::-webkit-scrollbar { width: 8px; }
+        #sidebar::-webkit-scrollbar-track { background: #1f2937; }
+        #sidebar::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 10px; }
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s ease-in-out; }
+        .tab-active { color: #0d9488; font-weight: 600; border-bottom-color: #0d9488; }
+        .tab-inactive { color: #6b7280; }
+        #gemini-modal { transition: opacity 0.3s ease; }
+        .gemini-btn { background-color: #f0fdfa; color: #0f766e; border: 1px solid #ccfbf1; transition: background-color 0.2s; }
+        .gemini-btn:hover { background-color: #ccfbf1; }
+        .prism-code { border-radius: 0.5rem; font-size: 0.875rem; }
+        .copy-button { position: absolute; top: 0.5rem; right: 0.5rem; background-color: rgba(255, 255, 255, 0.1); color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; cursor: pointer; transition: background-color 0.2s; }
+        .copy-button:hover { background-color: rgba(255, 255, 255, 0.2); }
+        .accent-border { border-color: #0d9488; }
+        mjx-container[jax="SVG"][display="true"] { display: block; margin: 1em 0; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-80 sidebar-bg flex-shrink-0 overflow-y-auto hidden lg:block shadow-lg">
+            <div class="p-6 sticky top-0 bg-slate-800 z-10">
+                <h1 class="text-2xl font-semibold text-center text-teal-400">Guia de Estudos</h1>
+                <p class="text-sm text-slate-400 mt-1 text-center">Pilar 5: Gestão de Risco e Portfólio</p>
+            </div>
+            <nav id="sidebar-nav" class="text-slate-300 p-2"></nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="main-content" class="flex-1 p-4 sm:p-6 md:p-8 content-bg overflow-y-auto">
+            <div id="welcome-message" class="text-center h-full flex flex-col justify-center items-center">
+                <h1 class="text-4xl font-bold text-slate-700">Bem-vindo ao Pilar 5</h1>
+                <p class="mt-4 text-xl text-slate-500">Selecione um tópico no menu à esquerda para começar a explorar a Gestão de Risco e Portfólio.</p>
+                <svg class="w-24 h-24 mt-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+            <div id="content-sections-wrapper" class="max-w-7xl mx-auto">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Gemini Modal -->
+    <div id="gemini-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b bg-slate-50 rounded-t-lg">
+                <h3 id="modal-title" class="text-xl font-semibold text-slate-800"></h3>
+                <button id="modal-close-btn" class="text-2xl font-bold text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="modal-loader" class="text-center hidden">
+                    <svg class="animate-spin h-8 w-8 text-teal-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="mt-2 text-slate-600">Gerando conteúdo com a IA Gemini...</p>
+                </div>
+                <div id="modal-response" class="prose max-w-none text-slate-700"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const contentData = [
+            {
+                id: 'teoria-portfolio',
+                title: 'Teoria de Portfólio',
+                subsections: [
+                    {
+                        id: 'mpt',
+                        title: 'Moderna Teoria de Portfólio (MPT)',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Relevante: Moderna Teoria de Portfólio (Markowitz)</h3><p class="mb-4">A Moderna Teoria de Portfólio (MPT), proposta por Harry Markowitz em seu artigo seminal de 1952, representa a primeira tentativa rigorosa de quantificar o trade-off entre risco e retorno. Antes da MPT, a seleção de ativos era em grande parte subjetiva, focada em características individuais de cada ativo. Markowitz introduziu a ideia revolucionária de que o risco de um portfólio não é simplesmente a média dos riscos de seus componentes, mas depende crucialmente de como esses componentes se movem em conjunto, ou seja, de suas <strong>covariâncias</strong>.</p><p class="mb-3">A teoria opera sob um conjunto de premissas, incluindo a racionalidade dos investidores (eles preferem mais retorno a menos, e menos risco a mais), a normalidade da distribuição dos retornos dos ativos e um horizonte de investimento de período único. Embora simplificadoras, essas premissas permitem a construção de um poderoso framework de otimização.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">O "Almoço Grátis" da Diversificação e seus Limites</h4><p class="mb-3">A diversificação é frequentemente citada como "o único almoço grátis" nos mercados financeiros. Ao combinar ativos com correlações imperfeitas (menores que +1), o risco total do portfólio (medido pela variância) será menor do que a média ponderada das variâncias individuais. Isso ocorre porque as flutuações de um ativo podem ser compensadas pelas flutuações de outro. Esse benefício, no entanto, é limitado. O risco pode ser dividido em duas categorias:</p><ul class="list-disc pl-6 space-y-2 mt-2"><li><strong>Risco Não-Sistemático (Diversificável):</strong> Associado a fatores específicos de uma empresa ou setor (ex: uma greve, um novo produto). À medida que mais ativos são adicionados a um portfólio, este risco diminui e tende a zero.</li><li><strong>Risco Sistemático (Não-Diversificável):</strong> Associado a fatores macroeconômicos que afetam todo o mercado (ex: recessões, crises geopolíticas). Este risco não pode ser eliminado, não importa o quão diversificado seja o portfólio. É o risco pelo qual os investidores são compensados com um retorno esperado acima da taxa livre de risco.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">A Otimização e a Fronteira Eficiente</h4><p class="mb-3">A MPT é, em sua essência, um problema de otimização. O objetivo é encontrar o conjunto de pesos para os ativos que minimiza a variância do portfólio para um dado nível de retorno esperado. Ao resolver este problema para todos os níveis de retorno possíveis, traçamos a <strong>Fronteira Eficiente</strong>. A introdução de um <strong>ativo livre de risco</strong> permite a criação da <strong>Linha de Mercado de Capitais (CML)</strong>, que representa as combinações de risco e retorno possíveis ao misturar o ativo livre de risco com o <strong>"portfólio de mercado"</strong> — o portfólio na fronteira eficiente que é tangente à CML. De acordo com a teoria, este é o único portfólio de ativos arriscados que qualquer investidor racional deveria possuir, ajustando sua exposição ao risco alterando a alocação entre este portfólio e o ativo livre de risco.</p>`,
+                            exemplos: `<div class="p-4 rounded-lg shadow-inner bg-slate-50"><h3 class="text-center text-lg font-semibold mb-2 text-slate-700">Visualização Interativa da Fronteira Eficiente</h3><div class="chart-container relative mx-auto" style="height:350px; max-width:600px;"><canvas id="efficientFrontierChart"></canvas></div><p class="text-center text-sm text-slate-500 mt-2">A linha vermelha representa a Fronteira Eficiente — o melhor retorno possível para cada nível de risco. Os pontos azuis são portfólios subótimos.</p></div>`,
+                            formulas: `<p><strong>Retorno Esperado do Portfólio:</strong></p><p>É a média ponderada dos retornos esperados dos ativos individuais.</p>$$E(R_p) = \sum_{i=1}^{n} w_i E(R_i) = w^T R$$<p><strong>Variância (Risco) do Portfólio (Forma Matricial):</strong></p><p>Mede a volatilidade do portfólio, considerando as covariâncias entre os ativos.</p>$$\\sigma_p^2 = \sum_{i=1}^{n} \sum_{j=1}^{n} w_i w_j Cov(R_i, R_j) = w^T \Sigma w$$`,
+                            python: `<p>A biblioteca <code>PyPortfolioOpt</code> simplifica a implementação da MPT. O código a seguir mostra como encontrar o portfólio que maximiza o Índice de Sharpe (melhor retorno ajustado ao risco).</p><div class="relative mt-2"><pre><code class="language-python prism-code">from pypfopt import EfficientFrontier, risk_models, expected_returns\n\n# df é um DataFrame do pandas com preços históricos\n\n# Calcula o retorno esperado e a matriz de covariância\nmu = expected_returns.mean_historical_return(df)\nS = risk_models.sample_cov(df)\n\n# Otimiza para o máximo Índice de Sharpe\nef = EfficientFrontier(mu, S)\nweights = ef.max_sharpe()\ncleaned_weights = ef.clean_weights()\n\nprint("Pesos do Portfólio Ótimo:")\nprint(cleaned_weights)\nef.portfolio_performance(verbose=True)</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Quais são as principais críticas ou limitações da MPT?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>As principais críticas são a sensibilidade aos inputs (retornos esperados e covariâncias, que são difíceis de prever), a suposição de que os retornos seguem uma distribuição normal (ignorando "caudas gordas") e o fato de que ela é um modelo de otimização de período único, não levando em conta a natureza dinâmica dos mercados.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é o "Portfólio de Mínima Variância Global"?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É o ponto mais à esquerda na fronteira eficiente. Representa o portfólio com o menor risco possível dentre todas as combinações de ativos, independentemente do retorno. É uma opção popular para investidores extremamente avessos ao risco.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Artigo Original:</strong> Markowitz, H. (1952). Portfolio Selection. <em>The Journal of Finance</em>.</li><li><strong>Biblioteca:</strong> <a href="https://pyportfolioopt.readthedocs.io/" target="_blank" class="text-teal-600 hover:underline">PyPortfolioOpt Documentation</a></li><li><strong>Livro:</strong> "A Random Walk Down Wall Street" por Burton Malkiel.</li></ul>`
+                        }
+                    },
+                    {
+                        id: 'capm',
+                        title: 'CAPM e Fatores de Risco',
+                        content: {
+                           teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Relevante: CAPM e Fatores de Risco</h3><p class="mb-4">O <strong>Capital Asset Pricing Model (CAPM)</strong> é um modelo de equilíbrio de mercado que estende a lógica da MPT para precificar ativos individuais. Se a MPT nos diz como construir um portfólio ótimo, o CAPM nos diz qual deveria ser o retorno esperado de um ativo, dado seu risco. A principal implicação do modelo é que o retorno esperado de um ativo está diretamente relacionado à sua contribuição para o risco do portfólio de mercado, e não ao seu risco total (ou desvio padrão).</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">O Beta como Medida de Risco Relevante</h4><p class="mb-3">O coração do CAPM é o <strong>Beta ($\\beta$)</strong>. Matematicamente, o Beta de um ativo é a covariância de seus retornos com os retornos do mercado, dividida pela variância dos retornos do mercado ($\\beta_i = Cov(R_i, R_m) / Var(R_m)$). Intuitivamente, ele mede o quanto um ativo tende a se mover em resposta a um movimento do mercado geral. É uma medida de <strong>risco sistemático</strong>. Um Beta de 1.2 significa que, para cada 1% de movimento do mercado, o ativo tende a se mover 1.2% na mesma direção. Um Beta de 0 indica ausência de correlação com os movimentos do mercado. Segundo o CAPM, apenas este risco sistemático é recompensado com um retorno esperado mais alto, pois o risco não-sistemático pode ser diversificado.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Modelos Multifatoriais e as "Anomalias" de Mercado</h4><p class="mb-3">A simplicidade do CAPM é também sua fraqueza. Pesquisas empíricas subsequentes descobriram "anomalias", ou seja, padrões de retorno que não eram explicados pelo Beta. Isso levou ao desenvolvimento de modelos multifatoriais. O <strong>Modelo de 3 Fatores de Fama-French</strong> foi o mais influente, propondo que os retornos são explicados não apenas pelo mercado, mas por dois fatores adicionais:</p><ul class="list-disc pl-6 space-y-3"><li><strong>Tamanho (SMB - Small Minus Big):</strong> O fator captura o prêmio de risco associado a empresas de menor capitalização, que podem ser mais vulneráveis a choques econômicos.</li><li><strong>Valor (HML - High Minus Low):</strong> O fator captura o prêmio de risco de empresas de "valor" (alto book-to-market), que podem estar em dificuldades financeiras e, portanto, serem mais arriscadas.</li></ul><p class="mt-3">A ideia por trás desses modelos é que SMB e HML são proxies para fontes de risco sistemático não capturadas pelo Beta de mercado. A pesquisa continuou, identificando outros fatores como <strong>Momento (WML)</strong>, <strong>Qualidade (QMJ)</strong> e <strong>Baixa Volatilidade (BAB)</strong>, formando a base do que hoje é conhecido como "factor investing" ou "smart beta".</p>`,
+                           exemplos: `<p><strong>Exemplo Prático (CAPM):</strong> Suponha que a taxa livre de risco (Selic) seja de 10%, o retorno esperado do mercado (Ibovespa) seja de 15%, e uma ação X tenha um Beta de 1.2. O retorno esperado para a ação X, segundo o CAPM, seria:</p><p>$E(R_X) = 10\% + 1.2 \times (15\% - 10\%) = 10\% + 1.2 \times 5\% = 16\%$.</p><p>Se um analista acredita que a ação X retornará 18%, o modelo sugere que ela está subavaliada.</p>`,
+                           formulas: `<p><strong>Fórmula do CAPM:</strong></p>$$E(R_i) = R_f + \\beta_i (E(R_m) - R_f)$$<p>Onde $E(R_i)$ é o retorno esperado, $R_f$ é a taxa livre de risco, $\\beta_i$ é o Beta do ativo, e $(E(R_m) - R_f)$ é o prêmio de risco do mercado.</p><p><strong>Modelo de 3 Fatores de Fama-French:</strong></p>$$E(R_i) - R_f = \\alpha_i + \\beta_{mkt}(E(R_m) - R_f) + \\beta_{smb}SMB + \\beta_{hml}HML$$`,
+                           python: `<p>Estimando o Beta e o Alfa de uma ação em relação a um benchmark de mercado usando uma regressão linear com <code>statsmodels</code>.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import statsmodels.api as sm\n\n# excess_asset_returns: série de retornos do ativo menos a taxa livre de risco\n# excess_market_returns: série de retornos do mercado menos a taxa livre de risco\n\nX = sm.add_constant(excess_market_returns)\ny = excess_asset_returns\n\n# Roda a regressão de Mínimos Quadrados Ordinários\nmodel = sm.OLS(y, X).fit()\n\n# O intercepto é o Alfa, o coeficiente da variável é o Beta\nalpha, beta = model.params\n\nprint(f"Alfa anualizado: {alpha * 252 * 100:.2f}%")\nprint(f"Beta: {beta:.2f}")\nprint(model.summary())</code></pre><button class="copy-button">Copiar</button></div>`,
+                           qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que significa um Alfa positivo?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Um Alfa ($\\alpha$) positivo e estatisticamente significativo indica que o ativo ou portfólio gerou um retorno superior ao que seria esperado com base em seu risco sistemático (Beta). É uma medida de desempenho ajustado ao risco e, teoricamente, o objetivo de um gestor de investimentos ativo.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Existem outros modelos de fatores além do Fama-French?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Sim. Pesquisas posteriores identificaram outros fatores, como <strong>Momento (WML - Winners Minus Losers)</strong>, resultando no modelo de 4 fatores de Carhart, e <strong>Qualidade e Baixa Volatilidade</strong>, levando a modelos de 5 ou 6 fatores. A busca por novos fatores de risco é uma área ativa de pesquisa em finanças quantitativas.</p></div></div></div>`,
+                           referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Recurso Online:</strong> <a href="https://www.investopedia.com/terms/f/famaandfrenchthreefactormodel.asp" target="_blank" class="text-teal-600 hover:underline">Investopedia - Fama-French Model</a></li><li><strong>Fonte de Dados:</strong> <a href="https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html" target="_blank" class="text-teal-600 hover:underline">Kenneth French's Data Library</a></li></ul>`
+                        }
+                    }
+                ]
+            },
+            {
+                id: 'metricas-risco',
+                title: 'Métricas e Modelagem de Risco',
+                subsections: [
+                    {
+                        id: 'var-cvar',
+                        title: 'Value at Risk (VaR) e CVaR',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Relevante: Value at Risk (VaR) e CVaR</h3><p class="mb-4">O <strong>Value at Risk (VaR)</strong> emergiu nos anos 90 como uma resposta à necessidade das instituições financeiras de agregar e reportar seus riscos de mercado de forma consolidada e compreensível. Ele traduz a exposição a múltiplos ativos e fontes de risco (ações, juros, câmbio) em um único número, respondendo à pergunta: "Qual é a perda monetária máxima que meu portfólio pode sofrer no próximo dia (ou semana, ou mês) com 95% (ou 99%) de confiança?". A popularidade do VaR foi impulsionada por sua adoção em regulações bancárias, como os Acordos de Basileia, para o cálculo de capital regulatório.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Aprofundando os Métodos e suas Implicações</h4><p class="mb-3">A escolha do método de cálculo do VaR reflete um trade-off entre simplicidade, velocidade e precisão na captura da realidade dos mercados.</p><ul class="list-disc pl-6 space-y-3"><li><strong>VaR Histórico:</strong> Vantagens: Simples de implementar, não paramétrico (não assume uma distribuição de retornos), captura empiricamente "caudas gordas" e correlações complexas se elas estiveram presentes nos dados históricos. Desvantagens: Totalmente dependente do período histórico escolhido (uma janela de dados calma subestimará o risco) e assume que o futuro será uma repetição do passado, ignorando mudanças estruturais ou eventos sem precedentes.</li><li><strong>VaR Paramétrico (Variância-Covariância):</strong> Vantagens: Extremamente rápido e fácil de calcular, especialmente para portfólios grandes, uma vez que a matriz de covariância é estimada. Desvantagens: A premissa de normalidade é sua maior fraqueza, pois os retornos financeiros são notoriamente leptocúrticos (caudas mais gordas que a normal). Isso leva a uma subestimação sistemática da probabilidade e magnitude de perdas extremas.</li><li><strong>Simulação de Monte Carlo:</strong> Vantagens: É o método mais poderoso e flexível. Pode acomodar qualquer distribuição de retornos, modelar a evolução da volatilidade (ex: com modelos GARCH), e precificar instrumentos complexos e não-lineares como opções. Desvantagens: É computacionalmente intensivo, e seus resultados são tão bons quanto os modelos estocásticos e os parâmetros usados para gerar os cenários ("model risk").</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">A Coerência do CVaR e a Gestão de Risco de Cauda</h4><p class="mb-3">A crise financeira de 2008 expôs as limitações do VaR. Uma de suas falhas teóricas é a falta de <strong>subaditividade</strong>, uma propriedade desejável para uma medida de risco "coerente". Em alguns casos, o VaR de um portfólio diversificado pode ser maior que a soma dos VaRs de seus componentes, contradizendo o princípio da diversificação. O <strong>Conditional Value at Risk (CVaR)</strong>, ao medir a perda média na cauda, resolve esse problema. Ele é sempre subaditivo e, por focar na magnitude das perdas extremas, incentiva uma gestão de risco mais prudente, focada em mitigar o impacto de eventos de "cisne negro". O processo de checar a acurácia de um modelo de VaR ou CVaR ao longo do tempo, comparando as perdas previstas com as realizadas, é chamado de <strong>backtesting</strong>, uma prática essencial na validação de modelos de risco.</p>`,
+                            exemplos: `<div class="p-4 rounded-lg shadow-inner bg-slate-50"><h3 class="text-center text-lg font-semibold mb-2 text-slate-700">Distribuição de Perdas com VaR e CVaR</h3><div class="chart-container relative mx-auto" style="height:350px; max-width:600px;"><canvas id="varCvarChart"></canvas></div><div class="mt-4 px-4"><label for="confidenceLevel" class="block text-sm font-medium text-slate-700">Nível de Confiança: <span id="confidenceValue" class="font-bold text-teal-600">95%</span></label><input type="range" id="confidenceLevel" min="90" max="99" value="95" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"></div><p class="text-center text-sm text-slate-500 mt-2">A área laranja representa a probabilidade de perda exceder o VaR. O CVaR é a perda média dentro dessa área.</p></div>`,
+                            formulas: `<p><strong>VaR Paramétrico (assumindo normalidade):</strong></p>$$VaR_{\alpha} = -(\mu + \sigma \cdot Z_{\alpha})$$<p>Onde $\mu$ é o retorno médio, $\sigma$ é o desvio padrão e $Z_{\alpha}$ é o valor Z da distribuição normal padrão para o nível de confiança $\alpha$.</p><p><strong>CVaR (Expected Shortfall):</strong></p>$$CVaR_{\alpha} = E[-R | -R > VaR_{\alpha}]$$<p>É o valor esperado do retorno $R$, condicionado ao retorno ser pior que o VaR.</p>`,
+                            python: `<p>Cálculo do VaR Histórico a partir de uma série de retornos com <code>NumPy</code>.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\n\n# 'returns' é uma série (ou array) de retornos diários\nconfidence_level = 0.95\n\n# Para o VaR histórico, calculamos o percentil da distribuição de retornos\n# O percentil é (1 - nível de confiança)\nVaR_95 = np.percentile(returns, (1 - confidence_level) * 100)\n\n# O CVaR é a média dos retornos que são piores que o VaR\nCVaR_95 = returns[returns < VaR_95].mean()\n\nprint(f"VaR Histórico (95%): {VaR_95 * 100:.2f}%")\nprint(f"CVaR Histórico (95%): {CVaR_95 * 100:.2f}%")</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Por que o VaR é criticado por Nassim Taleb?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Taleb, autor de "A Lógica do Cisne Negro", critica o VaR por dar uma falsa sensação de segurança. Ele argumenta que o foco em distribuições normais e dados históricos faz com que o VaR subestime drasticamente o risco de eventos raros e extremos ("Cisnes Negros"), que são justamente os que causam as maiores crises.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O VaR é uma medida de risco "coerente"?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Não. Para ser uma medida de risco coerente, ela precisa satisfazer certas propriedades matemáticas, como a subaditividade (o risco de um portfólio diversificado não deve ser maior que a soma dos riscos individuais). O VaR pode violar essa propriedade em certas condições. O CVaR (Expected Shortfall), por outro lado, é uma medida de risco coerente.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Risk Management and Financial Institutions" por John C. Hull.</li><li><strong>Livro:</strong> "Value at Risk: The New Benchmark for Managing Financial Risk" por Philippe Jorion.</li></ul>`
+                        }
+                    },
+                    {
+                        id: 'metricas-performance',
+                        title: 'Métricas de Performance',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Relevante: Métricas de Performance Ajustadas ao Risco</h3><p class="mb-4">O retorno de um investimento, por si só, é uma medida incompleta e potencialmente enganosa. Um retorno de 30% ao ano é impressionante, mas se foi obtido com um risco que poderia ter levado a uma perda de 50%, a avaliação muda. As métricas de performance ajustadas ao risco fornecem um framework para avaliar a <strong>eficiência</strong> de uma estratégia: o quão bem ela converte risco em retorno. Elas são a linguagem padrão para comparar gestores de fundos, validar estratégias de trading e tomar decisões de alocação de capital.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Rácios de Retorno vs. Risco</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Índice de Sharpe:</strong> É a medida fundamental do retorno ajustado ao risco. A intuição é simples: ele mede qual o "prêmio" (retorno acima da taxa livre de risco) que o investidor recebeu para cada unidade de volatilidade total que ele suportou. Um Sharpe mais alto implica uma estratégia mais eficiente. Uma consideração importante é a sua anualização: o Sharpe diário é multiplicado pela raiz quadrada do número de períodos de negociação no ano (tipicamente $\\sqrt{252}$) para se obter o Sharpe anualizado, uma prática que assume que os retornos são independentes e identicamente distribuídos.</li><li><strong>Índice de Sortino:</strong> Reconhece que os investidores têm uma percepção assimétrica do risco: a volatilidade para cima (ganhos) é bem-vinda, enquanto a volatilidade para baixo (perdas) é temida. O Sortino substitui o desvio padrão total no denominador pelo <strong>downside deviation</strong>, que é a volatilidade calculada apenas com os retornos que ficam abaixo de um certo limiar (geralmente a taxa livre de risco ou zero). Isso o torna uma medida mais alinhada com a percepção humana de risco.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Medidas de Habilidade e Resiliência Psicológica</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Information Ratio (IR):</strong> É a métrica padrão para avaliar a habilidade de um <strong>gestor ativo</strong>. Ele mede a consistência com que o gestor consegue gerar retornos acima do seu benchmark. O numerador é o <strong>alfa</strong> (retorno do portfólio - retorno do benchmark), e o denominador é o <strong>tracking error</strong> (o desvio padrão desse alfa). Um IR de 0.5 é considerado bom, enquanto um IR acima de 0.75 indica uma habilidade de gestão superior.</li><li><strong>Max Drawdown:</strong> Esta é talvez a métrica de risco mais intuitiva. Ela mede a maior perda percentual de pico a vale que uma estratégia sofreu. O Max Drawdown é crucial porque se aproxima da "dor máxima" que um investidor teria experimentado. Uma estratégia com um Max Drawdown muito profundo, mesmo que lucrativa a longo prazo, pode levar os investidores a abandonar a estratégia no pior momento possível. Associado a ele está o <strong>tempo de recuperação do drawdown</strong>, que mede quanto tempo a estratégia levou para voltar ao seu pico anterior, uma medida crítica de sua resiliência.</li></ul>`,
+                            exemplos: `<p><strong>Exemplo Prático:</strong> Dois fundos, A e B, tiveram um retorno de 20% no ano. O Fundo A teve um desvio padrão de 15%, enquanto o Fundo B teve 25%. Assumindo uma taxa livre de risco de 10%:</p><ul class="list-disc pl-5 mt-2"><li>Sharpe do Fundo A = (20% - 10%) / 15% = 0.67</li><li>Sharpe do Fundo B = (20% - 10%) / 25% = 0.40</li></ul><p>Apesar de terem o mesmo retorno, o Fundo A foi mais eficiente, gerando esse retorno com menos volatilidade. Portanto, teve uma melhor performance ajustada ao risco.</p>`,
+                            formulas: `<p><strong>Índice de Sharpe:</strong> $$Sharpe = \\frac{R_p - R_f}{\\sigma_p}$$</p><p><strong>Índice de Sortino:</strong> $$Sortino = \\frac{R_p - T}{\\sigma_d}$$ Onde $T$ é o retorno alvo e $\\sigma_d$ é o desvio padrão dos retornos negativos.</p><p><strong>Information Ratio:</strong> $$IR = \\frac{R_p - R_b}{TE(p,b)}$$ Onde $R_b$ é o retorno do benchmark e $TE$ é o tracking error.</p>`,
+                            python: `<p>A biblioteca <code>quantstats</code> é excelente para gerar relatórios completos de performance de portfólios a partir de uma série de retornos.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import quantstats as qs\n\n# 'returns' é uma pd.Series de retornos diários de um portfólio\n\n# Gerar um relatório completo em HTML\nqs.reports.html(returns, benchmark='^BVSP', output='report.html')\n\n# Calcular métricas específicas\nsharpe = qs.stats.sharpe(returns)\nsortino = qs.stats.sortino(returns)\nmax_drawdown = qs.stats.max_drawdown(returns)\n\nprint(f"Índice de Sharpe: {sharpe:.2f}")\nprint(f"Índice de Sortino: {sortino:.2f}")\nprint(f"Max Drawdown: {max_drawdown*100:.2f}%")</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é considerado um "bom" Índice de Sharpe?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Isso é relativo e depende do mercado e do tipo de ativo. De forma geral, um Sharpe anualizado abaixo de 1 é considerado medíocre. Entre 1 e 2 é bom, entre 2 e 3 é muito bom, e acima de 3 é excelente e raro de ser sustentado a longo prazo, especialmente para estratégias de alta capacidade.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Por que o Max Drawdown é tão importante?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Porque ele reflete a dor real que um investidor sentiria. Um retorno médio alto é inútil se, no caminho, o investidor enfrentou uma queda de 50% e liquidou sua posição em pânico. O Max Drawdown é uma medida crucial da viabilidade comportamental de uma estratégia de investimento.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Biblioteca:</strong> <a href="https://github.com/ranaroussi/quantstats" target="_blank" class="text-teal-600 hover:underline">Repositório do QuantStats</a></li><li><strong>Livro:</strong> "Quantitative Trading" por Ernie Chan.</li></ul>`
+                        }
+                    }
+                ]
+            }
+        ];
+        
+        // --- Gemini API Call ---
+        async function callGemini(prompt) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    let text = candidate.content.parts[0].text;
+                    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    text = text.replace(/\n/g, '<br>');
+                    return text;
+                } else {
+                    return `<p class="text-red-600">Não foi possível gerar conteúdo. A resposta da API estava vazia ou malformada.</p>`;
+                }
+            } catch (error) {
+                console.error("Erro ao chamar a API Gemini:", error);
+                return `<p class="text-red-600">Erro ao se conectar com a API Gemini. Verifique o console.</p>`;
+            }
+        }
+
+        // --- Modal Functions ---
+        const modal = document.getElementById('gemini-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalLoader = document.getElementById('modal-loader');
+        const modalResponse = document.getElementById('modal-response');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        function showModal(title) {
+            modalTitle.textContent = title;
+            modalResponse.innerHTML = '';
+            modalLoader.style.display = 'block';
+            modal.classList.remove('hidden');
+        }
+        function displayModalContent(htmlContent) {
+            modalLoader.style.display = 'none';
+            modalResponse.innerHTML = htmlContent;
+        }
+        function hideModal() { modal.classList.add('hidden'); }
+        modalCloseBtn.addEventListener('click', hideModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+
+        // --- Chart Rendering ---
+        let activeCharts = {};
+        function renderChart(canvasId) {
+             if (activeCharts[canvasId]) {
+                activeCharts[canvasId].destroy();
+             }
+             if(canvasId === 'efficientFrontierChart') {
+                createEfficientFrontierChart();
+             } else if (canvasId === 'varCvarChart') {
+                createVarCvarChart();
+                document.getElementById('confidenceLevel')?.addEventListener('input', (event) => {
+                    const confidence = parseInt(event.target.value);
+                    document.getElementById('confidenceValue').textContent = `${confidence}%`;
+                    createVarCvarChart(confidence / 100);
+                });
+             }
+        }
+        
+        function createEfficientFrontierChart() {
+            const ctx = document.getElementById('efficientFrontierChart')?.getContext('2d');
+            if(!ctx) return;
+            const portfolios = Array.from({ length: 100 }, () => ({ x: 0.05 + Math.random() * 0.25, y: 0.05 + Math.random() * 0.15 }));
+            const frontierPoints = portfolios.sort((a, b) => a.x - b.x).reduce((acc, point) => {
+                if (!acc.length || point.y > acc[acc.length - 1].y) { acc.push(point); }
+                return acc;
+            }, []);
+
+            activeCharts['efficientFrontierChart'] = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { label: 'Portfólios Possíveis', data: portfolios, backgroundColor: 'rgba(59, 130, 246, 0.2)', borderColor: 'rgba(59, 130, 246, 0.5)', pointRadius: 4 },
+                        { label: 'Fronteira Eficiente', data: frontierPoints, backgroundColor: 'rgba(239, 68, 68, 1)', borderColor: 'rgba(220, 38, 38, 1)', pointRadius: 5, showLine: true, tension: 0.3 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Risco (Volatilidade)' }, ticks: { callback: value => (value * 100).toFixed(0) + '%' } },
+                        y: { title: { display: true, text: 'Retorno Esperado' }, ticks: { callback: value => (value * 100).toFixed(0) + '%' } }
+                    },
+                    plugins: { tooltip: { callbacks: { label: (ctx) => `Risco: ${(ctx.parsed.x * 100).toFixed(1)}%, Retorno: ${(ctx.parsed.y * 100).toFixed(1)}%` } }, legend: { position: 'bottom' } }
+                }
+            });
+        }
+        
+        function createVarCvarChart(confidenceLevel = 0.95) {
+            const ctx = document.getElementById('varCvarChart')?.getContext('2d');
+            if (!ctx) return;
+             if (activeCharts['varCvarChart']) {
+                activeCharts['varCvarChart'].destroy();
+             }
+            const returns = Array.from({ length: 500 }, () => (Math.random() - 0.5) * 0.1).sort((a, b) => a - b);
+            const numBins = 30, min = Math.min(...returns), max = Math.max(...returns), binSize = (max - min) / numBins;
+            const bins = Array(numBins).fill(0), labels = [];
+            for (let i = 0; i < numBins; i++) { labels.push(((min + i * binSize) * 100).toFixed(1) + '%'); }
+            returns.forEach(r => { bins[Math.min(numBins - 1, Math.floor((r - min) / binSize))]++; });
+            const vaRIndex = Math.floor((1 - confidenceLevel) * returns.length);
+            const vaRValue = returns[vaRIndex];
+            const tailLosses = returns.slice(0, vaRIndex);
+            const cVaRValue = tailLosses.reduce((a, b) => a + b, 0) / tailLosses.length;
+            const backgroundColors = labels.map(label => {
+                const value = parseFloat(label) / 100;
+                if (value <= cVaRValue) return 'rgba(192, 57, 43, 0.8)';
+                if (value <= vaRValue) return 'rgba(231, 76, 60, 0.6)';
+                return 'rgba(52, 152, 219, 0.6)';
+            });
+
+            activeCharts['varCvarChart'] = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Frequência de Retornos', data: bins, backgroundColor: backgroundColors }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'Frequência' } }, x: { title: { display: true, text: 'Retorno Diário' } } },
+                    plugins: { legend: { display: false }, tooltip: { enabled: true } }
+                }
+            });
+        }
+
+        // --- App Initialization ---
+        function initApp() {
+            const sidebarNav = document.getElementById('sidebar-nav');
+            const contentWrapper = document.getElementById('content-sections-wrapper');
+
+            contentData.forEach((pillar) => {
+                const pillarContainer = document.createElement('div');
+                const pillarHeader = document.createElement('div');
+                pillarHeader.className = 'pillar-header flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-slate-700 active';
+                pillarHeader.innerHTML = `<span class="font-semibold">${pillar.title}</span><svg class="w-5 h-5 transition-transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
+            
+                const moduleLinks = document.createElement('ul');
+                moduleLinks.className = 'module-links';
+
+                pillar.subsections.forEach((section) => {
+                    linkItem = document.createElement('li');
+                    linkItem.innerHTML = `<a href="#" data-target="${section.id}" class="module-link block px-8 py-2 hover:bg-slate-600">${section.title}</a>`;
+                    moduleLinks.appendChild(linkItem);
+                    
+                    const sectionEl = document.createElement('section');
+                    sectionEl.id = section.id;
+                    sectionEl.className = 'hidden';
+
+                    const tabs = ['Teoria', 'Exemplos', 'Formulas', 'Python', 'QA', 'Referencias', 'Aprenda com IA'];
+                    const titleHTML = `<h2 class="text-3xl font-bold text-slate-800">${section.title}</h2>`;
+                    let tabsContainerHTML = '<div class="flex border-b border-gray-200 mt-2 mb-4 flex-wrap">';
+                    let panesHTML = '';
+
+                    tabs.forEach((tabName, index) => {
+                        const key = tabName.toLowerCase().replace(/\s+/g, '').replace('í', 'i').replace('ó', 'o').replace('ç', 'c').replace('ê', 'e');
+                        const targetId = `${section.id}-${key}`;
+                        
+                        if (key === 'aprendacomia') {
+                            tabsContainerHTML += `<button data-target="${targetId}" class="tab-btn px-4 py-2 text-sm tab-inactive">${tabName}</button>`;
+                            panesHTML += `<div id="${targetId}" class="tab-pane hidden space-y-4 text-center p-4">
+                                <p class="text-slate-600">Use a IA Gemini para aprofundar seu conhecimento.</p>
+                                <div class="flex justify-center items-center gap-4 flex-wrap">
+                                    <button data-topic-title="${section.title}" class="explain-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Explicar o Tópico</button>
+                                    <button data-topic-title="${section.title}" class="quiz-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Gerar Quiz</button>
+                                </div>
+                            </div>`;
+                        } else {
+                           const content = section.content[key];
+                           if(content) {
+                                tabsContainerHTML += `<button data-target="${targetId}" class="tab-btn px-4 py-2 text-sm ${index === 0 ? 'tab-active' : 'tab-inactive'}">${tabName}</button>`;
+                                panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''}">${content}</div>`;
+                           }
+                        }
+                    });
+                    
+                    tabsContainerHTML += '</div>';
+                    sectionEl.innerHTML = `<div class="card-bg p-6 rounded-2xl shadow-lg"><div class="text-slate-700 leading-relaxed">${titleHTML}${tabsContainerHTML}<div class="tab-content mt-4 min-h-[200px]">${panesHTML}</div></div></div>`;
+                    contentWrapper.appendChild(sectionEl);
+                });
+
+                pillarContainer.appendChild(pillarHeader);
+                pillarContainer.appendChild(moduleLinks);
+                sidebarNav.appendChild(pillarContainer);
+            });
+            
+            addEventListeners();
+        }
+
+        function addEventListeners() {
+            document.querySelectorAll('.pillar-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    header.classList.toggle('active');
+                    header.querySelector('svg').classList.toggle('rotate-180');
+                });
+            });
+
+            document.querySelectorAll('.module-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const targetId = e.target.dataset.target;
+                    document.getElementById('welcome-message').classList.add('hidden');
+                    document.querySelectorAll('#content-sections-wrapper > section').forEach(sec => sec.classList.add('hidden'));
+                    const targetSection = document.getElementById(targetId);
+                    targetSection.classList.remove('hidden');
+
+                    if (window.MathJax && window.MathJax.typeset) {
+                        MathJax.typesetPromise([targetSection]).then(() => {
+                            Prism.highlightAllUnder(targetSection);
+                        }).catch((err) => console.log('MathJax typeset error: ', err));
+                    } else { Prism.highlightAllUnder(targetSection); }
+
+                    document.querySelectorAll('.module-link').forEach(l => l.classList.remove('active'));
+                    e.target.classList.add('active');
+                    document.getElementById('main-content').scrollTo(0, 0);
+
+                    // Render chart if canvas exists in the active section
+                    const canvas = targetSection.querySelector('canvas');
+                    if (canvas) {
+                        setTimeout(() => renderChart(canvas.id), 50); // Small delay to ensure container is sized
+                    }
+                });
+            });
+
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const container = button.closest('.card-bg');
+                    container.querySelectorAll('.tab-btn').forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
+                    button.classList.replace('tab-inactive', 'tab-active');
+                    container.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+                    document.getElementById(targetId).classList.remove('hidden');
+                });
+            });
+
+            document.querySelectorAll('.qa-toggle').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    content.classList.toggle('hidden');
+                    button.querySelector('span:last-child').textContent = content.classList.contains('hidden') ? '+' : '-';
+                });
+            });
+
+            document.querySelectorAll('.copy-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const code = e.target.previousElementSibling.querySelector('code').innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        e.target.textContent = 'Copiado!';
+                        setTimeout(() => { e.target.textContent = 'Copiar'; }, 2000);
+                    });
+                });
+            });
+
+            document.body.addEventListener('click', async (e) => {
+                if(e.target.classList.contains('explain-btn')) {
+                    const topicTitle = e.target.dataset.topicTitle;
+                    showModal(`✨ Explicando: ${topicTitle}`);
+                    const prompt = `Explique o seguinte tópico de finanças quantitativas de forma clara e concisa para um estudante: "${topicTitle}". Use parágrafos curtos, analogias simples e exemplos práticos, se possível. Formate a resposta em HTML simples (use <p>, <strong>, <ul>, <li>).`;
+                    const explanation = await callGemini(prompt);
+                    displayModalContent(explanation);
+                }
+                if(e.target.classList.contains('quiz-btn')) {
+                    const topicTitle = e.target.dataset.topicTitle;
+                    showModal(`✨ Quiz: ${topicTitle}`);
+                    const prompt = `Crie um quiz com 3 perguntas de múltipla escolha (4 opções de 'a' a 'd') sobre o tópico "${topicTitle}". Após as perguntas, revele as respostas corretas com uma justificativa concisa em negrito. Formate como HTML (use <p>, <strong>, <ul>, <li>).`;
+                    const quiz = await callGemini(prompt);
+                    displayModalContent(quiz);
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
+

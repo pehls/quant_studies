@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estatística Bayesiana e Aplicações Financeiras</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    
+    <!-- Prism.js for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <!-- Chart.js for interactive plots -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #d1d5db; }
+        .content-page { @apply bg-gray-800 p-6 md:p-8 rounded-2xl shadow-lg; }
+        h1, h2, h3 { @apply text-white font-bold tracking-tight; }
+        h1 { @apply text-4xl md:text-5xl mb-4; }
+        h2 { @apply text-3xl border-b-2 border-cyan-500 pb-2 mb-6 mt-8; }
+        h3 { @apply text-2xl mb-4 mt-6; }
+        p, li { @apply text-lg leading-relaxed text-gray-300; }
+        a { @apply text-cyan-400 hover:text-cyan-300 transition-colors; }
+        pre[class*="language-"] { @apply rounded-xl text-sm; }
+        .gemini-analysis { @apply bg-gradient-to-r from-gray-700 to-gray-800 border-l-4 border-purple-500 p-6 rounded-lg my-6 shadow-inner; }
+        .gemini-analysis h4 { @apply text-xl font-semibold text-purple-300 mb-2 flex items-center; }
+        .gemini-analysis p { @apply text-base text-gray-200; }
+        .katex-display { overflow-x: auto; overflow-y: hidden; }
+        .katex { font-size: 1.1em !important; }
+        table { @apply w-full text-left border-collapse my-6; }
+        th, td { @apply p-3 border border-gray-600; }
+        th { @apply bg-gray-700 text-white font-semibold; }
+        .active-link { @apply bg-cyan-500 text-white shadow-md; }
+        .gemini-btn { @apply bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors; }
+        .gemini-result-container { @apply bg-gray-900/50 p-4 rounded-lg mt-4 border border-gray-700; }
+        .loader { @apply w-8 h-8 border-4 border-dashed rounded-full animate-spin border-cyan-400 mx-auto; }
+        
+        @media print {
+            body { background-color: white; color: black; }
+            #sidebar, #menu-toggle, .gemini-btn, #export-menu { display: none; }
+            main { padding: 0; }
+            .content-page { display: block !important; box-shadow: none; border-radius: 0; margin-bottom: 2rem; page-break-before: always; }
+            .content-page:first-child { page-break-before: auto; }
+            h1, h2, h3, p, li { color: black; }
+            h2 { border-color: #ccc; }
+            pre[class*="language-"] { background-color: #f5f5f5 !important; color: black !important; border: 1px solid #ccc; white-space: pre-wrap; word-wrap: break-word; }
+            .gemini-analysis { background: #eef2ff !important; border-color: #8b5cf6 !important; }
+            canvas { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="relative min-h-screen md:flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-gray-800 text-gray-100 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-20 flex flex-col justify-between">
+            <div>
+                <a href="#" class="text-white flex items-center space-x-2 px-4">
+                    <svg class="w-8 h-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.57 50.57 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" /></svg>
+                    <span class="text-2xl font-extrabold">Bayes Quant</span>
+                </a>
+                <nav class="mt-6">
+                    <a href="#" data-target="intro" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Introdução</a>
+                    <a href="#" data-target="theorem" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Teorema de Bayes</a>
+                    <a href="#" data-target="mcmc" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">MCMC e PyMC</a>
+                    <a href="#" data-target="sv_model" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Volatilidade Estocástica</a>
+                    <a href="#" data-target="risk" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Gestão de Risco</a>
+                    <a href="#" data-target="project" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Projeto: Black-Litterman</a>
+                    <a href="#" data-target="references" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Referências</a>
+                </nav>
+            </div>
+            <div class="px-4 pb-4">
+                <div class="relative">
+                    <button id="export-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                        Exportar Conteúdo
+                    </button>
+                    <div id="export-menu" class="absolute bottom-full mb-2 w-full bg-gray-600 rounded-lg shadow-lg hidden">
+                        <a href="#" id="export-pdf" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-t-lg">Exportar para PDF</a>
+                        <a href="#" id="export-md" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-b-lg">Exportar para Markdown</a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 p-6 md:p-10">
+            <div id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-30">
+                <button id="menu-toggle" class="text-white bg-gray-800 p-2 rounded-md focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            
+            <section id="intro" class="content-page">
+                <header class="text-center mb-12">
+                    <h1 class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Estatística Bayesiana e Aplicações Financeiras</h1>
+                    <p class="text-xl text-gray-400 mt-2">Um Novo Paradigma para Quantificar a Incerteza</p>
+                </header>
+                <p>Este capítulo introduz uma poderosa alternativa à estatística clássica: a <strong>Estatística Bayesiana</strong>. Agora, com a integração da API do Gemini, você pode ir além da leitura e interagir com o conteúdo de forma inteligente.</p>
+                <div class="gemini-analysis mt-8">
+                    <h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-6 w-6"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/><path d="m15.6 9.9-1.1 2.2-2.2 1.1-2.2 1.1-1.1 2.2"/><path d="m8.4 14.1 1.1-2.2 2.2-1.1 2.2-1.1 1.1-2.2"/></svg>Novos Recursos com IA</h4>
+                    <p>Em cada seção, você encontrará botões "✨" que ativam a IA para <strong>Explicar Códigos</strong>. Clique neles para obter uma análise detalhada de qualquer bloco de código Python, aprofundando seu aprendizado.</p>
+                </div>
+            </section>
+
+            <section id="theorem" class="content-page hidden">
+                <h2>O Framework Bayesiano: Do Conhecimento Prévio ao Posterior</h2>
+                <p>No coração da estatística Bayesiana está um teorema simples, mas profundo, que fornece a base matemática para aprender com os dados. Para fins de modelagem estatística, onde estamos interessados em aprender sobre os parâmetros do modelo, $\theta$, a partir de dados observados, $D$, o teorema é expresso como:</p>
+                <div class="my-4 text-center">
+                    $P(\theta|D) = \frac{P(D|\theta) \cdot P(\theta)}{P(D)}$
+                </div>
+                <ul class="list-disc list-inside space-y-2">
+                    <li><strong>Probabilidade Posterior, $P(\theta|D)$:</strong> Nossa crença atualizada sobre os parâmetros após observar os dados.</li>
+                    <li><strong>Verossimilhança (Likelihood), $P(D|\theta)$:</strong> A probabilidade de observar os dados, dado um conjunto específico de parâmetros.</li>
+                    <li><strong>Probabilidade a Priori, $P(\theta)$:</strong> Nossas crenças iniciais sobre os parâmetros antes de ver os dados.</li>
+                    <li><strong>Evidência, $P(D)$:</strong> A probabilidade dos dados, servindo como uma constante de normalização.</li>
+                </ul>
+
+                <h3>Exemplo Prático: Teste Diagnóstico</h3>
+                <pre><code class="language-python" id="code-theorem">
+def bayes_theorem_diagnostic(sensitivity, specificity, prevalence):
+    """
+    Calcula a probabilidade posterior de uma condição (ex: ser um usuário de droga)
+    dado um resultado de teste positivo, usando o Teorema de Bayes.
+    """
+    p_pos_given_user = sensitivity
+    p_user = prevalence
+    p_pos_given_non_user = 1 - specificity
+    p_non_user = 1 - prevalence
+
+    numerator = p_pos_given_user * p_user
+    denominator = (p_pos_given_user * p_user) + (p_pos_given_non_user * p_non_user)
+    
+    posterior = numerator / denominator
+    return posterior
+
+# Parâmetros para o cenário de teste de drogas
+sensitivity = 0.97
+specificity = 0.95
+prevalence = 0.005
+
+prob_user_given_positive = bayes_theorem_diagnostic(sensitivity, specificity, prevalence)
+print(f"A probabilidade de um indivíduo ser usuário, dado um teste positivo, é: {prob_user_given_positive:.1%}")
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-theorem" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-theorem" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="mcmc" class="content-page hidden">
+                <h2>Tornando a Inferência Bayesiana Prática: A Revolução Computacional</h2>
+                <h3>Programação Probabilística com PyMC</h3>
+                <p>Linguagens de Programação Probabilística (PPLs) como o PyMC abstraem a complexidade da implementação do MCMC. O usuário especifica os componentes de um modelo Bayesiano — os priors e a verossimilhança — e o backend do PyMC executa automaticamente um algoritmo de amostragem MCMC eficiente (como o NUTS) para extrair amostras da distribuição posterior.</p>
+
+                <div class="my-6"><canvas id="linearRegressionChart" height="200"></canvas></div>
+                
+                <pre><code class="language-python" id="code-pymc">
+import pymc as pm
+import numpy as np
+import arviz as az
+
+# Gerar dados sintéticos para y = alpha + beta*x + ruído
+np.random.seed(42)
+true_alpha = 2.5; true_beta = 1.7; true_sigma = 1.0
+x = np.linspace(0, 1, 100)
+y = true_alpha + true_beta * x + np.random.normal(0, true_sigma, size=100)
+
+# Definição do Modelo PyMC
+with pm.Model() as linear_model:
+    alpha = pm.Normal('alpha', mu=0, sigma=10)
+    beta = pm.Normal('beta', mu=0, sigma=10)
+    sigma = pm.HalfNormal('sigma', sigma=5)
+    mu = alpha + beta * x
+    Y_obs = pm.Normal('Y_obs', mu=mu, sigma=sigma, observed=y)
+    idata = pm.sample(2000, tune=1000, cores=1, return_inferencedata=True)
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-pymc" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-pymc" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="sv_model" class="content-page hidden">
+                <h2>Modelando a Volatilidade: O Modelo de Volatilidade Estocástica (SV) Bayesiano</h2>
+                <p>O framework Bayesiano é particularmente adequado para estimar modelos SV, pois a série de volatilidade latente pode ser tratada como mais um conjunto de parâmetros a serem estimados via MCMC.</p>
+                
+                <div class="my-6"><canvas id="svChart" height="250"></canvas></div>
+
+                <pre><code class="language-python" id="code-sv">
+import pymc as pm
+import numpy as np
+import yfinance as yf
+
+# Obter dados do S&P 500
+# sp500_data = yf.download('^GSPC', start='2010-01-01', end='2023-12-31')
+# returns_df = ...
+
+# Definir o modelo de Volatilidade Estocástica no PyMC
+with pm.Model() as sp500_sv_model:
+    sigma_vol = pm.Exponential("sigma_vol", 50.)
+    phi = pm.Normal("phi", mu=0, sigma=0.5)
+    phi_transformed = pm.Deterministic("phi_transformed", pm.math.tanh(phi))
+    mu_h = pm.Normal("mu_h", mu=0, sigma=1)
+    h = pm.AR("h", rho=phi_transformed, c=mu_h, sigma=sigma_vol, shape=len(returns_df))
+    volatility = pm.Deterministic("volatility", pm.math.exp(h / 2))
+    nu = pm.Exponential("nu", 0.1)
+    log_returns_obs = pm.StudentT("log_returns_obs", nu=nu, sigma=volatility, observed=returns_df['log_return'].values)
+    # sv_idata = pm.sample(1000, tune=1500, target_accept=0.9)
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-sv" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-sv" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="risk" class="content-page hidden">
+                <h2>Gestão de Risco Bayesiana: Value-at-Risk (VaR) e Expected Shortfall (ES)</h2>
+                <p>Ao calcular o VaR e o ES para cada um dos milhares de caminhos simulados a partir da posterior, geramos uma distribuição completa de VaR e ES, o que permite uma declaração de risco muito mais transparente e poderosa.</p>
+                
+                <div class="my-6"><canvas id="riskChart" height="250"></canvas></div>
+
+                <pre><code class="language-python" id="code-risk">
+from scipy.stats import t
+import arviz as az
+import numpy as np
+
+# Extrair as amostras da posterior do modelo SV ajustado
+# last_day_vol = ...
+# nu_posterior = ...
+
+# Gerar amostras preditivas posteriores para o retorno do dia seguinte
+# n_samples = last_day_vol.values.size
+# future_returns_posterior = t.rvs(df=nu_posterior.values.flatten(), 
+#                                  scale=last_day_vol.values.flatten(), 
+#                                  size=n_samples)
+
+# Calcular VaR e ES a partir da distribuição preditiva posterior
+alpha = 0.01  # Para 99% VaR/ES
+
+# VaR_99_point_estimate = -np.percentile(future_returns_posterior, alpha * 100)
+# ES_99_point_estimate = -future_returns_posterior[future_returns_posterior < -VaR_99_point_estimate].mean()
+
+# print(f"Estimativa pontual para VaR 99% de 1 dia: {VaR_99_point_estimate:.4f}")
+# print(f"Estimativa pontual para ES 99% de 1 dia: {ES_99_point_estimate:.4f}")
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-risk" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-risk" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="project" class="content-page hidden">
+                <h2>Projeto Final: Alocação de Ativos Bayesiana com o Modelo Black-Litterman</h2>
+                <p>Este projeto implementa o modelo <strong>Black-Litterman</strong>, um framework sofisticado que resolve as falhas da Otimização de Média-Variância (MVO) clássica usando uma abordagem Bayesiana.</p>
+
+                <pre><code class="language-python" id="code-bl">
+# --- Projeto Final: Alocação de Ativos Black-Litterman ---
+import pandas as pd
+from pypfopt import BlackLittermanModel, EfficientFrontier
+
+# 1. Aquisição de Dados e Preparação (Exemplo)
+# tickers = ["SPY", "EFA", "AGG", "GLD", "IYR"]
+# S = ... (matriz de covariância)
+# delta = ... (aversão ao risco)
+# market_prior = ... (retornos de equilíbrio)
+
+# 2. Definir as Visões do Investidor (P, Q) e a Confiança (Ω)
+# Q = pd.Series([0.02, 0.03]) # Visões
+# P = pd.DataFrame(...) # Matriz de ligação
+# confidences = [0.50, 0.80]
+
+# 3. Inicializar o Modelo e Calcular Retornos Posteriores
+# bl = BlackLittermanModel(S, pi=market_prior, P=P, Q=Q, omega="idzorek", view_confidences=confidences)
+# posterior_rets = bl.bl_returns()
+# S_bl = bl.bl_cov()
+
+# 4. Otimização Final do Portfólio
+# ef = EfficientFrontier(posterior_rets, S_bl)
+# weights = ef.max_sharpe()
+# cleaned_weights = ef.clean_weights()
+# print(pd.Series(cleaned_weights))
+                </code></pre>
+                 <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-bl" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-bl" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="references" class="content-page hidden">
+                <h2>Referências</h2>
+                <ul class="list-decimal list-inside space-y-2">
+                    <li>Frequentist vs. Bayesian Statistics - Data All The Way</li>
+                    <li>Bayesian Equation Explained: Introduction to Bayesian Statistics in... - QuantInsti</li>
+                    <li>The Intuition Behind Black-Litterman Model Portfolios - Duke People</li>
+                    <li>E muitas outras fontes acadêmicas e de praticantes...</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+            
+            const menuLinks = document.querySelectorAll('.nav-link');
+            const contentPages = document.querySelectorAll('.content-page');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const exportBtn = document.getElementById('export-btn');
+            const exportMenu = document.getElementById('export-menu');
+            const exportPdfBtn = document.getElementById('export-pdf');
+            const exportMdBtn = document.getElementById('export-md');
+
+            const showPage = (targetId) => {
+                contentPages.forEach(page => page.classList.add('hidden'));
+                const targetPage = document.getElementById(targetId);
+                if (targetPage) targetPage.classList.remove('hidden');
+                menuLinks.forEach(link => {
+                    link.classList.remove('active-link');
+                    if (link.dataset.target === targetId) link.classList.add('active-link');
+                });
+            };
+
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage(link.dataset.target);
+                    if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                });
+            });
+
+            menuToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+            exportBtn.addEventListener('click', () => exportMenu.classList.toggle('hidden'));
+            
+            document.addEventListener('click', (e) => {
+                if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+                    exportMenu.classList.add('hidden');
+                }
+            });
+
+            showPage('intro');
+
+            // --- Export Logic ---
+            exportPdfBtn.addEventListener('click', (e) => { e.preventDefault(); window.print(); exportMenu.classList.add('hidden'); });
+            exportMdBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                let markdownContent = '';
+                document.querySelectorAll('.content-page').forEach(page => {
+                    Array.from(page.children).forEach(el => {
+                        switch(el.tagName) {
+                            case 'HEADER': markdownContent += `# ${el.querySelector('h1').textContent.trim()}\n\n> ${el.querySelector('p').textContent.trim()}\n\n`; break;
+                            case 'H2': markdownContent += `## ${el.textContent.trim()}\n\n`; break;
+                            case 'H3': markdownContent += `### ${el.textContent.trim()}\n\n`; break;
+                            case 'P': markdownContent += `${el.textContent.trim()}\n\n`; break;
+                            case 'UL': case 'OL': Array.from(el.children).forEach(li => { markdownContent += `* ${li.textContent.trim()}\n`; }); markdownContent += '\n'; break;
+                            case 'PRE': markdownContent += `\`\`\`${el.querySelector('code').className.replace('language-', '')}\n${el.textContent}\n\`\`\`\n\n`; break;
+                            case 'DIV':
+                                if (el.classList.contains('katex-display')) { markdownContent += `$$${el.querySelector('.katex-mathml annotation').textContent}$$\n\n` }
+                                break;
+                        }
+                    });
+                    markdownContent += '---\n\n';
+                });
+                const blob = new Blob([markdownContent], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'estatistica_bayesiana.md';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                exportMenu.classList.add('hidden');
+            });
+
+            // --- Gemini API Logic ---
+            const geminiButtons = document.querySelectorAll('.gemini-btn');
+            async function callGemini(prompt, resultContainer, button) {
+                button.disabled = true;
+                resultContainer.innerHTML = '<div class="loader"></div>';
+                resultContainer.classList.remove('hidden');
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        resultContainer.innerHTML = `<pre class="whitespace-pre-wrap text-base font-sans">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
+                    } else {
+                        resultContainer.innerHTML = '<p class="text-red-400">Não foi possível obter uma resposta da IA.</p>';
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    resultContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro ao chamar a API: ${error.message}.</p>`;
+                } finally {
+                    button.disabled = false;
+                }
+            }
+            geminiButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const type = button.dataset.type;
+                    const contentElement = document.getElementById(targetId);
+                    const resultContent = contentElement.textContent;
+                    const resultContainer = document.getElementById(`result-${targetId}`);
+                    let prompt = `Explique o seguinte código Python, linha por linha, de forma clara para um estudante de finanças quantitativas. Foque na intuição por trás de cada passo. Responda em português do Brasil.\n\n\`\`\`python\n${resultContent}\n\`\`\``;
+                    if (prompt) callGemini(prompt, resultContainer, button);
+                });
+            });
+
+            // --- Charting Logic ---
+            const generateRandomData = (numPoints, mean, stdDev) => Array.from({length: numPoints}, () => mean + (Math.random() - 0.5) * 2 * stdDev);
+            const generateDateLabels = (numPoints, startDate = '2022-01-01') => Array.from({length: numPoints}, (_, i) => new Date(new Date(startDate).setDate(i + 1)));
+
+            const ctxLinear = document.getElementById('linearRegressionChart').getContext('2d');
+            const x_vals = Array.from({length: 100}, (_, i) => i / 99);
+            const y_vals = x_vals.map(x => 2.5 + 1.7 * x + (Math.random() - 0.5) * 2);
+            new Chart(ctxLinear, { type: 'scatter', data: { datasets: [{ label: 'Dados Sintéticos', data: y_vals.map((y, i) => ({x: x_vals[i], y: y})), backgroundColor: 'rgba(59, 130, 246, 0.6)' }, { type: 'line', label: 'Linha de Regressão Verdadeira', data: x_vals.map(x => ({x: x, y: 2.5 + 1.7 * x})), borderColor: 'rgb(239, 68, 68)', tension: 0.1, pointRadius: 0 }] }, options: { responsive: true, scales: { x: { title: { display: true, text: 'x' } }, y: { title: { display: true, text: 'y' } } } } });
+
+            const ctxSV = document.getElementById('svChart').getContext('2d');
+            const svLabels = generateDateLabels(252, '2020-01-01');
+            const svReturns = [...generateRandomData(150, 0, 0.01), ...generateRandomData(50, 0, 0.04), ...generateRandomData(52, 0, 0.015)];
+            const svVolatility = svReturns.map((r, i) => Math.abs(r) * 1.5 + 0.005 + Math.sin(i/20)*0.005);
+            new Chart(ctxSV, { type: 'line', data: { labels: svLabels, datasets: [{ label: 'Log-Retornos S&P 500', data: svReturns, borderColor: 'rgba(139, 92, 246, 0.7)', borderWidth: 1, pointRadius: 0, yAxisID: 'y' }, { label: 'Volatilidade Média Posterior', data: svVolatility, borderColor: 'rgb(244, 63, 94)', borderWidth: 2, pointRadius: 0, yAxisID: 'y1' }] }, options: { responsive: true, scales: { x: { type: 'time', time: { unit: 'month' } }, y: { position: 'left', title: { display: true, text: 'Log Retorno' } }, y1: { position: 'right', title: { display: true, text: 'Volatilidade' }, grid: { drawOnChartArea: false } } } } });
+
+            const createHistogramData = (data, numBins) => {
+                const min = Math.min(...data);
+                const max = Math.max(...data);
+                const binWidth = (max - min) / numBins;
+                const labels = [];
+                const counts = Array(numBins).fill(0);
+                for (let i = 0; i < numBins; i++) {
+                    labels.push(((min + i * binWidth) + (min + (i + 1) * binWidth)) / 2);
+                }
+                for (const value of data) {
+                    let binIndex = Math.floor((value - min) / binWidth);
+                    if (binIndex === numBins) binIndex--;
+                    if(binIndex >= 0 && binIndex < numBins) counts[binIndex]++;
+                }
+                return { labels: labels.map(l => l.toFixed(4)), counts };
+            };
+
+            const ctxRisk = document.getElementById('riskChart').getContext('2d');
+            const predictiveReturns = Array.from({length: 10000}, () => (Math.random() - 0.5) * 0.05 - 0.005);
+            const histogramData = createHistogramData(predictiveReturns, 50);
+            new Chart(ctxRisk, {
+                type: 'bar',
+                data: {
+                    labels: histogramData.labels,
+                    datasets: [{
+                        label: 'Retornos Preditivos Posteriores',
+                        data: histogramData.counts,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0,
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { title: { display: true, text: 'Log Retorno' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                        y: { title: { display: true, text: 'Frequência' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

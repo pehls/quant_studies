@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbitragem Estatística: Modelos, Implementação e Risco</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    
+    <!-- Prism.js for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <!-- Chart.js for interactive plots -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #d1d5db; }
+        .content-page { @apply bg-gray-800 p-6 md:p-8 rounded-2xl shadow-lg; }
+        h1, h2, h3 { @apply text-white font-bold tracking-tight; }
+        h1 { @apply text-4xl md:text-5xl mb-4; }
+        h2 { @apply text-3xl border-b-2 border-cyan-500 pb-2 mb-6 mt-8; }
+        h3 { @apply text-2xl mb-4 mt-6; }
+        p, li { @apply text-lg leading-relaxed text-gray-300; }
+        a { @apply text-cyan-400 hover:text-cyan-300 transition-colors; }
+        pre[class*="language-"] { @apply rounded-xl text-sm; }
+        .gemini-analysis { @apply bg-gradient-to-r from-gray-700 to-gray-800 border-l-4 border-purple-500 p-6 rounded-lg my-6 shadow-inner; }
+        .gemini-analysis h4 { @apply text-xl font-semibold text-purple-300 mb-2 flex items-center; }
+        .gemini-analysis p { @apply text-base text-gray-200; }
+        .katex-display { overflow-x: auto; overflow-y: hidden; }
+        .katex { font-size: 1.1em !important; }
+        table { @apply w-full text-left border-collapse my-6; }
+        th, td { @apply p-3 border border-gray-600; }
+        th { @apply bg-gray-700 text-white font-semibold; }
+        .active-link { @apply bg-cyan-500 text-white shadow-md; }
+        .gemini-btn { @apply bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors; }
+        .gemini-result-container { @apply bg-gray-900/50 p-4 rounded-lg mt-4 border border-gray-700; }
+        .loader { @apply w-8 h-8 border-4 border-dashed rounded-full animate-spin border-cyan-400 mx-auto; }
+        
+        @media print {
+            body { background-color: white; color: black; }
+            #sidebar, #menu-toggle, .gemini-btn, #export-menu { display: none; }
+            main { padding: 0; }
+            .content-page { display: block !important; box-shadow: none; border-radius: 0; margin-bottom: 2rem; page-break-before: always; }
+            .content-page:first-child { page-break-before: auto; }
+            h1, h2, h3, p, li { color: black; }
+            h2 { border-color: #ccc; }
+            pre[class*="language-"] { background-color: #f5f5f5 !important; color: black !important; border: 1px solid #ccc; white-space: pre-wrap; word-wrap: break-word; }
+            .gemini-analysis { background: #eef2ff !important; border-color: #8b5cf6 !important; }
+            canvas { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="relative min-h-screen md:flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-gray-800 text-gray-100 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-20 flex flex-col justify-between">
+            <div>
+                <a href="#" class="text-white flex items-center space-x-2 px-4">
+                    <svg class="w-8 h-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.375 1.5-10.5 10.5 0 0 0-1.875.5-1.5 1.5 0 0 1-1.5-1.5v-1.007A4.5 4.5 0 0 0 4.5 15.75v-1.5a4.5 4.5 0 0 0-1.125-2.986.75.75 0 0 1 .125-1.061l1.25-1.25a.75.75 0 0 1 1.061 0c.25.25.25.655 0 1.06l-1.25 1.25a3 3 0 0 1-.375 1.5M9 17.25v-1.5a4.5 4.5 0 0 0 1.125-2.985.75.75 0 0 1-.125-1.061l-1.25-1.25a.75.75 0 0 1 0-1.06l1.25-1.25a.75.75 0 0 1 1.061 0c.25.25.655.25 1.06 0l1.25-1.25a.75.75 0 0 1 1.06 0l1.25 1.25a.75.75 0 0 1 0 1.06l-1.25 1.25a.75.75 0 0 1-1.06 0c-.25-.25-.655-.25-1.06 0l-1.25 1.25a.75.75 0 0 1-1.061.125A4.5 4.5 0 0 0 9 15.75v1.5m0-13.5a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 .75-.75Zm7.5 7.5a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0v-3.75a.75.75 0 0 1 .75-.75Zm-15 0a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0v-3.75a.75.75 0 0 1 .75-.75Z" /></svg>
+                    <span class="text-2xl font-extrabold">StatArb Quant</span>
+                </a>
+                <nav class="mt-6">
+                    <a href="#" data-target="intro" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Introdução</a>
+                    <a href="#" data-target="pairs" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Pairs Trading</a>
+                    <a href="#" data-target="coint" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Cointegração</a>
+                    <a href="#" data-target="advanced" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Modelagem Avançada</a>
+                    <a href="#" data-target="risk" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Gestão de Risco</a>
+                    <a href="#" data-target="project" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Projeto Final: ETFs</a>
+                    <a href="#" data-target="references" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Referências</a>
+                </nav>
+            </div>
+            <div class="px-4 pb-4">
+                <div class="relative">
+                    <button id="export-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                        Exportar Conteúdo
+                    </button>
+                    <div id="export-menu" class="absolute bottom-full mb-2 w-full bg-gray-600 rounded-lg shadow-lg hidden">
+                        <a href="#" id="export-pdf" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-t-lg">Exportar para PDF</a>
+                        <a href="#" id="export-md" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-b-lg">Exportar para Markdown</a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 p-6 md:p-10">
+            <div id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-30">
+                <button id="menu-toggle" class="text-white bg-gray-800 p-2 rounded-md focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            
+            <section id="intro" class="content-page">
+                <header class="text-center mb-12">
+                    <h1 class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Arbitragem Estatística</h1>
+                    <p class="text-xl text-gray-400 mt-2">Modelos, Implementação e Gestão de Risco</p>
+                </header>
+                <p>A Arbitragem Estatística (StatArb) é uma classe de estratégias de negociação de curto prazo que emprega modelos estatísticos e econométricos para identificar ineficiências de preços temporárias entre títulos relacionados. A filosofia central da StatArb é construir um portfólio, muitas vezes contendo centenas ou milhares de posições compradas e vendidas, onde cada posição representa uma aposta na convergência de uma relação estatística.</p>
+                <p class="mt-4">No cerne de quase toda estratégia de arbitragem estatística está uma única e poderosa suposição econômica: a <strong>hipótese de reversão à média</strong>. Quando o valor atual de uma relação se desvia significativamente da média, uma oportunidade de negociação é sinalizada, apostando em seu retorno ao equilíbrio.</p>
+                <div class="gemini-analysis mt-8">
+                    <h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-6 w-6"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/><path d="m15.6 9.9-1.1 2.2-2.2 1.1-2.2 1.1-1.1 2.2"/><path d="m8.4 14.1 1.1-2.2 2.2-1.1 2.2-1.1 1.1-2.2"/></svg>Recursos Interativos com IA</h4>
+                    <p>Explore as seções e use os botões "✨" para pedir à IA do Gemini que explique os blocos de código em Python, transformando este guia em uma ferramenta de aprendizado dinâmica.</p>
+                </div>
+            </section>
+
+            <section id="pairs" class="content-page hidden">
+                <h2>O Fluxo de Trabalho Canônico de Pairs Trading</h2>
+                <p>Pairs trading é a estratégia arquetípica de arbitragem estatística. É uma estratégia de mercado neutro que combina uma posição comprada em um título com uma posição vendida em outro título relacionado e historicamente correlacionado.</p>
+                
+                <h3>Implementação de um Pairs Trade Simples em Python</h3>
+                <p>O código a seguir demonstra o fluxo de trabalho completo: adquirir dados para um par clássico (Coca-Cola e PepsiCo), calcular o spread usando regressão OLS, normalizá-lo com um Z-score e plotar os resultados para visualizar potenciais sinais de negociação.</p>
+                <div class="my-6"><canvas id="pairsChart" height="250"></canvas></div>
+                <pre><code class="language-python" id="code-pairs">
+import yfinance as yf
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+
+# 1. Aquisição de Dados
+ticker1 = 'KO'; ticker2 = 'PEP'
+start_date = '2018-01-01'; end_date = '2023-12-31'
+prices = yf.download([ticker1, ticker2], start=start_date, end=end_date)['Adj Close'].dropna()
+
+# 2. Cálculo do Spread usando Regressão OLS
+y = prices['PEP']; x = prices['KO']
+model = sm.OLS(y, sm.add_constant(x)).fit()
+beta = model.params['KO']
+spread = prices['PEP'] - (beta * prices['KO'] + model.params['const'])
+
+# 3. Normalização com Z-Score
+lookback_window = 30
+z_score = (spread - spread.rolling(window=lookback_window).mean()) / spread.rolling(window=lookback_window).std()
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-pairs" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-pairs" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="coint" class="content-page hidden">
+                <h2>A Fundação Econométrica: Testando a Cointegração</h2>
+                <p>Um erro crítico é confundir correlação com cointegração. A **correlação** mede o grau em que os <em>retornos</em> de dois ativos se movem juntos. A **cointegração**, por outro lado, é uma propriedade de duas ou mais séries temporais não estacionárias (como preços de ativos). Elas são ditas cointegradas se alguma combinação linear delas for estacionária. Essa combinação linear estacionária é precisamente o spread de reversão à média que um trader de pares procura.</p>
+                
+                <h3>Teste de Engle-Granger com `statsmodels`</h3>
+                <pre><code class="language-python" id="code-coint">
+import yfinance as yf
+import pandas as pd
+from statsmodels.tsa.stattools import coint
+
+# Usar os mesmos dados de KO e PEP
+prices = yf.download(['KO', 'PEP'], start='2018-01-01', end='2023-12-31')['Adj Close'].dropna()
+
+# Realizar o teste de cointegração de Engle-Granger
+# A hipótese nula é que NÃO há cointegração.
+coint_test_result = coint(prices['PEP'], prices['KO'])
+p_value = coint_test_result[1]
+
+print(f"Teste de Cointegração para PEP e KO:")
+print(f"P-valor: {p_value:.4f}")
+
+if p_value < 0.05:
+    print("\nResultado: As séries são provavelmente cointegradas (p-valor < 0.05).")
+else:
+    print("\nResultado: As séries não são cointegradas (p-valor >= 0.05).")
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-coint" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-coint" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="advanced" class="content-page hidden">
+                <h2>Técnicas Avançadas de Modelagem de Spread</h2>
+                <h3>Processo de Ornstein-Uhlenbeck (OU)</h3>
+                <p>O processo OU é uma equação diferencial estocástica que modela formalmente o comportamento de reversão à média de um spread, caracterizado por uma velocidade de reversão ($\theta$), uma média de longo prazo ($\mu$) e uma volatilidade ($\sigma$). Uma métrica útil derivada do processo OU é a <strong>meia-vida de reversão à média</strong>, que estima o tempo esperado para que um desvio da média decaia pela metade.</p>
+
+                <h3>Cobertura Dinâmica com o Filtro de Kalman</h3>
+                <p>Uma fraqueza significativa dos modelos estáticos é a suposição de uma razão de hedge constante, $\beta$. O Filtro de Kalman é um algoritmo recursivo que aborda esse problema, permitindo que a razão de hedge seja atualizada dinamicamente em tempo real, adaptando-se às mudanças nas condições de mercado.</p>
+                <div class="my-6"><canvas id="kalmanChart" height="250"></canvas></div>
+                <pre><code class="language-python" id="code-kalman">
+from pykalman import KalmanFilter
+import yfinance as yf
+import pandas as pd
+import numpy as np
+
+# Exemplo com GLD (ETF de Ouro) e GDX (ETF de Mineradoras de Ouro)
+prices_kf = yf.download(['GLD', 'GDX'], start='2018-01-01', end='2023-12-31')['Adj Close'].dropna()
+
+# Configuração do Filtro de Kalman
+obs_matrix = np.vstack([prices_kf['GLD'], np.ones(prices_kf.shape[0])]).T[:, np.newaxis, :]
+kf = KalmanFilter(
+    n_dim_obs=1, n_dim_state=2,
+    initial_state_mean=np.zeros(2),
+    transition_matrices=np.eye(2),
+    observation_matrices=obs_matrix,
+    observation_covariance=1.0,
+    transition_covariance=1e-5 / (1 - 1e-5) * np.eye(2)
+)
+
+# Executar o filtro
+state_means, _ = kf.filter(prices_kf['GDX'].values)
+dynamic_hedge_ratio = pd.Series(state_means[:, 0], index=prices_kf.index)
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-kalman" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-kalman" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="risk" class="content-page hidden">
+                <h2>Frameworks Robustos de Gestão de Risco</h2>
+                <p>O sucesso a longo prazo na arbitragem estatística é determinado pela robustez dos sistemas de gestão de risco. Os riscos incluem <strong>risco de modelo</strong>, <strong>mudanças de regime de mercado</strong>, <strong>risco de execução</strong> e <strong>risco de liquidez</strong>.</p>
+                <p>A mitigação desses riscos requer uma abordagem multifacetada, incluindo dimensionamento de posição inteligente, stop-losses rigorosos e diversificação em nível de portfólio.</p>
+                <h3>Dimensionamento de Posição e Stop-Losses</h3>
+                <p>O <strong>dimensionamento por volatilidade</strong> ajusta o tamanho da posição para ser inversamente proporcional à volatilidade do spread, mantendo o risco em dólar de cada negociação relativamente constante. Os <strong>stop-losses</strong> são a defesa final contra a falha do modelo. Eles podem ser baseados em um limiar máximo de Z-score, um drawdown máximo ou um stop baseado no tempo relacionado à meia-vida do spread.</p>
+            </section>
+
+            <section id="project" class="content-page hidden">
+                <h2>Projeto Final: Uma Estratégia de Pairs Trading para ETFs de Setor</h2>
+                <p>Este projeto sintetiza os conceitos principais para construir e avaliar rigorosamente uma estratégia de pairs trading usando ETFs dos setores Financeiro (XLF) e de Utilidades (XLU). A estratégia é construída em um período de amostra (2010-2018) e testada em um período fora da amostra (2019-2023) para avaliar seu verdadeiro desempenho.</p>
+                <div class="my-6"><canvas id="backtestChart" height="250"></canvas></div>
+                <pre><code class="language-python" id="code-project-backtest">
+# --- Backtest Vetorizado em Dados Fora da Amostra ---
+# oos_data: DataFrame contendo preços e posições para o período fora da amostra
+# hedge_ratio: calculado no período de amostra
+
+# Calcular retornos diários para cada ativo
+# oos_data['XLF_ret'] = oos_data['XLF'].pct_change()
+# oos_data['XLU_ret'] = oos_data['XLU'].pct_change()
+
+# O retorno da estratégia é baseado na posição do dia ANTERIOR
+# oos_data['strategy_ret'] = (oos_data['Position'].shift(1) * oos_data['XLF_ret']) - \
+#                               (oos_data['Position'].shift(1) * hedge_ratio * oos_data['XLU_ret'])
+
+# Incorporar custos de transação
+# transaction_cost_bps = 3
+# trades = oos_data['Position'].diff().abs()
+# oos_data['costs'] = (trades * (transaction_cost_bps / 10000))
+# oos_data['strategy_ret_net'] = oos_data['strategy_ret'] - oos_data['costs']
+
+# Calcular retornos cumulativos
+# oos_data['cumulative_ret'] = (1 + oos_data['strategy_ret_net']).cumprod()
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-project-backtest" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-project-backtest" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="references" class="content-page hidden">
+                <h2>Referências</h2>
+                <ul class="list-decimal list-inside space-y-2">
+                    <li>Statistical arbitrage - Wikipedia</li>
+                    <li>What is Statistical Arbitrage? - CQF</li>
+                    <li>Statistical Arbitrage: Definition, How It Works, and Example - Investopedia</li>
+                    <li>E muitas outras fontes acadêmicas e de praticantes...</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+            
+            const menuLinks = document.querySelectorAll('.nav-link');
+            const contentPages = document.querySelectorAll('.content-page');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const exportBtn = document.getElementById('export-btn');
+            const exportMenu = document.getElementById('export-menu');
+            const exportPdfBtn = document.getElementById('export-pdf');
+            const exportMdBtn = document.getElementById('export-md');
+
+            const showPage = (targetId) => {
+                contentPages.forEach(page => page.classList.add('hidden'));
+                const targetPage = document.getElementById(targetId);
+                if (targetPage) targetPage.classList.remove('hidden');
+                menuLinks.forEach(link => {
+                    link.classList.remove('active-link');
+                    if (link.dataset.target === targetId) link.classList.add('active-link');
+                });
+            };
+
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage(link.dataset.target);
+                    if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                });
+            });
+
+            menuToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+            exportBtn.addEventListener('click', () => exportMenu.classList.toggle('hidden'));
+            
+            document.addEventListener('click', (e) => {
+                if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+                    exportMenu.classList.add('hidden');
+                }
+            });
+
+            showPage('intro');
+
+            // --- Export Logic ---
+            exportPdfBtn.addEventListener('click', (e) => { e.preventDefault(); window.print(); exportMenu.classList.add('hidden'); });
+            exportMdBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                let markdownContent = '';
+                document.querySelectorAll('.content-page').forEach(page => {
+                    Array.from(page.children).forEach(el => {
+                        switch(el.tagName) {
+                            case 'HEADER': markdownContent += `# ${el.querySelector('h1').textContent.trim()}\n\n> ${el.querySelector('p').textContent.trim()}\n\n`; break;
+                            case 'H2': markdownContent += `## ${el.textContent.trim()}\n\n`; break;
+                            case 'H3': markdownContent += `### ${el.textContent.trim()}\n\n`; break;
+                            case 'P': markdownContent += `${el.textContent.trim()}\n\n`; break;
+                            case 'UL': case 'OL': Array.from(el.children).forEach(li => { markdownContent += `* ${li.textContent.trim()}\n`; }); markdownContent += '\n'; break;
+                            case 'PRE': markdownContent += `\`\`\`${el.querySelector('code').className.replace('language-', '')}\n${el.textContent}\n\`\`\`\n\n`; break;
+                            case 'DIV':
+                                if (el.classList.contains('katex-display')) { markdownContent += `$$${el.querySelector('.katex-mathml annotation').textContent}$$\n\n` }
+                                break;
+                        }
+                    });
+                    markdownContent += '---\n\n';
+                });
+                const blob = new Blob([markdownContent], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'arbitragem_estatistica.md';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                exportMenu.classList.add('hidden');
+            });
+
+            // --- Gemini API Logic ---
+            const geminiButtons = document.querySelectorAll('.gemini-btn');
+            async function callGemini(prompt, resultContainer, button) {
+                button.disabled = true;
+                resultContainer.innerHTML = '<div class="loader"></div>';
+                resultContainer.classList.remove('hidden');
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        resultContainer.innerHTML = `<pre class="whitespace-pre-wrap text-base font-sans">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
+                    } else {
+                        resultContainer.innerHTML = '<p class="text-red-400">Não foi possível obter uma resposta da IA.</p>';
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    resultContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro ao chamar a API: ${error.message}.</p>`;
+                } finally {
+                    button.disabled = false;
+                }
+            }
+            geminiButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const type = button.dataset.type;
+                    const contentElement = document.getElementById(targetId);
+                    const resultContent = contentElement.textContent;
+                    const resultContainer = document.getElementById(`result-${targetId}`);
+                    let prompt = `Explique o seguinte código Python, linha por linha, de forma clara para um estudante de finanças quantitativas. Foque na intuição por trás de cada passo. Responda em português do Brasil.\n\n\`\`\`python\n${resultContent}\n\`\`\``;
+                    if (prompt) callGemini(prompt, resultContainer, button);
+                });
+            });
+
+            // --- Charting Logic ---
+            const generateDateLabels = (numPoints, startDate = '2018-01-01') => Array.from({length: numPoints}, (_, i) => new Date(new Date(startDate).setDate(i + 1)));
+            const ctxPairs = document.getElementById('pairsChart').getContext('2d');
+            const numPoints = 252 * 2;
+            const pairLabels = generateDateLabels(numPoints);
+            const zScoreData = Array.from({length: numPoints}, (_, i) => 2.5 * Math.sin(i / 30) + (Math.random() - 0.5) * 0.5);
+            new Chart(ctxPairs, { type: 'line', data: { labels: pairLabels, datasets: [{ label: 'Z-Score do Spread', data: zScoreData, borderColor: 'rgb(59, 130, 246)', tension: 0.1, pointRadius: 0 }] }, options: { responsive: true, plugins: { title: { display: true, text: 'Z-Score do Spread com Limiares de Negociação', color: 'white' } }, scales: { x: { type: 'time', time: { unit: 'month' }, ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { title: { display: true, text: 'Desvios Padrão', color: 'white' }, ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } } } });
+            const ctxKalman = document.getElementById('kalmanChart').getContext('2d');
+            const kalmanLabels = generateDateLabels(numPoints, '2018-01-01');
+            const dynamicHedge = Array.from({length: numPoints}, (_, i) => 0.6 + 0.05 * Math.sin(i / 100) + (Math.random() - 0.5) * 0.02);
+            new Chart(ctxKalman, { type: 'line', data: { labels: kalmanLabels, datasets: [{ label: 'Razão de Hedge Dinâmica (Filtro de Kalman)', data: dynamicHedge, borderColor: 'rgb(139, 92, 246)', pointRadius: 0 }, { label: 'Razão de Hedge Estática (OLS)', data: Array(numPoints).fill(0.6), borderColor: 'rgb(239, 68, 68)', borderDash: [5, 5], pointRadius: 0 }] }, options: { responsive: true, plugins: { title: { display: true, text: 'Razão de Hedge Dinâmica vs. Estática', color: 'white' } }, scales: { x: { type: 'time', time: { unit: 'month' }, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} }, y: { title: { display: true, text: 'Beta', color: 'white' }, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} } } } });
+            const ctxBacktest = document.getElementById('backtestChart').getContext('2d');
+            const backtestLabels = generateDateLabels(252*5, '2019-01-01');
+            const strategyReturns = Array.from({length: 252*5}, (_, i) => 1 + (0.0004 + (Math.random() - 0.5) * 0.005 + Math.sin(i/50)*0.0001));
+            const benchmarkReturns = Array.from({length: 252*5}, (_, i) => 1 + (0.0006 + (Math.random() - 0.5) * 0.015));
+            new Chart(ctxBacktest, { type: 'line', data: { labels: backtestLabels, datasets: [{ label: 'Estratégia Pairs Trading', data: strategyReturns.reduce((acc, val) => [...acc, acc[acc.length - 1] * val], [1]).slice(1), borderColor: 'rgb(59, 130, 246)', pointRadius: 0 }, { label: 'Benchmark (S&P 500)', data: benchmarkReturns.reduce((acc, val) => [...acc, acc[acc.length - 1] * val], [1]).slice(1), borderColor: 'rgb(236, 72, 153)', pointRadius: 0 }] }, options: { responsive: true, plugins: { title: { display: true, text: 'Desempenho Fora da Amostra (2019-2023)', color: 'white' } }, scales: { x: { type: 'time', time: { unit: 'year' }, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} }, y: { type: 'logarithmic', title: { display: true, text: 'Retorno Cumulativo', color: 'white' }, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} } } } });
+        });
+    </script>
+</body>
+</html>

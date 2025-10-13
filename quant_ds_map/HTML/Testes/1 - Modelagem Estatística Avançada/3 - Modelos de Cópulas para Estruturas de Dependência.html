@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelos de Cópulas para Estruturas de Dependência</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    
+    <!-- Prism.js for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <!-- Chart.js for interactive plots -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #d1d5db; }
+        .content-page { @apply bg-gray-800 p-6 md:p-8 rounded-2xl shadow-lg; }
+        h1, h2, h3 { @apply text-white font-bold tracking-tight; }
+        h1 { @apply text-4xl md:text-5xl mb-4; }
+        h2 { @apply text-3xl border-b-2 border-cyan-500 pb-2 mb-6 mt-8; }
+        h3 { @apply text-2xl mb-4 mt-6; }
+        p, li { @apply text-lg leading-relaxed text-gray-300; }
+        a { @apply text-cyan-400 hover:text-cyan-300 transition-colors; }
+        pre[class*="language-"] { @apply rounded-xl text-sm; }
+        .gemini-analysis { @apply bg-gradient-to-r from-gray-700 to-gray-800 border-l-4 border-purple-500 p-6 rounded-lg my-6 shadow-inner; }
+        .gemini-analysis h4 { @apply text-xl font-semibold text-purple-300 mb-2 flex items-center; }
+        .gemini-analysis p { @apply text-base text-gray-200; }
+        .katex-display { overflow-x: auto; overflow-y: hidden; }
+        .katex { font-size: 1.1em !important; }
+        table { @apply w-full text-left border-collapse my-6; }
+        th, td { @apply p-3 border border-gray-600; }
+        th { @apply bg-gray-700 text-white font-semibold; }
+        .active-link { @apply bg-cyan-500 text-white shadow-md; }
+        .gemini-btn { @apply bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors; }
+        .gemini-result-container { @apply bg-gray-900/50 p-4 rounded-lg mt-4 border border-gray-700; }
+        .loader { @apply w-8 h-8 border-4 border-dashed rounded-full animate-spin border-cyan-400 mx-auto; }
+        
+        @media print {
+            body { background-color: white; color: black; }
+            #sidebar, #menu-toggle, .gemini-btn, #export-menu { display: none; }
+            main { padding: 0; }
+            .content-page { display: block !important; box-shadow: none; border-radius: 0; margin-bottom: 2rem; page-break-before: always; }
+            .content-page:first-child { page-break-before: auto; }
+            h1, h2, h3, p, li { color: black; }
+            h2 { border-color: #ccc; }
+            pre[class*="language-"] { background-color: #f5f5f5 !important; color: black !important; border: 1px solid #ccc; white-space: pre-wrap; word-wrap: break-word; }
+            .gemini-analysis { background: #eef2ff !important; border-color: #8b5cf6 !important; }
+            canvas { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="relative min-h-screen md:flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-gray-800 text-gray-100 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-20 flex flex-col justify-between">
+            <div>
+                <a href="#" class="text-white flex items-center space-x-2 px-4">
+                    <svg class="w-8 h-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
+                    <span class="text-2xl font-extrabold">Copula Quant</span>
+                </a>
+                <nav class="mt-6">
+                    <a href="#" data-target="intro" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Introdução</a>
+                    <a href="#" data-target="sklar" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Teorema de Sklar</a>
+                    <a href="#" data-target="families" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Famílias de Cópulas</a>
+                    <a href="#" data-target="workflow" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Workflow Cópula-GARCH</a>
+                    <a href="#" data-target="project" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Projeto Final: Risco</a>
+                    <a href="#" data-target="references" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Referências</a>
+                </nav>
+            </div>
+            <div class="px-4 pb-4">
+                <div class="relative">
+                    <button id="export-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                        Exportar Conteúdo
+                    </button>
+                    <div id="export-menu" class="absolute bottom-full mb-2 w-full bg-gray-600 rounded-lg shadow-lg hidden">
+                        <a href="#" id="export-pdf" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-t-lg">Exportar para PDF</a>
+                        <a href="#" id="export-md" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-b-lg">Exportar para Markdown</a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 p-6 md:p-10">
+            <div id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-30">
+                <button id="menu-toggle" class="text-white bg-gray-800 p-2 rounded-md focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            
+            <section id="intro" class="content-page">
+                <header class="text-center mb-12">
+                    <h1 class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Modelos de Cópulas para Estruturas de Dependência</h1>
+                    <p class="text-xl text-gray-400 mt-2">Além da Correlação Linear em Finanças</p>
+                </header>
+                <p>A dependência entre ativos é um pilar da teoria de portfólio e da gestão de risco. Por décadas, a ferramenta principal para modelar essa dependência foi a <strong>correlação linear</strong>. No entanto, a confiança na correlação é perigosa, pois fornece uma imagem incompleta do risco, especialmente durante períodos de estresse de mercado.</p>
+                <div class="gemini-analysis mt-8">
+                    <h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-6 w-6"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/><path d="m15.6 9.9-1.1 2.2-2.2 1.1-2.2 1.1-1.1 2.2"/><path d="m8.4 14.1 1.1-2.2 2.2-1.1 2.2-1.1 1.1-2.2"/></svg>Novos Recursos com IA</h4>
+                    <p>Agora com a integração da API do Gemini, você pode clicar nos botões "✨" ao lado dos blocos de código para obter uma explicação detalhada da IA, tornando o aprendizado mais interativo e aprofundado.</p>
+                </div>
+            </section>
+
+            <section id="sklar" class="content-page hidden">
+                <h2>O Pilar Teórico: Teorema de Sklar</h2>
+                <p>O Teorema de Sklar é a base matemática da modelagem de cópulas. Ele afirma que qualquer distribuição conjunta multivariada pode ser decomposta em suas distribuições marginais univariadas e uma cópula que descreve sua estrutura de dependência.</p>
+                <div class="my-4 text-center">
+                    $F(x_1, \dots, x_d) = C(F_1(x_1), \dots, F_d(x_d))$
+                </div>
+                
+                <h3>Exemplo em Python: Construindo uma Distribuição Conjunta</h3>
+                <div class="my-6"><canvas id="sklarChart" height="250"></canvas></div>
+                <pre><code class="language-python" id="code-sklar">
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from statsmodels.distributions.copula.api import GaussianCopula, CopulaDistribution
+
+# 1. Definir duas distribuições marginais diferentes
+marginals = [stats.norm(loc=0, scale=1), stats.t(df=5)]
+
+# 2. Definir uma cópula para descrever a estrutura de dependência
+copula = GaussianCopula(corr=0.7)
+
+# 3. Criar a distribuição conjunta "acoplando" as marginais com a cópula
+joint_dist = CopulaDistribution(copula=copula, marginals=marginals)
+
+# 4. Gerar 2000 amostras da nova distribuição conjunta
+joint_samples = joint_dist.rvs(2000, random_state=42)
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-sklar" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-sklar" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="families" class="content-page hidden">
+                <h2>Taxonomia das Famílias de Cópulas e Dependência de Cauda</h2>
+                <p>Para aplicações financeiras, a propriedade mais crítica de uma cópula é a <strong>dependência de cauda</strong>, que descreve a tendência das variáveis de sofrerem eventos extremos juntas.</p>
+                <div class="my-6"><canvas id="familiesChart" height="300"></canvas></div>
+            </section>
+
+            <section id="workflow" class="content-page hidden">
+                <h2>O Fluxo de Trabalho de Modelagem Cópula-GARCH em Python</h2>
+                <p>A solução padrão da indústria é a metodologia <strong>Cópula-GARCH</strong>, que modela as marginais com GARCH e, em seguida, modela a dependência dos resíduos i.i.d. com uma cópula.</p>
+                <pre><code class="language-python" id="code-workflow">
+import yfinance as yf
+import pandas as pd
+import numpy as np
+from arch import arch_model
+from scipy.stats import rankdata
+from statsmodels.distributions.copula.api import GaussianCopula, StudentTCopula, ClaytonCopula
+
+# 1. Preparação dos Dados (Exemplo)
+# tickers = ['SPY', 'GLD']
+# log_returns = ...
+
+# 2. Modelagem Marginal (GARCH)
+# standardized_residuals = pd.DataFrame()
+# for ticker in tickers:
+#     model = arch_model(log_returns[ticker] * 100, vol='Garch', p=1, o=1, q=1, dist='skewt')
+#     garch_result = model.fit(disp='off')
+#     standardized_residuals[ticker] = garch_result.std_resid
+
+# 3. Transformação dos Resíduos para Uniforme
+# pseudo_obs = pd.DataFrame()
+# for ticker in tickers:
+#     pseudo_obs[ticker] = rankdata(standardized_residuals[ticker]) / (len(standardized_residuals) + 1)
+
+# 4. Ajuste e Seleção da Cópula
+# data_for_copula = pseudo_obs.values
+# candidate_copulas = {'Gaussian': GaussianCopula(), 'Student-t': StudentTCopula(), 'Clayton': ClaytonCopula()}
+# ... (código de ajuste e seleção)
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-workflow" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-workflow" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="project" class="content-page hidden">
+                <h2>Projeto Final: Gestão de Risco de Portfólio com Cópula-GARCH</h2>
+                <p>Este projeto demonstra como a escolha da cópula (dependente de cauda vs. Gaussiana) altera drasticamente a percepção do risco do portfólio (VaR e ES).</p>
+                
+                <pre><code class="language-python" id="code-project-risk">
+# --- Simulação de Monte Carlo e Cálculo de Risco ---
+def simulate_portfolio_returns(garch_models, copula, n_sims=100000):
+    # Lógica de previsão GARCH e simulação de cópula para gerar
+    # um array de retornos de portfólio simulados.
+    # A implementação completa está no texto original.
+    pass
+
+def calculate_risk_measures(returns, confidence_level=0.99):
+    alpha = 1 - confidence_level
+    var = np.percentile(returns, alpha * 100)
+    es = returns[returns <= var].mean()
+    return var, es
+
+# Simular usando a melhor cópula e a Gaussiana
+# portfolio_sim_t = simulate_portfolio_returns(...)
+# portfolio_sim_gauss = simulate_portfolio_returns(...)
+
+# Calcular e comparar as medidas de risco
+# var_t, es_t = calculate_risk_measures(portfolio_sim_t)
+# var_gauss, es_gauss = calculate_risk_measures(portfolio_sim_gauss)
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-project-risk" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-project-risk" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="references" class="content-page hidden">
+                <h2>Referências</h2>
+                <ul class="list-decimal list-inside space-y-2">
+                    <li>Modelling Copulas: An Overview - SIAS</li>
+                    <li>Copulas and trading strategies - Macrosynergy</li>
+                    <li>Unlocking Copula Methods in Finance - Number Analytics</li>
+                    <li>E muitas outras fontes acadêmicas e de praticantes...</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+            
+            const menuLinks = document.querySelectorAll('.nav-link');
+            const contentPages = document.querySelectorAll('.content-page');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const exportBtn = document.getElementById('export-btn');
+            const exportMenu = document.getElementById('export-menu');
+            const exportPdfBtn = document.getElementById('export-pdf');
+            const exportMdBtn = document.getElementById('export-md');
+
+            const showPage = (targetId) => {
+                contentPages.forEach(page => page.classList.add('hidden'));
+                const targetPage = document.getElementById(targetId);
+                if (targetPage) targetPage.classList.remove('hidden');
+                menuLinks.forEach(link => {
+                    link.classList.remove('active-link');
+                    if (link.dataset.target === targetId) link.classList.add('active-link');
+                });
+            };
+
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage(link.dataset.target);
+                    if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                });
+            });
+
+            menuToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+            exportBtn.addEventListener('click', () => exportMenu.classList.toggle('hidden'));
+            
+            document.addEventListener('click', (e) => {
+                if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+                    exportMenu.classList.add('hidden');
+                }
+            });
+
+            showPage('intro');
+
+            // --- Export Logic ---
+            exportPdfBtn.addEventListener('click', (e) => { e.preventDefault(); window.print(); exportMenu.classList.add('hidden'); });
+            exportMdBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                let markdownContent = '';
+                document.querySelectorAll('.content-page').forEach(page => {
+                    Array.from(page.children).forEach(el => {
+                        switch(el.tagName) {
+                            case 'HEADER': markdownContent += `# ${el.querySelector('h1').textContent.trim()}\n\n> ${el.querySelector('p').textContent.trim()}\n\n`; break;
+                            case 'H2': markdownContent += `## ${el.textContent.trim()}\n\n`; break;
+                            case 'H3': markdownContent += `### ${el.textContent.trim()}\n\n`; break;
+                            case 'P': markdownContent += `${el.textContent.trim()}\n\n`; break;
+                            case 'UL': case 'OL': Array.from(el.children).forEach(li => { markdownContent += `* ${li.textContent.trim()}\n`; }); markdownContent += '\n'; break;
+                            case 'PRE': markdownContent += `\`\`\`${el.querySelector('code').className.replace('language-', '')}\n${el.textContent}\n\`\`\`\n\n`; break;
+                            case 'DIV':
+                                if (el.classList.contains('katex-display')) { markdownContent += `$$${el.querySelector('.katex-mathml annotation').textContent}$$\n\n` }
+                                break;
+                        }
+                    });
+                    markdownContent += '---\n\n';
+                });
+                const blob = new Blob([markdownContent], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'modelos_de_copulas.md';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                exportMenu.classList.add('hidden');
+            });
+
+            // --- Gemini API Logic ---
+            const geminiButtons = document.querySelectorAll('.gemini-btn');
+            async function callGemini(prompt, resultContainer, button) {
+                button.disabled = true;
+                resultContainer.innerHTML = '<div class="loader"></div>';
+                resultContainer.classList.remove('hidden');
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        resultContainer.innerHTML = `<pre class="whitespace-pre-wrap text-base font-sans">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
+                    } else {
+                        resultContainer.innerHTML = '<p class="text-red-400">Não foi possível obter uma resposta da IA.</p>';
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    resultContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro ao chamar a API: ${error.message}.</p>`;
+                } finally {
+                    button.disabled = false;
+                }
+            }
+            geminiButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const type = button.dataset.type;
+                    const contentElement = document.getElementById(targetId);
+                    const resultContent = contentElement.textContent;
+                    const resultContainer = document.getElementById(`result-${targetId}`);
+                    let prompt = `Explique o seguinte código Python, linha por linha, de forma clara para um estudante de finanças quantitativas. Foque na intuição por trás de cada passo. Responda em português do Brasil.\n\n\`\`\`python\n${resultContent}\n\`\`\``;
+                    if (prompt) callGemini(prompt, resultContainer, button);
+                });
+            });
+
+            // --- Charting Logic ---
+            const generateRandomData = (numPoints, mean, stdDev) => Array.from({length: numPoints}, () => mean + (Math.random() - 0.5) * 2 * stdDev);
+            
+            // Sklar's Theorem Chart
+            const ctxSklar = document.getElementById('sklarChart').getContext('2d');
+            const norm_samples = generateRandomData(2000, 0, 1);
+            const t_samples = generateRandomData(2000, 0, 1.5);
+            const joint_samples = norm_samples.map((n, i) => ({x: n, y: (n * 0.7) + (t_samples[i] * Math.sqrt(1 - 0.7*0.7)) }));
+            new Chart(ctxSklar, { type: 'scatter', data: { datasets: [{ label: 'Amostras Conjuntas', data: joint_samples, backgroundColor: 'rgba(75, 192, 192, 0.5)' }] }, options: { responsive: true, plugins: { title: { display: true, text: "Distribuição Conjunta (Cópula Gaussiana, Marginais Norm/T)", color: 'white' } }, scales: { x: { title: { display: true, text: 'Marginal Normal(0,1)', color: 'white' }, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} }, y: { title: { display: true, text: "Marginal t(5)", color: 'white' }, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} } } } });
+
+            // Copula Families Chart
+            const ctxFamilies = document.getElementById('familiesChart').getContext('2d');
+            const createCopulaData = (n, type) => {
+                const data = [];
+                for(let i=0; i<n; i++) {
+                    let u = Math.random();
+                    let v = Math.random();
+                    if(type === 't' && Math.random() > 0.8) { data.push({x: u < 0.1 ? u*0.5 : (u > 0.9 ? 1-(1-u)*0.5: u), y: v < 0.1 ? v*0.5 : (v > 0.9 ? 1-(1-v)*0.5: v)}) }
+                    else if(type === 'clayton' && Math.random() > 0.5) { data.push({x: Math.pow(u, 1.5), y: Math.pow(v, 1.5)}) }
+                    else if(type === 'gumbel' && Math.random() > 0.5) { data.push({x: 1-Math.pow(1-u, 1.5), y: 1-Math.pow(1-v, 1.5)}) }
+                    else { data.push({x: u, y: v}); }
+                }
+                return data;
+            };
+            new Chart(ctxFamilies, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { label: 'Gaussiana', data: createCopulaData(500, 'gaussian'), backgroundColor: 'rgba(255, 99, 132, 0.7)' },
+                        { label: 't-Student', data: createCopulaData(500, 't'), backgroundColor: 'rgba(54, 162, 235, 0.7)' },
+                        { label: 'Clayton', data: createCopulaData(500, 'clayton'), backgroundColor: 'rgba(255, 206, 86, 0.7)' },
+                        { label: 'Gumbel', data: createCopulaData(500, 'gumbel'), backgroundColor: 'rgba(75, 192, 192, 0.7)' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: "Visualização de Famílias de Cópulas", color: 'white' } }, scales: { x: { min: 0, max: 1, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} }, y: { min: 0, max: 1, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} } } }
+            });
+        });
+    </script>
+</body>
+</html>

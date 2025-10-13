@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronograma de Estudos Unificado: Finanças Quantitativas com IA</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+        }
+        #sidebar {
+            width: 280px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+        }
+        #sidebar h2 {
+            text-align: center;
+            color: #1abc9c;
+            margin-bottom: 30px;
+        }
+        #sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        #sidebar ul li a {
+            color: #ecf0f1;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s, padding-left 0.3s;
+        }
+        #sidebar ul li a:hover, #sidebar ul li a.active {
+            background-color: #34495e;
+            padding-left: 25px;
+        }
+        #main-content {
+            margin-left: 320px;
+            padding: 30px;
+            width: calc(100% - 320px);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #1abc9c;
+            padding-bottom: 15px;
+            margin-bottom: 40px;
+        }
+        .module {
+            background-color: #fff;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s;
+        }
+        .module:hover {
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .module-title {
+            background-color: #34495e;
+            color: #fff;
+            padding: 15px 20px;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .module-title h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        .toggle-arrow {
+            font-size: 1.2em;
+            transition: transform 0.3s;
+        }
+        .module-content {
+            padding: 20px;
+            display: none;
+        }
+        h3 {
+            color: #16a085;
+            margin-top: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+        h4 {
+            color: #2980b9;
+            margin-left: 15px;
+            margin-top: 15px;
+        }
+        h5 {
+            color: #8e44ad;
+            margin-left: 30px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .topic-text {
+             flex-grow: 1;
+        }
+        strong {
+            color: #c0392b;
+        }
+        .references {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #eaf2f8;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+        }
+        .references h4 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .references ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .references li {
+            margin-bottom: 5px;
+            display: block;
+        }
+        .references a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .references a:hover {
+            text-decoration: underline;
+        }
+
+        /* Gemini API features styles */
+        .gemini-btn {
+            background-color: #1abc9c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .gemini-btn:hover {
+            background-color: #16a085;
+        }
+        .quiz-btn-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .quiz-btn {
+             background-color: #9b59b6;
+             padding: 10px 20px;
+             font-size: 1em;
+        }
+        .quiz-btn:hover {
+             background-color: #8e44ad;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+        }
+        #modal-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #1abc9c;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        /* Loader styles */
+        #loader {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav id="sidebar">
+        <h2>Menu de Estudo</h2>
+        <ul>
+            <li><a href="#modulo1">Módulo 1: Sistema Financeiro e Economia</a></li>
+            <li><a href="#modulo2">Módulo 2: Contabilidade e Análise de Demonstrações</a></li>
+            <li><a href="#modulo3">Módulo 3: Finanças Corporativas e Valuation</a></li>
+            <li><a href="#modulo4">Módulo 4: Mercados de Renda Fixa e Variável</a></li>
+            <li><a href="#modulo5">Módulo 5: Análise Técnica e Gráfica</a></li>
+            <li><a href="#modulo6">Módulo 6: Derivativos e Tópicos Avançados</a></li>
+            <li><a href="#modulo7">Módulo 7: Machine Learning para Finanças</a></li>
+            <li><a href="#modulo8">Módulo 8: Gestão de Portfólio e Riscos</a></li>
+            <li><a href="#modulo9">Módulo 9: Governança, Ética e Regulamentação</a></li>
+        </ul>
+    </nav>
+
+    <div id="main-content">
+        <h1>Cronograma de Estudos Unificado: Finanças Quantitativas Avançadas</h1>
+
+        <!-- Módulo 1: Sistema Financeiro e Economia -->
+        <div id="modulo1" class="module">
+            <div class="module-title">
+                <h2>Módulo 1: Sistema Financeiro e Economia</h2>
+                <span class="toggle-arrow">▼</span>
+            </div>
+            <div class="module-content">
+                <h3>Estrutura do Sistema Financeiro Nacional (SFN)</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Órgãos de Regulação</strong>: CMN, BACEN, CVM.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Participantes do Mercado</strong>: Bancos, Corretoras, Distribuidoras.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Sistemas de Liquidação e Custódia (Clearings)</strong>: SPB, Selic, Cetip (B3).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <h3>Conceitos Econômicos Fundamentais</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Macroeconomia</strong>: Base Monetária, Metas de Inflação (COPOM), Balanço de Pagamentos, Contas Nacionais, PIB.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Microeconomia</strong>: Oferta, Demanda, Equilíbrio, Estruturas de Mercado (concorrência, monopólio), Elasticidade.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Índices de Preços e Referência</strong>: IPCA, IGP-M, CDI, SELIC.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <h3>Métodos Estatísticos e Econometria</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Cálculo Estocástico para Finanças</strong>: Entendimento dos processos estocásticos.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Modelagem de Séries Temporais</strong>: ARIMA, ARCH/GARCH, EGARCH, GJR-GARCH.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Modelos Ocultos de Markov (HMM)</strong>: Para retornos e volatilidade.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <div class="quiz-btn-container">
+                    <button class="gemini-btn quiz-btn">✨ Gerar Quiz do Módulo</button>
+                </div>
+                <div class="references">
+                    <h4>📚 Referências e Links Úteis</h4>
+                    <ul>
+                        <li>ASSAF, Alexandre. Mercado Financeiro. 11ª.ed. Atlas, 2013.</li>
+                        <li>MANKIW, N. Gregory. Introdução à Economia. 6ª Edição. Saraiva, 2014.</li>
+                        <li><a href="https://www.bcb.gov.br/" target="_blank">Banco Central do Brasil (BACEN)</a></li>
+                        <li><a href="https://www.gov.br/cvm/pt-br" target="_blank">Comissão de Valores Mobiliários (CVM)</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulo 2: Contabilidade e Análise de Demonstrações -->
+        <div id="modulo2" class="module">
+            <div class="module-title">
+                <h2>Módulo 2: Contabilidade e Análise de Demonstrações</h2>
+                <span class="toggle-arrow">▼</span>
+            </div>
+            <div class="module-content">
+                <h3>Estrutura Contábil e Normas</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Estrutura Conceitual (CPC 00) e Normas Internacionais (IFRS)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Demonstrações Contábeis Obrigatórias</strong>: Balanço Patrimonial (BP), Demonstração do Resultado (DRE), Demonstração dos Fluxos de Caixa (DFC), Demonstração das Mutações do Patrimônio Líquido (DMPL).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Políticas Contábeis, Estimativas e Erros (CPC 23)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <h3>Análise das Demonstrações</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Análise de Ativos</strong>: Imobilizado (CPC 27), Intangíveis (CPC 04), Estoques (CPC 16), Propriedades para Investimento (CPC 28).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Recuperabilidade de Ativos (Impairment - CPC 01)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Análise de Passivos e PL</strong>: Provisões e Contingências (CPC 25), Instrumentos Financeiros (CPC 48).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Análise de Indicadores</strong>: ROA, ROCE, Análise Horizontal e Vertical, Lucro por Ação (CPC 41).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                 <div class="quiz-btn-container">
+                    <button class="gemini-btn quiz-btn">✨ Gerar Quiz do Módulo</button>
+                </div>
+                <div class="references">
+                    <h4>📚 Referências e Links Úteis</h4>
+                    <ul>
+                        <li>FIPECAFI. Manual de Contabilidade Societária. 2ª ed. Atlas, 2013.</li>
+                        <li>MARION, José Carlos. Contabilidade Empresarial. 16ª ed. Atlas, 2012.</li>
+                        <li><a href="http://www.cpc.org.br/" target="_blank">Comitê de Pronunciamentos Contábeis (CPC)</a></li>
+                        <li><a href="https://www.rad.cvm.gov.br/ENET/frmConsultaExternaCVM.aspx" target="_blank">Consulta de Documentos de Companhias (CVM)</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulo 3: Finanças Corporativas e Valuation -->
+        <div id="modulo3" class="module">
+            <div class="module-title">
+                <h2>Módulo 3: Finanças Corporativas e Valuation</h2>
+                <span class="toggle-arrow">▼</span>
+            </div>
+            <div class="module-content">
+                <h3>Decisões de Investimento (Orçamento de Capital)</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Critérios de Análise</strong>: Valor Presente Líquido (VPL), Taxa Interna de Retorno (TIR), Payback (Simples e Descontado).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Custo de Capital</strong>: Custo de Capital Próprio (Ke), Custo de Capital de Terceiros (Kd), Custo Médio Ponderado de Capital (WACC).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Modelo de Precificação de Ativos (CAPM)</strong>: Beta (Alavancado e Desalavancado), Taxa Livre de Risco, Prêmio de Risco.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <h3>Decisões de Financiamento e Retorno</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Estrutura de Capital</strong>: Teoria de Modigliani-Miller, Custos de Falência, Benefício Fiscal da Dívida.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Política de Dividendos</strong>: Dividendos em Caixa vs. Ações, Recompra de Ações, Efeito Clientela, Sinalização.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Modelos de Avaliação (Valuation)</strong>: Fluxo de Caixa Descontado (FCFF, FCFE), Avaliação por Múltiplos (P/L, P/VPA, EV/EBITDA).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Fusões e Aquisições (M&A)</strong>: Estratégias (Takeovers), Sinergias e Valuation Aplicada.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <div class="quiz-btn-container">
+                    <button class="gemini-btn quiz-btn">✨ Gerar Quiz do Módulo</button>
+                </div>
+                <div class="references">
+                    <h4>📚 Referências e Links Úteis</h4>
+                    <ul>
+                        <li>DAMODARAN, A. Avaliação de Empresas. Qualitymark, 2012.</li>
+                        <li>ROSS, S. A.; WESTERFIELD, R. W.; JAFFE, J. F. Administração Financeira. Atlas, 2007.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulo 4: Mercados de Renda Fixa e Variável -->
+        <div id="modulo4" class="module">
+            <div class="module-title">
+                <h2>Módulo 4: Mercados de Renda Fixa e Variável</h2>
+                <span class="toggle-arrow">▼</span>
+            </div>
+            <div class="module-content">
+                <h3>Mercado de Renda Fixa</h3>
+                <ul>
+                     <li><span class="topic-text"><strong>Matemática Financeira</strong>: Juros compostos, taxas equivalentes, anuidades.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                     <li><span class="topic-text"><strong>Títulos Públicos</strong>: LFT (Tesouro Selic), LTN (Tesouro Prefixado), NTN-B (Tesouro IPCA+).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                     <li><span class="topic-text"><strong>Títulos Privados</strong>: CDB, LCI/LCA, Debêntures, Notas Promissórias.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                     <li><span class="topic-text"><strong>Precificação e Risco</strong>: Marcação a Mercado, Estrutura a Termo da Taxa de Juros (ETTJ), Duration.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <h3>Mercado de Renda Variável (Ações)</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Tipos de Ações</strong>: Ordinárias (ON) e Preferenciais (PN).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Operações em Bolsa</strong>: Day trade, Swing trade, Ordens, Margem, Custódia.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Eventos Corporativos</strong>: Dividendos, JCP, Bonificação, Subscrição, Recompra.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Ofertas Públicas (IPO/Follow-on)</strong>: Bookbuilding, Underwriting.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Índices de Ações</strong>: IBOVESPA, IBrX, Setoriais.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <div class="quiz-btn-container">
+                    <button class="gemini-btn quiz-btn">✨ Gerar Quiz do Módulo</button>
+                </div>
+                <div class="references">
+                    <h4>📚 Referências e Links Úteis</h4>
+                    <ul>
+                        <li>PINHEIRO, Juliano. Mercado de Capitais: Fundamentos e Técnicas. 6ª ed. Atlas, 2012.</li>
+                        <li><a href="https://www.b3.com.br/pt_br/" target="_blank">B3 - Brasil, Bolsa, Balcão</a></li>
+                        <li><a href="https://www.tesourodireto.com.br/" target="_blank">Tesouro Direto</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulo 5: Análise Técnica e Gráfica -->
+        <div id="modulo5" class="module">
+            <div class="module-title">
+                <h2>Módulo 5: Análise Técnica e Gráfica</h2>
+                <span class="toggle-arrow">▼</span>
+            </div>
+            <div class="module-content">
+                <h3>Teoria e Gráficos</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Filosofia da Análise Técnica e Teoria de Dow</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Tipos de Gráficos</strong>: Linha, Barras, Candlesticks, Ponto e Figura (P&F).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Conceitos de Tendência</strong>: Suporte, Resistência, LTA/LTB, Canais.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                 <h3>Padrões e Indicadores</h3>
+                 <ul>
+                    <li><span class="topic-text"><strong>Padrões Gráficos</strong>: OCO, Topos/Fundos Duplos, Triângulos, Bandeiras.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Padrões de Candlestick</strong>: Martelo, Engolfo, Harami, Estrelas.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Indicadores e Osciladores</strong>: Médias Móveis, Bandas de Bollinger, IFR, Estocástico, MACD.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Volume e OBV</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                 </ul>
+                 <div class="quiz-btn-container">
+                    <button class="gemini-btn quiz-btn">✨ Gerar Quiz do Módulo</button>
+                </div>
+                 <div class="references">
+                    <h4>📚 Referências e Links Úteis</h4>
+                    <ul>
+                        <li>MURPHY, John J. Technical Analysis of the Financial Markets. New York Institute of Finance, 1999.</li>
+                        <li>NISON, Steve. Japanese Candlestick Charting Techniques. 2nd Edition. Prentice Hall Press, 2001.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Módulo 6: Derivativos e Tópicos Avançados -->
+        <div id="modulo6" class="module">
+            <div class="module-title">
+                <h2>Módulo 6: Derivativos e Tópicos Avançados</h2>
+                <span class="toggle-arrow">▼</span>
+            </div>
+            <div class="module-content">
+                <h3>Mercado de Derivativos</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Contratos Futuros e a Termo</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Opções</strong>: Calls e Puts, Estratégias (Travas, Straddle), "Gregas" (Delta, Gamma, Theta, Vega).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Swaps</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Participantes</strong>: Hedgers, Especuladores, Arbitradores.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <h3>Tópicos Especiais</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Teoria das Ondas de Elliott e Sequência de Fibonacci</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Ciclos de Tempo e Sazonalidade</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Modelagem de Volatilidade</strong>: Superfície de Volatilidade, Modelos Heston e SABR.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <div class="quiz-btn-container">
+                    <button class="gemini-btn quiz-btn">✨ Gerar Quiz do Módulo</button>
+                </div>
+                <div class="references">
+                    <h4>📚 Referências e Links Úteis</h4>
+                    <ul>
+                         <li>HULL, John C. Options, Futures, and Other Derivatives. 9th Edition. Pearson, 2014.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Módulo 7: Machine Learning para Finanças -->
+        <div id="modulo7" class="module">
+            <div class="module-title">
+                <h2>Módulo 7: Machine Learning para Finanças</h2>
+                <span class="toggle-arrow">▼</span>
+            </div>
+            <div class="module-content">
+                <h3>Modelos de Machine Learning</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Aprendizado Supervisionado</strong>: Regressão (Linear, Ridge, Lasso), Classificação (SVM, Random Forests, Gradient Boosting).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Aprendizado Profundo (Deep Learning)</strong>: CNNs, RNNs (LSTMs, GRUs), Transformers e Mecanismos de Atenção.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Aprendizado Não Supervisionado</strong>: Agrupamento (K-Means), Redução de Dimensionalidade (PCA).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Aprendizado por Reforço</strong>: Q-learning, Deep Q-Networks (DQN) para alocação ótima.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <h3>Aplicações e PNL</h3>
+                <ul>
+                     <li><span class="topic-text"><strong>Engenharia de Features Financeiras</strong>: Método Triple-Barrier, Diferenciação Fracionária.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Processamento de Linguagem Natural (PNL)</strong>: Análise de Sentimento com léxicos (Loughran-McDonald) e modelos (FinBERT).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Dados Alternativos</strong>: Web scraping, dados de satélite.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <div class="quiz-btn-container">
+                    <button class="gemini-btn quiz-btn">✨ Gerar Quiz do Módulo</button>
+                </div>
+                <div class="references">
+                    <h4>📚 Referências e Links Úteis</h4>
+                    <ul>
+                         <li>DE PRADO, Marcos Lopez. Advances in Financial Machine Learning. Wiley, 2018.</li>
+                         <li>JANSEN, Stefan. Machine Learning for Algorithmic Trading. 2nd Edition. Packt, 2020.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Módulo 8: Gestão de Portfólio e Riscos -->
+        <div id="modulo8" class="module">
+            <div class="module-title">
+                <h2>Módulo 8: Gestão de Portfólio e Riscos</h2>
+                <span class="toggle-arrow">▼</span>
+            </div>
+            <div class="module-content">
+                 <h3>Teoria e Otimização de Portfólio</h3>
+                 <ul>
+                    <li><span class="topic-text"><strong>Modelos de Fatores</strong>: CAPM, Fama-French, Carhart.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Otimização Média-Variância (Markowitz)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Estratégias de Alocação de Ativos</strong>: CPPI, Volatility Targeting, Black-Litterman.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Arbitragem Estatística</strong>: Pairs trading, cointegração.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <h3>Gestão de Risco</h3>
+                 <ul>
+                    <li><span class="topic-text"><strong>Medidas de Risco</strong>: Valor em Risco (VaR) e Expected Shortfall (ES).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Gestão de Risco de Crédito</strong>: Rating, Derivativos de Crédito (CDS).</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Gestão de Risco de Modelos (MRM)</strong>: Diretrizes SR 11-7, Backtesting, Análise de Sensibilidade.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <div class="quiz-btn-container">
+                    <button class="gemini-btn quiz-btn">✨ Gerar Quiz do Módulo</button>
+                </div>
+                <div class="references">
+                    <h4>📚 Referências e Links Úteis</h4>
+                    <ul>
+                         <li>FABOZZI, Frank J. et al. The Handbook of Fixed Income Securities. 8th Edition. McGraw-Hill, 2012.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Módulo 9: Governança, Ética e Regulamentação -->
+        <div id="modulo9" class="module">
+            <div class="module-title">
+                <h2>Módulo 9: Governança, Ética e Regulamentação</h2>
+                <span class="toggle-arrow">▼</span>
+            </div>
+            <div class="module-content">
+                 <h3>Governança Corporativa e Relações com Investidores</h3>
+                 <ul>
+                    <li><span class="topic-text"><strong>Conceitos de Governança Corporativa</strong>: Papel do conselho, direitos dos acionistas.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Segmentos de Listagem da B3</strong>: Novo Mercado, Nível 1 e 2.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Práticas de Relações com Investidores (RI)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Sustentabilidade (ESG) e o Índice de Sustentabilidade Empresarial (ISE)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                 </ul>
+                <h3>Ética e Conduta</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Princípios Éticos e Código de Conduta (APIMEC)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Conflitos de Interesse e Segregação de Atividades (Chinese Wall)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Uso de Informação Privilegiada (Insider Trading)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Prevenção à Lavagem de Dinheiro</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <h3>Regulamentação do Analista e do Mercado</h3>
+                <ul>
+                    <li><span class="topic-text"><strong>Regulação da Atividade do Analista de Valores Mobiliários (Resolução CVM 20)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                    <li><span class="topic-text"><strong>Regulamentações de Trading Algorítmico (MiFID II)</strong>.</span><button class="gemini-btn explain-btn">✨ Explicar</button></li>
+                </ul>
+                <div class="quiz-btn-container">
+                    <button class="gemini-btn quiz-btn">✨ Gerar Quiz do Módulo</button>
+                </div>
+                <div class="references">
+                    <h4>📚 Referências e Links Úteis</h4>
+                    <ul>
+                         <li><a href="https://www.ibgc.org.br/" target="_blank">Instituto Brasileiro de Governança Corporativa (IBGC)</a></li>
+                         <li><a href="https://www.apimec.com.br/" target="_blank">APIMEC (Associação dos Analistas e Profissionais de Investimento do Mercado de Capitais)</a></li>
+                         <li><a href="https://www.b3.com.br/pt_br/produtos-e-servicos/indices/indices-de-sustentabilidade/indice-de-sustentabilidade-empresarial-ise.htm" target="_blank">Índice de Sustentabilidade Empresarial (ISE B3)</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Gemini Modal and Loader -->
+    <div id="loader"></div>
+    <div id="gemini-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modal-title">Resposta da IA</h2>
+            <p id="modal-text"></p>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Navigation and UI Script ---
+        document.querySelectorAll('.module-title').forEach(title => {
+            title.addEventListener('click', () => {
+                const content = title.nextElementSibling;
+                const arrow = title.querySelector('.toggle-arrow');
+                if (content.style.display === 'block') {
+                    content.style.display = 'none';
+                    arrow.style.transform = 'rotate(0deg)';
+                } else {
+                    document.querySelectorAll('.module-content').forEach(c => c.style.display = 'none');
+                    document.querySelectorAll('.toggle-arrow').forEach(a => a.style.transform = 'rotate(0deg)');
+                    
+                    content.style.display = 'block';
+                    arrow.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+        
+        document.querySelectorAll('#sidebar a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                 document.querySelectorAll('#sidebar a').forEach(a => a.classList.remove('active'));
+                 this.classList.add('active');
+            });
+        });
+
+        const firstModuleContent = document.querySelector('.module-content');
+        if (firstModuleContent) {
+            firstModuleContent.style.display = 'block';
+            const firstArrow = firstModuleContent.previousElementSibling.querySelector('.toggle-arrow');
+            if(firstArrow) {
+                firstArrow.style.transform = 'rotate(180deg)';
+                document.querySelector('#sidebar a[href="#modulo1"]').classList.add('active');
+            }
+        }
+
+        // --- Gemini API Integration Script ---
+        function showModal(title, content) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerHTML = content.replace(/\n/g, '<br>');
+            document.getElementById('gemini-modal').style.display = 'flex';
+        }
+
+        function hideModal() {
+            document.getElementById('gemini-modal').style.display = 'none';
+        }
+
+        function toggleLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+        }
+
+        async function callGemini(prompt, retries = 3, delay = 1000) {
+            toggleLoader(true);
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    if (response.status === 429 && retries > 0) {
+                        console.warn(`API rate limit hit. Retrying in ${delay}ms...`);
+                        await new Promise(res => setTimeout(res, delay));
+                        return callGemini(prompt, retries - 1, delay * 2);
+                    }
+                    throw new Error(`API Error: ${response.statusText} (status: ${response.status})`);
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    return candidate.content.parts[0].text;
+                } else {
+                    console.error("Unexpected API response structure:", result);
+                    return "Não foi possível gerar uma resposta. A estrutura da resposta da API era inesperada.";
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                if (retries > 0) {
+                    console.warn(`Fetch error. Retrying in ${delay}ms...`);
+                    await new Promise(res => setTimeout(res, delay));
+                    return callGemini(prompt, retries - 1, delay * 2);
+                }
+                return `Ocorreu um erro ao chamar a API. Detalhes: ${error.message}`;
+            } finally {
+                toggleLoader(false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.close-button').addEventListener('click', hideModal);
+            window.addEventListener('click', (event) => {
+                if (event.target == document.getElementById('gemini-modal')) {
+                    hideModal();
+                }
+            });
+
+            document.querySelectorAll('.explain-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const topic = e.target.parentElement.querySelector('.topic-text').innerText.trim();
+                    const prompt = `Explique o seguinte tópico de finanças quantitativas de forma clara e concisa para um estudante: "${topic}". Use parágrafos curtos e analogias simples, se possível. Formate a resposta em HTML simples.`;
+                    const explanation = await callGemini(prompt);
+                    showModal(`Explicação: ${topic}`, explanation);
+                });
+            });
+
+            document.querySelectorAll('.quiz-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const moduleContent = e.target.closest('.module-content');
+                    const topics = Array.from(moduleContent.querySelectorAll('.topic-text')).map(span => span.innerText.trim()).join(', ');
+                    const moduleTitle = moduleContent.previousElementSibling.querySelector('h2').innerText;
+
+                    const prompt = `Crie um quiz rápido com 3 perguntas de múltipla escolha (com 4 opções cada, de 'a' a 'd') sobre os seguintes tópicos do módulo "${moduleTitle}": ${topics}. Após cada pergunta, indique claramente qual é a resposta correta (ex: "Resposta Correta: c)") e forneça uma breve justificativa em negrito. Formate a resposta em HTML simples.`;
+                    const quiz = await callGemini(prompt);
+                    showModal(`Quiz: ${moduleTitle}`, quiz);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tópicos de Estudo para Cientista de Dados Quantitativo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="bg-white shadow-md">
+        <header class="container mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold text-gray-900">Guia de Estudo Quantitativo</h1>
+            <p class="text-md text-gray-600 mt-1">Um mapa de tópicos essenciais para Ciência de Dados aplicada a Finanças.</p>
+        </header>
+    </div>
+
+    <main class="container mx-auto px-4 py-8 md:py-12">
+
+        <!-- Advanced Quantitative Data Science for Finance -->
+        <section class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold text-blue-700 mb-6 border-b-2 border-blue-100 pb-3">Advanced Quantitative Data Science for Finance</h2>
+
+            <div class="space-y-8">
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Módulo 1: Cálculo Estocástico e Análise Avançada de Séries Temporais</h3>
+                    <ul class="space-y-3 list-disc list-inside text-gray-700">
+                        <li><strong>Fundamentos de Processos Estocásticos</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Movimento Browniano Geométrico (GBM) como modelo para preços de ativos.</li>
+                                <li>Lema de Itô e sua aplicação em finanças quantitativas.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Modelagem de Séries Temporais</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Modelos <strong>ARIMA</strong> para previsão de séries temporais financeiras.</li>
+                                <li>Modelagem de Volatilidade: Família <strong>GARCH</strong> (GARCH, GJR-GARCH, EGARCH) para capturar clusters de volatilidade.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Módulo 2: Precificação Avançada de Opções e Derivativos Exóticos</h3>
+                    <ul class="space-y-3 list-disc list-inside text-gray-700">
+                        <li><strong>Modelo Black-Scholes-Merton</strong>:
+                             <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Derivação e pressupostos do modelo.</li>
+                                <li>Aplicação para precificação de opções europeias.</li>
+                            </ul>
+                        </li>
+                        <li><strong>As Gregas (Medidas de Sensibilidade)</strong>:
+                             <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Delta, Gamma, Vega, Theta, Rho.</li>
+                                <li>Estratégias de hedging utilizando as Gregas.</li>
+                            </ul>
+                        </li>
+                         <li><strong>Superfície de Volatilidade Implícita (SVI)</strong>:
+                             <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Análise do "Smile" e "Skew" da volatilidade.</li>
+                                <li>Estrutura a termo da volatilidade.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Módulo 3: Machine Learning para Trading Algorítmico</h3>
+                    <ul class="space-y-3 list-disc list-inside text-gray-700">
+                        <li><strong>Modelos Preditivos Supervisionados</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Regressão Linear, Random Forests, Gradient Boosting (XGBoost, LightGBM).</li>
+                                <li>Redes Neurais para capturar relações não-lineares.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Aprendizado por Reforço (Reinforcement Learning)</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Conceitos: Agente, ambiente, política, recompensa.</li>
+                                <li>Algoritmos Q-learning e Deep Q-Networks (DQN).</li>
+                                <li>Técnicas de estabilização: Experience Replay e Target Network.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Validação de Modelos de ML</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Cross-validation (Validação Cruzada) e seus desafios em dados financeiros.</li>
+                                <li>Análise Walk-Forward e Backtesting robusto.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Módulo 4: Gestão de Risco e Otimização de Portfólio</h3>
+                    <ul class="space-y-3 list-disc list-inside text-gray-700">
+                        <li><strong>Medidas de Risco de Mercado</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Value at Risk (VaR): Paramétrico, Histórico e Monte Carlo.</li>
+                                <li>Expected Shortfall (ES) / Conditional VaR (CVaR).</li>
+                                <li>Backtesting de VaR: Teste de Kupiec (POF) e Teste de Christoffersen.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Otimização de Portfólio</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Teoria Moderna do Portfólio (MPT) e Fronteira Eficiente.</li>
+                                <li>Índice de Sharpe.</li>
+                                <li>Modelo Black-Litterman para incorporar visões de mercado.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Análise de Fatores de Risco</strong>:
+                             <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Análise de Componentes Principais (PCA) para identificar fontes de risco.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Módulo 5: Modelagem de Risco de Crédito</h3>
+                    <ul class="space-y-3 list-disc list-inside text-gray-700">
+                        <li><strong>Modelos Estruturais</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Modelo de Merton, baseado na teoria de precificação de opções.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Modelos de Forma Reduzida</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Modelos de Jarrow-Turnbull e Duffie-Singleton.</li>
+                                <li>Modelagem da intensidade de default.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Módulo 6: NLP para Análise de Sentimento Financeiro</h3>
+                    <ul class="space-y-3 list-disc list-inside text-gray-700">
+                        <li><strong>Representação de Texto</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Bag-of-Words e TF-IDF.</li>
+                                <li>Word Embeddings: Word2Vec, GloVe.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Modelos Avançados de Linguagem</strong>:
+                             <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Arquitetura Transformer e modelos como <strong>BERT</strong> para análise de contexto.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- General Quant Finance -->
+        <section class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold text-green-700 mb-6 border-b-2 border-green-100 pb-3">Tópicos Gerais em Finanças Quantitativas</h2>
+
+            <div class="space-y-8">
+                 <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Módulo 1: Trading Algorítmico e High-Frequency Trading (HFT)</h3>
+                    <ul class="space-y-3 list-disc list-inside text-gray-700">
+                        <li><strong>Estratégias de HFT</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Auto Market Making (AMM).</li>
+                                <li>Arbitragem Estatística.</li>
+                                <li>Rebate/Liquidity Trading.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Módulo 2: Programação e Engenharia de Software para Finanças Quantitativas</h3>
+                    <ul class="space-y-3 list-disc list-inside text-gray-700">
+                        <li><strong>Linguagens de Programação</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li><strong>Python</strong>: NumPy, Pandas, Scikit-learn, TensorFlow, PyTorch.</li>
+                                <li><strong>C++</strong>: Para aplicações de baixa latência e alta performance.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Módulo 3: Conformidade Regulatória e Ética</h3>
+                    <ul class="space-y-3 list-disc list-inside text-gray-700">
+                        <li><strong>Regulamentações de Mercado</strong>:
+                            <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Dodd-Frank Act, MiFID II, Volcker Rule.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Riscos e Eventos Históricos</strong>:
+                             <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Análise do <strong>Flash Crash</strong> de 2010.</li>
+                                <li>Estudo de caso da <strong>Knight Capital Group</strong> (2012).</li>
+                            </ul>
+                        </li>
+                        <li><strong>Considerações Éticas</strong>:
+                             <ul class="mt-2 pl-6 space-y-2 list-['›'] list-inside text-gray-600">
+                                <li>Viés algorítmico e a necessidade de explicabilidade (XAI).</li>
+                                <li>Prevenção de manipulação de mercado (spoofing, front-running).</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto px-4 py-6 text-center">
+            <p>&copy; 2024 Guia de Estudo Quantitativo. Gerado para fins educacionais.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

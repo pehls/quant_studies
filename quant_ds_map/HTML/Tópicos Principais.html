@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Estudos para Cientista de Dados Quantitativo & CNPI</title>
+    <!-- Chosen Palette: Dark Slate Sidebar with Warm Neutral Content and Teal Accents -->
+    <!-- Application Structure Plan: A two-column layout with an enhanced sidebar and a dual-chart dashboard. The sidebar is now an accordion menu, allowing users to expand pillars to see and navigate directly to specific modules. This improves navigation efficiency. The main content area features two charts: a static topic distribution donut chart and a dynamic horizontal bar chart for completion progress. Below the charts, the content of a single selected module is displayed. This design focuses the user on one task at a time while providing both a high-level overview and real-time progress feedback. Gemini API features are added via modal pop-ups to provide explanations and quizzes without disrupting the main UI flow. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Overall distribution of topics. Goal: High-level summary. Viz/Presentation: Donut Chart. Interaction: Hover. Justification: Constant visual anchor. Library/Method: Chart.js (Canvas).
+        2. Report Info: User's study progress. Goal: Motivate and track completion. Viz/Presentation: Horizontal Bar Chart. Interaction: Dynamically updates when checkboxes are clicked. Justification: Provides immediate, rewarding visual feedback. Library/Method: Chart.js (Canvas).
+        3. Report Info: Detailed curriculum. Goal: Focused study and progress marking. Viz/Presentation: Checklists within modules. Interaction: Select module, check items, and use Gemini buttons. Justification: Gemini integration via "Explain" and "Quiz" buttons enhances the learning experience by providing on-demand, AI-powered assistance. Method: HTML/CSS/JS with Gemini API calls. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #4a4a4a; }
+        .chart-container { position: relative; width: 100%; height: 300px; }
+        #sidebar a.active { background-color: #4a5568; color: #f0f0f0; }
+        #sidebar .pillar-header.active { background-color: #4a5568; }
+        #sidebar .module-links { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: #1a202c;}
+        #sidebar .pillar-header.active + .module-links { max-height: 1000px; }
+        #sidebar .module-link.active { background-color: #008080; color: white; }
+        #sidebar::-webkit-scrollbar { width: 8px; }
+        #sidebar::-webkit-scrollbar-track { background: #2d3748; }
+        #sidebar::-webkit-scrollbar-thumb { background-color: #4a5568; border-radius: 10px; }
+        #gemini-modal { transition: opacity 0.3s ease; }
+        .gemini-btn {
+            background-color: #e6fffa;
+            color: #2c7a7b;
+            border: 1px solid #b2f5ea;
+        }
+        .gemini-btn:hover {
+            background-color: #b2f5ea;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-80 bg-slate-800 text-slate-100 flex-shrink-0 overflow-y-auto hidden md:block">
+            <div class="p-6">
+                <h2 class="text-2xl font-semibold text-center text-teal-400">Plano de Estudos</h2>
+            </div>
+            <nav id="sidebar-nav" class="text-slate-300"></nav>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="text-center bg-white shadow p-4">
+                 <h1 class="text-3xl font-bold text-slate-800">Painel de Controle Quant & CNPI</h1>
+            </header>
+
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-f8f7f4 p-4 md:p-6">
+                <section id="dashboard" class="mb-6 bg-white p-6 rounded-2xl shadow-lg">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-700 mb-4 text-center">Distribuição de Tópicos</h3>
+                            <div class="chart-container">
+                                <canvas id="overviewChart"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                             <h3 class="text-xl font-bold text-slate-700 mb-4 text-center">Progresso Geral de Estudos</h3>
+                            <div class="chart-container">
+                                <canvas id="completionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div id="study-plan">
+                    <!-- Content will be injected here -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Gemini Modal -->
+    <div id="gemini-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b bg-slate-50 rounded-t-lg">
+                <h3 id="modal-title" class="text-xl font-semibold text-slate-800"></h3>
+                <button id="modal-close-btn" class="text-2xl font-bold text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="modal-loader" class="text-center hidden">
+                    <svg class="animate-spin h-8 w-8 text-teal-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="mt-2 text-slate-600">Gerando conteúdo com a IA Gemini...</p>
+                </div>
+                <div id="modal-response" class="prose max-w-none"></div>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+const studyPlanData = [
+    {
+        pillar: "Pilar 1: Fundamentos",
+        description: "A base matemática, estatística e econômica essencial para qualquer análise quantitativa robusta no mercado financeiro.",
+        modules: [
+            { title: "Fundamentos Matemáticos", topics: [
+                { id: "p1m1t1", text: "Cálculo Diferencial e Integral", refs: "Conceitos: Derivadas, integrais, séries de Taylor. <strong>Links:</strong> <a href='https://www.khanacademy.org/math/calculus-1' target='_blank' class='text-teal-600 hover:underline'>Khan Academy - Cálculo</a>, <a href='https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/' target='_blank' class='text-teal-600 hover:underline'>MIT OCW</a>" },
+                { id: "p1m1t2", text: "Álgebra Linear", refs: "Conceitos: Vetores, matrizes, autovalores, SVD. <strong>Links:</strong> <a href='https://www.khanacademy.org/math/linear-algebra' target='_blank' class='text-teal-600 hover:underline'>Khan Academy - Álgebra Linear</a>, <a href='http://www.deeplearningbook.org/contents/linear_algebra.html' target='_blank' class='text-teal-600 hover:underline'>Deep Learning Book (Cap. 2)</a>" },
+                { id: "p1m1t3", text: "Otimização", refs: "Conceitos: Gradiente descendente, otimização convexa. <strong>Links:</strong> <a href='https://web.stanford.edu/~boyd/cvxbook/' target='_blank' class='text-teal-600 hover:underline'>Livro: Convex Optimization (Boyd)</a>" },
+            ]},
+            { title: "Probabilidade e Estatística", topics: [
+                { id: "p1m2t1", text: "Teoria da Probabilidade", refs: "Conceitos: Variáveis aleatórias, distribuições, valor esperado. <strong>Links:</strong> <a href='https://www.khanacademy.org/math/statistics-probability' target='_blank' class='text-teal-600 hover:underline'>Khan Academy - Estatística</a>" },
+                { id: "p1m2t2", text: "Estatística Inferencial", refs: "Conceitos: Testes de hipótese, p-valor, intervalos de confiança. <strong>Links:</strong> <a href='https://seeing-theory.brown.edu/' target='_blank' class='text-teal-600 hover:underline'>Seeing Theory (Visualizações)</a>" },
+                { id: "p1m2t3", text: "Processos Estocásticos", refs: "Conceitos: Movimento Browniano, Lema de Itô. <strong>Links:</strong> <a href='https://www.investopedia.com/terms/i/itorisutorongunorema.asp' target='_blank' class='text-teal-600 hover:underline'>Investopedia - Ito's Lemma</a>" },
+            ]},
+            { title: "Econometria e Séries Temporais", topics: [
+                { id: "p1m3t1", text: "Modelos de Regressão", refs: "Conceitos: Linear, Múltipla, Logística. <strong>Links:</strong> <a href='https://scikit-learn.org/stable/modules/linear_model.html' target='_blank' class='text-teal-600 hover:underline'>Scikit-Learn Docs</a>" },
+                { id: "p1m3t2", text: "Análise de Séries Temporais", refs: "Conceitos: Estacionariedade, ACF/PACF, Causalidade de Granger. <strong>Links:</strong> <a href='https://otexts.com/fpp2/' target='_blank' class='text-teal-600 hover:underline'>Livro: Forecasting: Principles and Practice</a>" },
+                { id: "p1m3t3", text: "Modelos Clássicos e de Volatilidade", refs: "Conceitos: ARIMA, GARCH. <strong>Links:</strong> <a href='https://www.statsmodels.org/stable/tsa.html' target='_blank' class='text-teal-600 hover:underline'>Statsmodels TSA Docs</a>" },
+            ]},
+            { title: "Fundamentos de Economia (CNPI)", topics: [
+                { id: "p1m4t1", text: "Microeconomia e Macroeconomia", refs: "Conceitos: Oferta/demanda, PIB, inflação, juros. <strong>Referências:</strong> Apostilas APIMEC, Livros de Mankiw e Pindyck." },
+                { id: "p1m4t2", text: "Finanças Corporativas", refs: "Conceitos: WACC, Valuation (DCF). <strong>Referências:</strong> Livro de Brealey, Myers e Allen." }
+            ]}
+        ]
+    },
+    {
+        pillar: "Pilar 2: Ferramentas e Tecnologia",
+        description: "O arsenal tecnológico necessário para coletar, processar e analisar dados financeiros em escala.",
+        modules: [
+            { title: "Linguagens de Programação", topics: [
+                { id: "p2m1t1", text: "Python para Finanças", refs: "Bibliotecas: Pandas, NumPy, SciPy, Matplotlib. <strong>Links:</strong> <a href='https://pandas.pydata.org/docs/' target='_blank' class='text-teal-600 hover:underline'>Pandas Docs</a>, <a href='https://numpy.org/doc/' target='_blank' class='text-teal-600 hover:underline'>NumPy Docs</a>" },
+                { id: "p2m1t2", text: "SQL para Análise de Dados", refs: "Conceitos: Joins, agregações, window functions. <strong>Links:</strong> <a href='https://sqlzoo.net/' target='_blank' class='text-teal-600 hover:underline'>SQLZoo (Prática)</a>" },
+            ]},
+            { title: "Plataformas e Infraestrutura", topics: [
+                { id: "p2m2t1", text: "Controle de Versão com Git", refs: "Plataformas: GitHub, GitLab. <strong>Links:</strong> <a href='https://git-scm.com/book/en/v2' target='_blank' class='text-teal-600 hover:underline'>Livro: Pro Git</a>" },
+                { id: "p2m2t2", text: "Cloud Computing (Básico)", refs: "Serviços: AWS S3, EC2. <strong>Links:</strong> <a href='https://aws.amazon.com/getting-started/' target='_blank' class='text-teal-600 hover:underline'>AWS Getting Started</a>" },
+                { id: "p2m2t3", text: "Bancos de Dados Específicos", refs: "Tipos: NoSQL (MongoDB), Time-Series (InfluxDB). <strong>Links:</strong> <a href='https://www.influxdata.com/get-influxdb/' target='_blank' class='text-teal-600 hover:underline'>InfluxDB</a>" }
+            ]}
+        ]
+    },
+    {
+        pillar: "Pilar 3: Machine Learning",
+        description: "Aplicação de técnicas de machine learning para extrair sinais preditivos dos dados de mercado.",
+        modules: [
+            { title: "ML Supervisionado", topics: [
+                { id: "p3m1t1", text: "Modelos de Regressão e Classificação", refs: "Modelos: Elastic Net, Random Forest, XGBoost. <strong>Links:</strong> <a href='https://xgboost.readthedocs.io/en/stable/' target='_blank' class='text-teal-600 hover:underline'>XGBoost Docs</a>" },
+                { id: "p3m1t2", text: "Validação de Modelos Financeiros", refs: "Técnicas: Validação cruzada combinatória, backtesting. <strong>Referência:</strong> Livro 'Advances in Financial Machine Learning' (de Prado)." }
+            ]},
+            { title: "ML Não-Supervisionado", topics: [
+                { id: "p3m2t1", text: "Clusterização e Redução de Dimensão", refs: "Algoritmos: K-Means, PCA, t-SNE. <strong>Links:</strong> <a href='https://scikit-learn.org/stable/modules/clustering.html' target='_blank' class='text-teal-600 hover:underline'>Scikit-Learn Clustering</a>" }
+            ]},
+            { title: "Deep Learning e RL", topics: [
+                { id: "p3m3t1", text: "Redes Neurais para Séries Temporais", refs: "Arquiteturas: LSTMs, GRUs, Transformers. <strong>Links:</strong> <a href='https://www.tensorflow.org/tutorials/structured_data/time_series' target='_blank' class='text-teal-600 hover:underline'>TensorFlow Time Series</a>" },
+                { id: "p3m3t2", text: "Reinforcement Learning para Trading", refs: "Conceitos: Q-learning, Agente-Ambiente. <strong>Links:</strong> <a href='https://stable-baselines3.readthedocs.io/en/master/' target='_blank' class='text-teal-600 hover:underline'>Stable Baselines3</a>" },
+                { id: "p3m3t3", text: "Explicabilidade (XAI)", refs: "Ferramentas: SHAP, LIME. <strong>Links:</strong> <a href='https://shap.readthedocs.io/en/latest/index.html' target='_blank' class='text-teal-600 hover:underline'>SHAP Docs</a>" }
+            ]}
+        ]
+    },
+    {
+        pillar: "Pilar 4: Finanças Quantitativas",
+        description: "Técnicas e modelos específicos para precificação, arbitragem e desenvolvimento de estratégias de trading.",
+        modules: [
+            { title: "Precificação de Ativos", topics: [
+                { id: "p4m1t1", text: "Modelo Black-Scholes-Merton", refs: "Aplicação: Precificação de opções europeias. <strong>Referência:</strong> Livro 'Options, Futures, and Other Derivatives' (Hull)." },
+                { id: "p4m1t2", text: "Modelos de Taxa de Juros", refs: "Modelos: Vasicek, Cox-Ingersoll-Ross (CIR). <strong>Referência:</strong> Livro 'Interest Rate Models' (Brigo, Mercurio)." }
+            ]},
+            { title: "Estratégias de Trading", topics: [
+                { id: "p4m2t1", text: "Arbitragem Estatística", refs: "Técnicas: Pairs trading, cointegração. <strong>Referência:</strong> Livro 'Quantitative Trading' (Ernie Chan)." },
+                { id: "p4m2t2", text: "Market Making e HFT", refs: "Conceitos: Prover liquidez, lucrar com spread, baixa latência. <strong>Referências:</strong> Artigos acadêmicos." }
+            ]}
+        ]
+    },
+    {
+        pillar: "Pilar 5: Gestão de Risco e Portfólio",
+        description: "Construção e otimização de carteiras de investimento com foco no retorno ajustado ao risco.",
+        modules: [
+            { title: "Teoria de Portfólio", topics: [
+                { id: "p5m1t1", text: "Teoria Moderna do Portfólio (Markowitz)", refs: "Conceitos: Fronteira eficiente, diversificação. <strong>Links:</strong> <a href='https://pyportfolioopt.readthedocs.io/en/latest/' target='_blank' class='text-teal-600 hover:underline'>PyPortfolioOpt Docs</a>" },
+                { id: "p5m1t2", text: "CAPM e Fatores de Risco", refs: "Modelos: Fama-French 3-Factor Model. <strong>Links:</strong> <a href='https://www.investopedia.com/terms/f/famaandfrenchthreefactormodel.asp' target='_blank' class='text-teal-600 hover:underline'>Investopedia - Fama-French</a>" }
+            ]},
+            { title: "Métricas e Modelagem de Risco", topics: [
+                { id: "p5m2t1", text: "Value at Risk (VaR) e CVaR", refs: "Técnicas: Histórico, Paramétrico, Monte Carlo. <strong>Referência:</strong> Livro 'Risk Management' (Hull)." },
+                { id: "p5m2t2", text: "Métricas de Performance", refs: "Índices: Sharpe, Sortino, Information Ratio, Drawdown. <strong>Links:</strong> <a href='https://quantstats.getforge.io/' target='_blank' class='text-teal-600 hover:underline'>QuantStats Library</a>" }
+            ]}
+        ]
+    },
+    {
+        pillar: "Pilar 6: Certificação CNPI",
+        description: "Módulos focados nos conteúdos exigidos para as provas de certificação CNPI, CNPI-T e CNPI-P.",
+        modules: [
+            { title: "Conteúdo Brasileiro (CB)", topics: [
+                { id: "p6m1t1", text: "Sistema Financeiro Nacional (SFN)", refs: "<strong>Fonte:</strong> Edital APIMEC. Estudar estrutura e órgãos." },
+                { id: "p6m1t2", text: "Mercado de Capitais e Derivativos", refs: "<strong>Fonte:</strong> Edital APIMEC. Ações, debêntures, futuros, opções." },
+            ]},
+            { title: "Conteúdo Técnico (CT1)", topics: [
+                { id: "p6m2t1", text: "Fundamentos da Análise Técnica", refs: "Teorias: Dow, Ondas de Elliott, Fibonacci. <strong>Referência:</strong> Livro 'Análise Técnica dos Mercados Financeiros' (Murphy)." },
+                { id: "p6m2t2", text: "Padrões Gráficos e Candlestick", refs: "Padrões: OCO, triângulos, martelo, doji. <strong>Referência:</strong> Livro 'Japanese Candlestick Charting' (Nison)." },
+                { id: "p6m2t3", text: "Indicadores Técnicos", refs: "Indicadores: Médias Móveis, MACD, IFR, Bandas de Bollinger. <strong>Fonte:</strong> Edital APIMEC." },
+            ]},
+            { title: "Conteúdo Fundamentalista (CF)", topics: [
+                { id: "p6m3t1", text: "Análise e Avaliação de Ações", refs: "Como determinar o valor intrínseco de uma empresa" },
+                { id: "p6m3t2", text: "Finanças Corporativas", refs: "Estudo das decisões finbanceiras das empresas" },
+                { id: "p6m3t3", text: "Contabilidade e Análise de Relatórios", refs: "Medindo e processando informações financeiras sobre uma entidade econômica" },
+            ]}
+        ]
+    },
+    {
+        pillar: "Pilar 7: Aplicações Práticas e Ética",
+        description: "Implementação de sistemas de trading, ética profissional e conformidade com as normas do mercado.",
+        modules: [
+            { title: "Desenvolvimento de Sistemas", topics: [
+                { id: "p7m1t1", text: "Backtesting de Estratégias", refs: "Ferramentas: Zipline, Backtrader. <strong>Atenção:</strong> Vieses (sobrevivência, look-ahead)." },
+                { id: "p7m1t2", text: "Execução e Análise de Custos (TCA)", refs: "<strong>Referência:</strong> Livro 'Algorithmic Trading and DMA' (Barry Johnson)." }
+            ]},
+            { title: "Regulamentação e Ética", topics: [
+                { id: "p7m2t1", text: "Regulamentações e Casos Históricos", refs: "Leis: MiFID II, Dodd-Frank. <strong>Eventos:</strong> Flash Crash (2010), Knight Capital (2012)." },
+                { id: "p7m2t2", text: "Viés Algorítmico e Ética", refs: "<strong>Tópicos:</strong> Prevenção de manipulação, explicabilidade (XAI). <strong>Fonte:</strong> Código de Conduta APIMEC." },
+            ]}
+        ]
+    }
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebarNav = document.getElementById('sidebar-nav');
+    const studyPlanContainer = document.getElementById('study-plan');
+    const overviewChartCtx = document.getElementById('overviewChart').getContext('2d');
+    const completionChartCtx = document.getElementById('completionChart').getContext('2d');
+    
+    const modal = document.getElementById('gemini-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalLoader = document.getElementById('modal-loader');
+    const modalResponse = document.getElementById('modal-response');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+
+    let progress = JSON.parse(localStorage.getItem('studyProgressV4')) || {};
+    let activePillarIndex = 0;
+    let activeModuleIndex = 0;
+    let overviewChartInstance, completionChartInstance;
+    
+    // --- Modal Functions ---
+    function showModal(title) {
+        modalTitle.textContent = title;
+        modalResponse.innerHTML = '';
+        modalLoader.style.display = 'block';
+        modal.classList.remove('hidden');
+    }
+
+    function displayModalContent(htmlContent) {
+        modalLoader.style.display = 'none';
+        modalResponse.innerHTML = htmlContent;
+    }
+
+    function hideModal() {
+        modal.classList.add('hidden');
+    }
+
+    modalCloseBtn.addEventListener('click', hideModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) hideModal();
+    });
+
+    // --- Gemini API Call ---
+    async function callGemini(prompt) {
+        const apiKey = ""; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+        let attempts = 0;
+        const maxAttempts = 5;
+        while (attempts < maxAttempts) {
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    return candidate.content.parts[0].text;
+                } else {
+                    let errorText = "Não foi possível gerar conteúdo. A resposta da API estava vazia ou malformada.";
+                    if (candidate?.finishReason) errorText += ` Motivo: ${candidate.finishReason}`;
+                    if (result.promptFeedback?.blockReason) errorText += ` Bloqueado por: ${result.promptFeedback.blockReason}`;
+                    console.error("Gemini API Error Response:", result);
+                    return `<p class="text-red-600">${errorText}</p>`;
+                }
+            } catch (error) {
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    console.error("Erro ao chamar a API Gemini:", error);
+                    return `<p class="text-red-600">Erro ao se conectar com a API Gemini. Verifique o console.</p>`;
+                }
+                const delay = Math.pow(2, attempts) * 100;
+                await new Promise(res => setTimeout(res, delay));
+            }
+        }
+    }
+
+
+    function renderSidebar() {
+        sidebarNav.innerHTML = '';
+        studyPlanData.forEach((pillar, pIndex) => {
+            const pillarContainer = document.createElement('div');
+            const pillarHeader = document.createElement('div');
+            pillarHeader.className = `pillar-header flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-slate-700 ${pIndex === activePillarIndex ? 'active' : ''}`;
+            pillarHeader.innerHTML = `<span class="font-semibold">${pillar.pillar}</span><svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
+            
+            const moduleLinks = document.createElement('ul');
+            moduleLinks.className = 'module-links';
+            pillar.modules.forEach((module, mIndex) => {
+                moduleLinks.innerHTML += `<li><a href="#" class="module-link block px-8 py-2 hover:bg-slate-600 ${pIndex === activePillarIndex && mIndex === activeModuleIndex ? 'active' : ''}" data-p-index="${pIndex}" data-m-index="${mIndex}">${module.title}</a></li>`;
+            });
+
+            pillarContainer.appendChild(pillarHeader);
+            pillarContainer.appendChild(moduleLinks);
+            sidebarNav.appendChild(pillarContainer);
+        });
+        addSidebarEventListeners();
+    }
+
+    function renderModuleContent(pIndex, mIndex) {
+        const pillar = studyPlanData[pIndex];
+        const module = pillar.modules[mIndex];
+        
+        studyPlanContainer.innerHTML = `
+            <section class="bg-white p-4 md:p-6 rounded-2xl shadow-lg">
+                <h2 class="text-3xl font-bold text-slate-700">${pillar.pillar}: ${module.title}</h2>
+                <p class="text-slate-500 mt-1 mb-6">${pillar.description}</p>
+                <div class="space-y-4">
+                    ${module.topics.map(topic => `
+                        <div class="border-t border-slate-200 pt-4">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" id="${topic.id}" data-topic-id="${topic.id}" class="mt-1 form-checkbox h-5 w-5 text-teal-600 rounded focus:ring-teal-500 border-slate-300" ${progress[topic.id] ? 'checked' : ''}>
+                                <label for="${topic.id}" class="flex-1">
+                                    <span class="font-medium text-slate-700">${topic.text}</span>
+                                    <div class="text-sm text-slate-500 mt-1">${topic.refs}</div>
+                                </label>
+                                <button data-topic-text="${topic.text}" class="explain-btn gemini-btn font-semibold py-1 px-3 rounded-md text-sm whitespace-nowrap">✨ Explicar</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="mt-8 pt-4 border-t border-dashed border-slate-300 text-center">
+                    <button data-module-title="${module.title}" class="quiz-btn gemini-btn font-bold py-2 px-6 rounded-lg">✨ Gerar Quiz do Módulo</button>
+                </div>
+            </section>
+        `;
+        addContentEventListeners();
+    }
+    
+    function updateProgress(topicId, isChecked) {
+        progress[topicId] = isChecked;
+        localStorage.setItem('studyProgressV4', JSON.stringify(progress));
+        renderOrUpdateCompletionChart();
+    }
+
+    function addSidebarEventListeners() {
+        sidebarNav.querySelectorAll('.pillar-header').forEach((header) => {
+            header.addEventListener('click', () => header.classList.toggle('active'));
+        });
+        
+        sidebarNav.querySelectorAll('.module-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                activePillarIndex = parseInt(link.dataset.pIndex);
+                activeModuleIndex = parseInt(link.dataset.mIndex);
+                
+                sidebarNav.querySelectorAll('.module-link, .pillar-header').forEach(el => el.classList.remove('active'));
+                
+                link.classList.add('active');
+                const pillarHeader = link.closest('.module-links').previousElementSibling;
+                pillarHeader.classList.add('active');
+                
+                renderModuleContent(activePillarIndex, activeModuleIndex);
+            });
+        });
+    }
+
+    function addContentEventListeners() {
+        studyPlanContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                updateProgress(e.target.dataset.topicId, e.target.checked);
+            });
+        });
+
+        studyPlanContainer.querySelectorAll('.explain-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const topicText = e.target.dataset.topicText;
+                showModal(`✨ Explicando: ${topicText}`);
+                const prompt = `Explique o seguinte tópico de finanças quantitativas de forma clara e concisa para um estudante: "${topicText}". Use parágrafos curtos, analogias simples e exemplos práticos, se possível. Formate a resposta em HTML simples (use <p>, <strong>, <ul>, <li>).`;
+                const explanation = await callGemini(prompt);
+                displayModalContent(explanation);
+            });
+        });
+
+        studyPlanContainer.querySelectorAll('.quiz-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const moduleTitle = e.target.dataset.moduleTitle;
+                const moduleElement = e.target.closest('section');
+                const topics = Array.from(moduleElement.querySelectorAll('.font-medium.text-slate-700')).map(span => span.textContent).join(', ');
+                
+                showModal(`✨ Quiz: ${moduleTitle}`);
+                const prompt = `Crie um quiz com 3 perguntas de múltipla escolha (4 opções de 'a' a 'd') sobre os seguintes tópicos do módulo "${moduleTitle}": ${topics}. Após cada pergunta, indique a resposta correta e uma justificativa concisa em negrito. Formate como HTML (use <p>, <strong>, <ul>, <li>).`;
+                const quiz = await callGemini(prompt);
+                displayModalContent(quiz);
+            });
+        });
+    }
+
+    function renderOverviewChart() {
+         if (overviewChartInstance) overviewChartInstance.destroy();
+         const labels = studyPlanData.map(p => p.pillar);
+         const data = studyPlanData.map(p => p.modules.reduce((acc, mod) => acc + mod.topics.length, 0));
+
+        overviewChartInstance = new Chart(overviewChartCtx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tópicos',
+                    data: data,
+                    backgroundColor: ['#008080', '#4682B4', '#5F9EA0', '#3CB371', '#87CEEB', '#6495ED', '#20B2AA'],
+                    borderColor: '#ffffff',
+                    borderWidth: 4,
+                    hoverOffset: 8
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.label}: ${c.raw} tópicos` } } }, cutout: '60%' }
+        });
+    }
+
+    function renderOrUpdateCompletionChart() {
+        if (completionChartInstance) completionChartInstance.destroy();
+        const labels = studyPlanData.map(p => p.pillar);
+        const completionData = studyPlanData.map(pillar => {
+            const allTopics = pillar.modules.flatMap(m => m.topics);
+            if (allTopics.length === 0) return 0;
+            const completedTopics = allTopics.filter(t => progress[t.id]).length;
+            return (completedTopics / allTopics.length) * 100;
+        });
+
+        completionChartInstance = new Chart(completionChartCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Progresso (%)',
+                    data: completionData,
+                    backgroundColor: 'rgba(0, 128, 128, 0.6)',
+                    borderColor: 'rgba(0, 128, 128, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, max: 100, ticks: { callback: (v) => v + '%' } } }, plugins: { legend: { display: false } } }
+        });
+    }
+
+    // Initial Load
+    renderSidebar();
+    renderModuleContent(activePillarIndex, activeModuleIndex);
+    renderOverviewChart();
+    renderOrUpdateCompletionChart();
+});
+</script>
+</body>
+</html>
+

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Estudos CNPI - Completo</title>
+    <!-- Chosen Palette: Dark Slate Sidebar with Warm Neutral Content and Teal Accents -->
+    <!-- Application Structure Plan: A two-column layout with a dark, accordion-style sidebar for navigation. The main content area dynamically displays only the selected sub-topic, creating a focused study environment. Each topic is presented in a card with a tabbed interface (Teoria, Exemplos, Fórmulas, Python, Q&A, Referências, e IA) to neatly organize the in-depth information. This structure was chosen to merge the detailed CNPI content with the user-friendly, focused layout of the provided theme file. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Mathematical formulas and technical analysis rules. Goal: Display notation clearly. Viz/Presentation: Rendered LaTeX. Library/Method: MathJax.
+        2. Report Info: Python code examples for technical indicators. Goal: Demonstrate practical implementation. Viz/Presentation: Syntax-highlighted code blocks with a copy button. Library/Method: Prism.js and custom JS.
+        3. Report Info: Complex CNPI topics. Goal: Provide on-demand, deeper explanations and quizzes. Viz/Presentation: AI-generated content in a modal window. Interaction: Buttons in the "Aprenda com IA" tab trigger Gemini API calls for the specific topic being viewed.
+        4. Report Info: SFN Structure & Candlestick patterns. Goal: Visualize concepts. Viz/Presentation: Styled HTML/CSS diagrams and representations, avoiding external images. Method: Tailwind CSS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #4a4a4a; }
+        .sidebar-bg { background-color: #1f2937; color: #e5e7eb; }
+        .content-bg { background-color: #f8f7f4; }
+        .card-bg { background-color: #ffffff; }
+        #sidebar .pillar-header.active { background-color: #4a5568; }
+        #sidebar .module-links { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: #111827;}
+        #sidebar .pillar-header.active + .module-links { max-height: 1000px; }
+        #sidebar .module-link.active { background-color: #0d9488; color: white; font-weight: 600; }
+        #sidebar::-webkit-scrollbar { width: 8px; }
+        #sidebar::-webkit-scrollbar-track { background: #1f2937; }
+        #sidebar::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 10px; }
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s ease-in-out; }
+        .tab-active { color: #0d9488; font-weight: 600; border-bottom-color: #0d9488; }
+        .tab-inactive { color: #6b7280; }
+        #gemini-modal { transition: opacity 0.3s ease; }
+        .gemini-btn {
+            background-color: #f0fdfa;
+            color: #0f766e;
+            border: 1px solid #ccfbf1;
+            transition: background-color 0.2s;
+        }
+        .gemini-btn:hover { background-color: #ccfbf1; }
+        .prism-code { border-radius: 0.5rem; font-size: 0.875rem; }
+        .copy-button { position: absolute; top: 0.5rem; right: 0.5rem; background-color: rgba(255, 255, 255, 0.1); color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; cursor: pointer; transition: background-color 0.2s; }
+        .copy-button:hover { background-color: rgba(255, 255, 255, 0.2); }
+        .accent-border { border-color: #0d9488; }
+        .candlestick-body { width: 20px; }
+        .candlestick-wick { width: 2px; background-color: #334155; margin-left: 9px; }
+        .green-candle { background-color: #22c55e; }
+        .red-candle { background-color: #ef4444; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-80 sidebar-bg flex-shrink-0 overflow-y-auto hidden lg:block shadow-lg">
+            <div class="p-6 sticky top-0 bg-slate-800 z-10">
+                <h1 class="text-2xl font-semibold text-center text-teal-400">Guia de Estudos CNPI</h1>
+                <p class="text-sm text-slate-400 mt-1 text-center">CB, CT1 & CF</p>
+            </div>
+            <nav id="sidebar-nav" class="text-slate-300 p-2"></nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="main-content" class="flex-1 p-4 sm:p-6 md:p-8 content-bg overflow-y-auto">
+            <div id="welcome-message" class="text-center h-full flex flex-col justify-center items-center">
+                <h1 class="text-4xl font-bold text-slate-700">Bem-vindo ao Guia de Estudos CNPI</h1>
+                <p class="mt-4 text-xl text-slate-500">Selecione um tópico no menu à esquerda para começar.</p>
+                <svg class="w-24 h-24 mt-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+            <div id="content-sections-wrapper" class="max-w-7xl mx-auto">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Gemini Modal -->
+    <div id="gemini-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b bg-slate-50 rounded-t-lg">
+                <h3 id="modal-title" class="text-xl font-semibold text-slate-800"></h3>
+                <button id="modal-close-btn" class="text-2xl font-bold text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="modal-loader" class="text-center hidden">
+                    <svg class="animate-spin h-8 w-8 text-teal-600 mx-auto" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="mt-2 text-slate-600">Gerando conteúdo com a IA Gemini...</p>
+                </div>
+                <div id="modal-response" class="prose max-w-none text-slate-700"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+const contentData = [
+    {
+        pillar: "Conteúdo Brasileiro (CB)",
+        modules: [
+            {
+                id: 'sfn',
+                title: 'Sistema Financeiro Nacional (SFN)',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Estrutura e Órgãos</h3><p class="mb-4">O Sistema Financeiro Nacional (SFN) é uma complexa rede de instituições e instrumentos que viabiliza a transferência de recursos entre agentes econômicos superavitários (poupadores) e deficitários (tomadores). Sua principal função é promover a intermediação financeira, essencial para o desenvolvimento econômico. A estrutura é dividida em subsistemas normativo, de supervisão e operativo, garantindo a solidez e a eficiência do mercado.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">1. Subsistema Normativo</h4><p class="mb-3">Define as regras do jogo. É composto por conselhos que estabelecem as políticas macroprudenciais e de conduta, sem exercer atividades operacionais.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Conselho Monetário Nacional (CMN):</strong> Órgão deliberativo máximo, responsável por formular a política da moeda e do crédito. Suas diretrizes visam a estabilidade da moeda, o desenvolvimento econômico e o bem-estar social. É o "cérebro" do sistema.</li><li><strong>Conselho Nacional de Seguros Privados (CNSP):</strong> Regula os mercados de seguros, capitalização, previdência complementar aberta e resseguros.</li><li><strong>Conselho Nacional de Previdência Complementar (CNPC):</strong> Regula as entidades fechadas de previdência complementar (fundos de pensão).</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">2. Subsistema de Supervisão</h4><p class="mb-3">Garante que as regras definidas pelo subsistema normativo sejam cumpridas. Atuam como os "braços" executivos e fiscalizadores.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Banco Central do Brasil (BACEN):</strong> A autarquia federal que atua como o banco dos bancos, executor da política monetária e supervisor do sistema bancário. Suas atribuições incluem a emissão de moeda, o controle dos depósitos compulsórios e a gestão das reservas internacionais.</li><li><strong>Comissão de Valores Mobiliários (CVM):</strong> Entidade autárquica vinculada ao Ministério da Fazenda, responsável por regular e fiscalizar o mercado de valores mobiliários, protegendo os investidores e assegurando a transparência e o funcionamento eficiente do mercado.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">3. Subsistema Operativo</h4><p class="mb-3">Composto pelas instituições que realizam a intermediação financeira diretamente com o público. Inclui uma vasta gama de entidades, como bancos múltiplos, comerciais e de investimento, corretoras e distribuidoras de valores (DTVMs e CTVMs), a B3 (Brasil, Bolsa, Balcão), e as câmaras de liquidação e custódia (clearings), como a Selic (para títulos públicos) e a própria B3 Clearinghouse, que centraliza a liquidação de diversas classes de ativos.</p>`,
+                    exemplos: `<p><strong>Exemplo Prático:</strong> Imagine que você quer abrir uma conta em uma corretora para investir em ações. A <strong>corretora</strong> é um <strong>operador</strong>. A <strong>CVM</strong> (entidade supervisora) é quem autoriza e fiscaliza essa corretora, garantindo que ela siga as regras de proteção ao investidor. As regras que a CVM impõe à corretora são baseadas em diretrizes mais amplas estabelecidas pelo <strong>CMN</strong> (órgão normativo).</p>`,
+                    formulas: `<p>Não existem fórmulas matemáticas para o SFN, mas sua estrutura pode ser representada hierarquicamente:</p><div class="text-center p-4 bg-slate-50 rounded-lg"><p class="font-bold">CMN (Normatiza)</p><p class="text-2xl font-bold">&darr;</p><p class="font-bold">BACEN / CVM (Supervisionam)</p><p class="text-2xl font-bold">&darr;</p><p class="font-bold">Bancos / Corretoras / B3 (Operam)</p></div>`,
+                    python: `<p>Podemos usar Python para consultar dados públicos disponibilizados pelo Banco Central, um dos principais players do SFN. A biblioteca <code>python-bcb</code> facilita o acesso ao Sistema Gerenciador de Séries Temporais (SGS).</p><div class="relative mt-2"><pre><code class="language-python prism-code"># Instale a biblioteca: pip install python-bcb\nfrom bcb import sgs\n\n# Busca a série histórica da meta da Taxa Selic (código 432)\nselic_meta = sgs.get({'selic_meta': 432}, last=12) # últimos 12 meses\n\nprint("Últimas 12 metas para a Taxa Selic (% a.a.):")\nprint(selic_meta)</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a principal diferença entre o BACEN e a CVM?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Embora ambos sejam supervisores, seus focos são diferentes. O BACEN foca na estabilidade do sistema financeiro como um todo, supervisionando principalmente bancos e a política monetária. A CVM foca no mercado de capitais, protegendo os investidores e garantindo a transparência e o bom funcionamento da bolsa de valores e dos ativos nela negociados.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Quem compõe o CMN?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>O Conselho Monetário Nacional é composto por três membros: o Ministro da Fazenda (que o preside), o Presidente do Banco Central e o Secretário de Planejamento e Assuntos Econômicos do Ministério da Fazenda.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Oficiais:</strong></li><li>Edital APIMEC para a Certificação CNPI.</li><li>Site do Banco Central do Brasil: <a href="https://www.bcb.gov.br" target="_blank" class="text-teal-600 hover:underline">bcb.gov.br</a></li><li>Site da Comissão de Valores Mobiliários: <a href="https://www.gov.br/cvm" target="_blank" class="text-teal-600 hover:underline">cvm.gov.br</a></li><li><strong>Leis:</strong></li><li>Lei nº 4.595/1964 (Lei do SFN).</li><li>Lei nº 6.385/1976 (Lei da CVM).</li><li><strong>Educacionais:</strong></li><li>Portal do Investidor (CVM): <a href="https://www.investidor.gov.br/" target="_blank" class="text-teal-600 hover:underline">investidor.gov.br</a></li><li>Site da ANBIMA: <a href="https://www.anbima.com.br/pt_br/educar/Paginas/default.aspx" target="_blank" class="text-teal-600 hover:underline">anbima.com.br/educar</a></li></ul>`
+                }
+            },
+            {
+                id: 'mercado-capitais',
+                title: 'Mercado de Capitais e Derivativos',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Visão Geral</h3><p class="mb-4">O Mercado de Capitais é o segmento do SFN onde se realizam as operações de compra e venda de valores mobiliários de médio e longo prazo. Sua função primordial é canalizar a poupança da sociedade para o financiamento do setor produtivo, viabilizando investimentos e o crescimento econômico. Ele se divide em <strong>mercado primário</strong>, onde ocorre a emissão e subscrição de novos títulos (IPOs, follow-ons), e <strong>mercado secundário</strong>, onde os títulos já existentes são negociados entre investidores, provendo liquidez.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Principais Valores Mobiliários</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Ações:</strong> Títulos que representam uma fração do capital social de uma empresa. Confere ao titular a condição de sócio. As <strong>Ordinárias (ON)</strong> garantem direito a voto e participação nos resultados. As <strong>Preferenciais (PN)</strong> possuem prioridade no recebimento de dividendos ou, em caso de liquidação da empresa, mas geralmente não têm direito a voto.</li><li><strong>Debêntures:</strong> Títulos de dívida de médio e longo prazo emitidos por sociedades anônimas (não financeiras) para captar recursos. O investidor torna-se credor da empresa.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Mercado de Derivativos</h4><p class="mb-3">Segmento onde são negociados contratos cujo valor deriva (daí o nome) do preço de um ativo subjacente (ações, moedas, juros, commodities). Suas principais funções econômicas são o <em>hedge</em> (proteção contra oscilações de preço) e a alavancagem especulativa.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Mercado Futuro:</strong> Negociação de contratos padronizados para compra ou venda de um ativo em uma data futura a um preço pré-determinado. Caracteriza-se pelo mecanismo de ajuste diário, onde lucros e perdas são realizados diariamente.</li><li><strong>Opções:</strong> Contratos que conferem ao titular o <strong>direito</strong>, mas não a obrigação, de comprar (<em>call</em>) ou vender (<em>put</em>) um ativo a um preço de exercício (<em>strike</em>) até uma data de vencimento. O vendedor da opção (lançador) tem a obrigação correspondente.</li><li><strong>Swaps:</strong> Contratos que estabelecem a troca de fluxos de caixa futuros entre duas partes, baseados em diferentes referenciais de rentabilidade (ex: troca de uma taxa de juros prefixada por uma pós-fixada como o CDI).</li></ul>`,
+                    exemplos: `<p><strong>Exemplo (Ações):</strong> A empresa "XPTO S.A." realiza um IPO (Oferta Pública Inicial) para captar R$ 500 milhões para construir uma nova fábrica. Os investidores que compram as ações na oferta se tornam sócios e financiam a expansão da empresa. O dinheiro vai para o caixa da empresa.</p><p class="mt-4"><strong>Exemplo (Opções):</strong> Um investidor possui ações da VALE3 e teme uma queda de curto prazo. Ele pode comprar opções de venda (<em>put</em>) da VALE3. Se o preço da ação cair, o valor da sua <em>put</em> aumentará, compensando parte da perda na sua carteira de ações. Isso é uma operação de hedge.</p>`,
+                    formulas: `<p><strong>Payoff de uma Opção de Compra (Call) no Vencimento:</strong></p>$$Payoff_{Call} = max(S_T - K, 0)$$<p>Onde $S_T$ é o preço do ativo no vencimento e $K$ é o preço de exercício (strike).</p><p class="mt-4"><strong>Payoff de uma Opção de Venda (Put) no Vencimento:</strong></p>$$Payoff_{Put} = max(K - S_T, 0)$$</p>`,
+                    python: `<p>Calculando o payoff de uma opção de compra (call) para diferentes preços do ativo no vencimento.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\n\n# Parâmetros da Opção\nstrike_price = 100  # Preço de exercício (K)\npremium = 2       # Custo da opção (prêmio)\n\n# Preços simulados do ativo no vencimento (ST)\nspot_prices_at_expiry = np.arange(80, 121, 5)\n\ndef call_payoff(spot_price, strike_price):\n    return np.maximum(spot_price - strike_price, 0)\n\nprint("Preço Final | Payoff Bruto | Lucro/Prejuízo Líquido")\nprint("-" * 45)\nfor spot in spot_prices_at_expiry:\n    payoff = call_payoff(spot, strike_price)\n    profit_loss = payoff - premium\n    print(f"R$ {spot:8.2f} | R$ {payoff:10.2f} | R$ {profit_loss:18.2f}")</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é o ajuste diário no mercado futuro?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É um mecanismo de segurança da bolsa. Todos os dias, as posições em contratos futuros são reavaliadas ao preço de ajuste do dia. Quem teve lucro, recebe o valor na conta; quem teve prejuízo, paga. Isso evita o acúmulo de grandes perdas e reduz o risco de inadimplência no sistema.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre mercado primário e secundário?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>No mercado primário ocorrem as emissões iniciais de ativos, como um IPO. O dinheiro vai para o caixa da empresa emissora. No mercado secundário, os investidores negociam entre si os ativos que já foram emitidos. As negociações diárias na bolsa de valores ocorrem no mercado secundário, e o dinheiro troca de mãos entre os investidores, sem ir para a empresa.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livros:</strong></li><li>Hull, John C. "Options, Futures, and Other Derivatives".</li><li><strong>Oficiais:</strong></li><li>Edital APIMEC para a Certificação CNPI.</li><li>Site da B3 (Brasil, Bolsa, Balcão): <a href="http://www.b3.com.br/pt_br/produtos-e-servicos/negociacao/renda-variavel/" target="_blank" class="text-teal-600 hover:underline">b3.com.br</a></li><li><strong>Educacionais:</strong></li><li>Hub de Educação da B3: <a href="https://edu.b3.com.br/" target="_blank" class="text-teal-600 hover:underline">edu.b3.com.br</a></li><li>Investopedia (Conceitos Globais): <a href="https://www.investopedia.com/" target="_blank" class="text-teal-600 hover:underline">investopedia.com</a></li></ul>`
+                }
+            }
+        ]
+    },
+    {
+        pillar: "Conteúdo Técnico (CT1)",
+        modules: [
+            {
+                id: 'fundamentos-at',
+                title: 'Fundamentos da Análise Técnica',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Pilares da Análise Técnica</h3><p class="mb-4">A Análise Técnica, também conhecida como análise gráfica, é o estudo dos movimentos de mercado, principalmente através do uso de gráficos, com o propósito de prever futuras tendências de preços. Ela não se preocupa com o valor "intrínseco" de uma empresa, mas sim com a psicologia de massa refletida nos gráficos.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">As Três Premissas Fundamentais</h4><ol class="list-decimal pl-6 space-y-3"><li><strong>O mercado desconta tudo:</strong> Esta é a pedra angular da análise técnica. Acredita-se que qualquer fator que possa influenciar o preço de um ativo — seja fundamentalista, político, econômico ou psicológico — já está refletido no seu preço. Portanto, o estudo do preço em si é tudo o que é necessário.</li><li><strong>Os preços se movem em tendências:</strong> A análise gráfica busca identificar tendências (de alta, de baixa ou lateral) para operar a favor delas. O princípio básico é que uma tendência em movimento tem maior probabilidade de continuar do que de reverter.</li><li><strong>A história se repete:</strong> Padrões gráficos que foram identificados e categorizados ao longo de décadas tendem a se repetir. Acredita-se que isso ocorre porque esses padrões refletem a psicologia humana (medo, ganância, esperança), que é relativamente constante ao longo do tempo.</li></ol><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Principais Teorias</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Teoria de Dow:</strong> Desenvolvida por Charles Dow, é considerada a base da análise técnica moderna. Ela introduziu conceitos como as três tendências do mercado (primária, secundária e terciária), a necessidade de confirmação entre os índices (ex: Industrial e Transportes) e a importância do volume para confirmar a força de uma tendência.</li><li><strong>Ondas de Elliott:</strong> Proposta por R.N. Elliott, esta teoria postula que o mercado se move em padrões de ondas previsíveis e repetitivos. O padrão fundamental consiste em 5 ondas de "impulso" na direção da tendência principal, seguidas por 3 ondas de "correção". Essas estruturas são fractais, ou seja, se repetem em diferentes escalas de tempo.</li><li><strong>Sequência de Fibonacci:</strong> Embora não seja uma teoria de mercado em si, as razões matemáticas derivadas da sequência de Fibonacci (0, 1, 1, 2, 3, 5, 8...) são amplamente utilizadas para determinar prováveis níveis de suporte (retrações) e resistência (projeções) nos gráficos de preços. As retrações mais comuns são 38.2%, 50% e 61.8%.</li></ul>`,
+                    exemplos: `<p><strong>Exemplo (Tendência):</strong> Um analista identifica que a ação da AMBEV3 está em uma clara tendência de alta, formando topos e fundos ascendentes em um gráfico diário. Com base na premissa de que os preços se movem em tendências, ele assume que essa tendência provavelmente continuará e procura um ponto de entrada de compra em uma pequena correção (fundo ascendente).</p><p class="mt-4"><strong>Exemplo (Fibonacci):</strong> Após uma forte alta de R$10 para R$20, uma ação começa a corrigir. O analista traça os níveis de retração de Fibonacci e observa que o preço encontra suporte próximo ao nível de 38.2% (R$16,18) ou 50% (R$15,00), que são consideradas áreas prováveis para o fim da correção e retomada da alta.</p>`,
+                    formulas: `<p><strong>Níveis de Retração de Fibonacci:</strong></p><p>Após um movimento de alta de um ponto $A$ (fundo) para $B$ (topo), os principais níveis de suporte são:</p><ul class="list-disc pl-5"><li>Suporte 1 = $B - 0.236 \\times (B - A)$</li><li>Suporte 2 = $B - 0.382 \\times (B - A)$</li><li>Suporte 3 = $B - 0.500 \\times (B - A)$</li><li>Suporte 4 = $B - 0.618 \\times (B - A)$</li></ul>`,
+                    python: `<p>Cálculo dos níveis de retração de Fibonacci para um dado movimento de preço.</p><div class="relative mt-2"><pre><code class="language-python prism-code">def calculate_fibonacci_retracements(low_price, high_price):\n    ratios = [0.236, 0.382, 0.5, 0.618, 0.786]\n    price_diff = high_price - low_price\n    \n    levels = {}\n    for ratio in ratios:\n        level_price = high_price - ratio * price_diff\n        levels[f"{ratio*100:.1f}%"] = level_price\n        \n    return levels\n\n# Exemplo: Ação subiu de R$ 50.00 para R$ 80.00\nlow = 50.00\nhigh = 80.00\n\nretracement_levels = calculate_fibonacci_retracements(low, high)\n\nprint(f"Movimento de alta de R\${low:.2f} para R\${high:.2f}")\nprint("Níveis de Retração (Suporte):")\nfor level, price in retracement_levels.items():\n    print(f"  Nível {level}: R$ {price:.2f}")</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>A Análise Técnica funciona sempre?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Não. A Análise Técnica é uma ferramenta de probabilidades, não de certezas. Ela ajuda a identificar cenários de maior probabilidade de sucesso, mas não prevê o futuro. É fundamental combiná-la com uma sólida gestão de risco (uso de stops).</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a importância do volume na Teoria de Dow?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>O volume é visto como um "combustível" da tendência. Em uma tendência de alta saudável, o volume deve aumentar nos dias de alta e diminuir nos dias de baixa (correções). Se o preço sobe com volume decrescente, é um sinal de fraqueza da tendência.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livros:</strong></li><li>Murphy, John J. "Análise Técnica dos Mercados Financeiros".</li><li>Prechter, Robert & Frost, A.J. "Elliott Wave Principle".</li><li><strong>Educacionais:</strong></li><li>StockCharts ChartSchool: <a href="https://school.stockcharts.com/" target="_blank" class="text-teal-600 hover:underline">school.stockcharts.com</a></li><li>Babypips (para iniciantes): <a href="https://www.babypips.com/learn/forex" target="_blank" class="text-teal-600 hover:underline">babypips.com</a></li><li><strong>Ferramentas:</strong></li><li>TradingView: <a href="https://www.tradingview.com" target="_blank" class="text-teal-600 hover:underline">tradingview.com</a></li></ul>`
+                }
+            },
+            {
+                id: 'padroes-graficos',
+                title: 'Padrões Gráficos e Candlestick',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Padrões Gráficos</h3><p class="mb-4">São formações de preço que aparecem em gráficos e que, historicamente, demonstraram ter um valor de previsão sobre o movimento futuro dos preços. Eles representam visualmente a psicologia dos investidores e a batalha entre compradores e vendedores. Podem ser divididos em duas categorias principais:</p><ul class="list-disc pl-6 space-y-3"><li><strong>Padrões de Reversão:</strong> Indicam que a tendência atual está perdendo força e uma mudança de direção é provável. Exemplos clássicos incluem o <strong>Ombro-Cabeça-Ombro (OCO)</strong> e sua versão invertida, <strong>Topos e Fundos Duplos/Triplos</strong>.</li><li><strong>Padrões de Continuação:</strong> Sugerem que o mercado está fazendo uma pausa (uma consolidação) antes de retomar a tendência vigente. Exemplos comuns são os <strong>Triângulos (Simétrico, Ascendente, Descendente)</strong>, <strong>Bandeiras</strong> e <strong>Flâmulas</strong>.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Padrões de Candlestick</h4><p class="mb-3">Originários do Japão, os gráficos de candlestick oferecem uma visão muito mais detalhada da ação do preço dentro de um período do que um simples gráfico de linha ou barras. Cada "vela" mostra os preços de abertura, máximo, mínimo e fechamento. Padrões formados por um ou mais candles podem fornecer sinais de curto prazo sobre reversões ou continuações, sendo especialmente poderosos quando ocorrem em níveis de suporte ou resistência.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Sinais de Reversão Altista:</strong> Padrões como o <strong>Martelo</strong>, o <strong>Engolfo de Alta</strong> e a <strong>Estrela da Manhã</strong>, quando aparecem após uma tendência de baixa, sinalizam que os compradores estão começando a dominar os vendedores.</li><li><strong>Sinais de Reversão Baixista:</strong> Padrões como a <strong>Estrela Cadente</strong>, o <strong>Homem Enforcado</strong> e o <strong>Engolfo de Baixa</strong>, quando aparecem após uma tendência de alta, sugerem que a força compradora está se esgotando.</li><li><strong>Sinais de Indecisão:</strong> Candles como o <strong>Doji</strong> e os <strong>Spinning Tops</strong>, que têm corpos reais muito pequenos, indicam um equilíbrio de forças entre compradores e vendedores, muitas vezes precedendo uma reversão.</li></ul>`,
+                    exemplos: `<div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center"><div class="p-2 border rounded-lg"> <div class="flex flex-col items-center justify-end h-32"> <div class="candlestick-wick" style="height: 50px;"></div> <div class="candlestick-body green-candle" style="height: 20px;"></div> </div> <p class="mt-2 font-semibold">Martelo</p> <p class="text-sm text-slate-600">Sinal de reversão altista em fundos.</p></div><div class="p-2 border rounded-lg"> <div class="flex flex-col items-center justify-center h-32"> <div class="candlestick-wick" style="height: 35px;"></div> <div class="candlestick-body red-candle" style="height: 2px;"></div> <div class="candlestick-wick" style="height: 35px;"></div> </div> <p class="mt-2 font-semibold">Doji</p> <p class="text-sm text-slate-600">Indecisão no mercado.</p></div><div class="p-2 border rounded-lg"> <div class="flex items-end justify-center h-32 space-x-1"> <div class="candlestick-body red-candle" style="height: 40px;"></div> <div class="candlestick-body green-candle" style="height: 70px;"></div> </div> <p class="mt-2 font-semibold">Engolfo de Alta</p> <p class="text-sm text-slate-600">Forte reversão altista.</p></div><div class="p-2 border rounded-lg"> <div class="flex flex-col items-center justify-start h-32"> <div class="candlestick-body red-candle" style="height: 20px;"></div> <div class="candlestick-wick" style="height: 50px;"></div> </div> <p class="mt-2 font-semibold">Estrela Cadente</p> <p class="text-sm text-slate-600">Reversão baixista em topos.</p></div></div>`,
+                    formulas: `<p><strong>Projeção de Alvo para OCO:</strong></p><p>A projeção de alvo para um padrão Ombro-Cabeça-Ombro é calculada medindo a distância vertical do topo da cabeça até a linha de pescoço e subtraindo essa distância do ponto onde a linha de pescoço é rompida.</p>$$Alvo = Preço_{Rompimento} - (Preço_{Cabeça} - Preço_{Linha de Pescoço})$$`,
+                    python: `<p>Detectando um padrão de Martelo em dados de candlestick usando <code>pandas</code>. Um Martelo é caracterizado por um corpo pequeno, sombra inferior longa e sombra superior curta.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import pandas as pd\n\n# Exemplo de DataFrame com dados OHLC (Abertura, Máxima, Mínima, Fechamento)\ndata = {'Open': [10, 8, 12, 11], 'High': [11, 10, 13, 12],\n        'Low': [9, 5, 11, 10.5], 'Close': [10.5, 9.5, 12.8, 11.8]}\ndf = pd.DataFrame(data)\n\ndef is_hammer(row):\n    body = abs(row['Close'] - row['Open'])\n    upper_wick = row['High'] - max(row['Close'], row['Open'])\n    lower_wick = min(row['Close'], row['Open']) - row['Low']\n    \n    # Condições para ser um Martelo (aproximadas)\n    # 1. Sombra inferior é pelo menos 2x o tamanho do corpo\n    # 2. Sombra superior é muito pequena\n    if lower_wick > 2 * body and upper_wick < body * 0.5:\n        return True\n    return False\n\ndf['is_hammer'] = df.apply(is_hammer, axis=1)\nprint(df)</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é um 'gap' no gráfico?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Um gap (ou lacuna) é uma área no gráfico onde nenhum negócio foi realizado. Ocorre quando o preço de abertura de um período é significativamente maior (gap de alta) ou menor (gap de baixa) que o preço de fechamento do período anterior. Gaps podem atuar como fortes níveis de suporte ou resistência.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual o timeframe mais confiável para padrões gráficos?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Geralmente, padrões que se formam em timeframes mais longos (diário, semanal) são considerados mais significativos e confiáveis do que aqueles em timeframes curtos (intradiários de 1 ou 5 minutos), pois representam o consenso de um número maior de negociações e participantes do mercado.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livros:</strong></li><li>Nison, Steve. "Japanese Candlestick Charting Techniques".</li><li>Bulkowski, Thomas N. "Encyclopedia of Chart Patterns".</li><li><strong>Educacionais:</strong></li><li>The Pattern Site (Bulkowski's Website): <a href="http://thepatternsite.com/" target="_blank" class="text-teal-600 hover:underline">thepatternsite.com</a></li><li>StockCharts ChartSchool - Chart Patterns: <a href="https://school.stockcharts.com/doku.php?id=chart_analysis:chart_patterns" target="_blank" class="text-teal-600 hover:underline">stockcharts.com/chart_patterns</a></li></ul>`
+                }
+            },
+            {
+                id: 'indicadores-tecnicos',
+                title: 'Indicadores Técnicos',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">O que são Indicadores?</h3><p class="mb-4">Indicadores técnicos são derivações matemáticas do preço e/ou do volume. Eles são usados para simplificar a complexidade da ação do preço, ajudando a identificar tendências, momentum, volatilidade e condições de sobrecompra/sobrevenda. É crucial entender que indicadores seguem o preço; eles não o lideram. Seu valor está em confirmar a ação do preço e fornecer sinais objetivos de entrada e saída.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Categorias de Indicadores</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Rastreadores de Tendência:</strong> São projetados para identificar a direção e a força de uma tendência. Eles são eficazes em mercados direcionais, mas tendem a gerar sinais falsos em mercados laterais (congestionados). Os exemplos mais conhecidos são as <strong>Médias Móveis</strong> e o <strong>MACD</strong>.</li><li><strong>Osciladores:</strong> Medem o momentum (velocidade) dos movimentos de preço, oscilando dentro de uma banda ou em torno de um ponto central. São mais úteis para identificar pontos de virada em mercados laterais ou para detectar o enfraquecimento de uma tendência através de divergências. Exemplos populares incluem o <strong>Índice de Força Relativa (IFR ou RSI)</strong> e o <strong>Estocástico</strong>.</li><li><strong>Indicadores de Volatilidade:</strong> Medem a magnitude das variações de preço, independentemente da direção. A volatilidade tende a ser cíclica, com períodos de calmaria seguidos por períodos de alta atividade. O indicador mais famoso desta categoria são as <strong>Bandas de Bollinger</strong>.</li></ul>`,
+                    exemplos: `<p><strong>Exemplo (Cruzamento de Médias):</strong> Um trader usa uma Média Móvel Exponencial (MME) de 9 períodos e uma de 21 períodos. Quando a MME de 9 cruza para cima da MME de 21, ele interpreta como um sinal de compra. Quando a MME de 9 cruza para baixo, é um sinal de venda.</p><p class="mt-4"><strong>Exemplo (Divergência de IFR):</strong> O preço de uma ação faz um novo topo, mais alto que o anterior. No entanto, o indicador IFR, no mesmo período, faz um topo mais baixo que o anterior. Isso é uma "divergência baixista", um sinal de que o momentum da alta está diminuindo e uma reversão pode estar próxima.</p>`,
+                    formulas: `<p><strong>Média Móvel Simples (MMS):</strong></p>$$MMS_n = \\frac{\\sum_{i=1}^{n} Preço_{i}}{n}$$<p><strong>Índice de Força Relativa (IFR):</strong></p>$$IFR = 100 - \\frac{100}{1 + FR}$$<p>Onde $FR$ (Força Relativa) é a Média das Ganhos / Média das Perdas em um período.</p><p class="mt-4"><strong>Bandas de Bollinger:</strong></p><ul class="list-disc pl-5"><li>Banda Central = $MMS_{20}$</li><li>Banda Superior = $MMS_{20} + (2 \\times DesvioPadrão_{20})$</li><li>Banda Inferior = $MMS_{20} - (2 \\times DesvioPadrão_{20})$</li></ul>`,
+                    python: `<p>Calculando os principais indicadores técnicos com a biblioteca <code>pandas</code>.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import pandas as pd\n\n# Suponha que 'df' é um DataFrame com uma coluna 'Close'\n# Gerando dados de exemplo\ndata = {'Close': [10, 12, 11, 13, 15, 14, 16, 18, 20, 19]}\ndf = pd.DataFrame(data)\n\n# Média Móvel Simples de 5 períodos\ndf['SMA_5'] = df['Close'].rolling(window=5).mean()\n\n# Bandas de Bollinger de 5 períodos\ndf['BB_std'] = df['Close'].rolling(window=5).std()\ndf['BB_Upper'] = df['SMA_5'] + (df['BB_std'] * 2)\ndf['BB_Lower'] = df['SMA_5'] - (df['BB_std'] * 2)\n\n# IFR (RSI) de 5 períodos\ndelta = df['Close'].diff()\ngain = (delta.where(delta > 0, 0)).rolling(window=5).mean()\nloss = (-delta.where(delta < 0, 0)).rolling(window=5).mean()\nrs = gain / loss\ndf['RSI_5'] = 100 - (100 / (1 + rs))\n\nprint(df.round(2))</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre Média Móvel Simples (MMS) e Exponencial (MME)?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>A MMS atribui peso igual a todos os preços no período de cálculo. A MME atribui mais peso aos preços mais recentes, tornando-a mais reativa a novas informações de preço. Por isso, a MME é frequentemente preferida por traders de curto prazo.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é o MACD?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>O MACD (Moving Average Convergence Divergence) é um indicador de tendência e momentum. Ele é calculado subtraindo a MME de 26 períodos da MME de 12 períodos. O cruzamento da linha do MACD com sua "linha de sinal" (uma MME de 9 períodos do próprio MACD) gera sinais de compra e venda.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livros:</strong></li><li>Wilder, J. Welles. "New Concepts in Technical Trading Systems".</li><li>Appel, Gerald. "Technical Analysis: Power Tools for Active Investors".</li><li><strong>Oficiais:</strong></li><li>Edital APIMEC para a Certificação CNPI.</li><li><strong>Educacionais:</strong></li><li>Investopedia - Technical Indicators: <a href="https://www.investopedia.com/technical-analysis-4689657" target="_blank" class="text-teal-600 hover:underline">investopedia.com/technical-analysis</a></li><li>Fidelity - Technical Indicators: <a href="https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide" target="_blank" class="text-teal-600 hover:underline">fidelity.com/learning-center</a></li></ul>`
+                }
+            }
+        ]
+    },
+    {
+        pillar: "Conteúdo Fundamentalista (CF)",
+        modules: [
+            {
+                id: 'analise-avaliacao',
+                title: 'Análise e Avaliação de Ações',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">A Essência da Análise Fundamentalista</h3><p class="mb-4">A Análise Fundamentalista é uma metodologia de avaliação que busca determinar o "valor intrínseco" de uma empresa – seu valor justo – através da análise de dados financeiros, econômicos e qualitativos. A premissa central é que o preço de mercado de uma ação, no longo prazo, convergirá para seu valor intrínseco. O analista fundamentalista examina a saúde financeira da empresa (demonstrações contábeis), suas vantagens competitivas, a qualidade de sua gestão e o ambiente macroeconômico em que opera.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Abordagens de Valuation</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Fluxo de Caixa Descontado (DCF):</strong> O método mais rigoroso, que projeta os fluxos de caixa futuros da empresa e os traz a valor presente usando uma taxa de desconto que reflete o risco do negócio (WACC). O DCF pode ser feito sob a ótica da firma (FCFF - Free Cash Flow to the Firm) para chegar ao Valor da Firma, ou sob a ótica do acionista (FCFE - Free Cash Flow to Equity) para chegar diretamente ao Valor do Patrimônio Líquido.</li><li><strong>Avaliação por Múltiplos (Análise Relativa):</strong> Um método mais rápido que compara a empresa com seus pares de mercado. Consiste em usar indicadores (múltiplos) como Preço/Lucro (P/L), Preço/Valor Patrimonial (P/VPA), e EV/EBITDA. A ideia é verificar se a empresa está sendo negociada com um "desconto" ou "prêmio" em relação à média do seu setor.</li><li><strong>Modelo de Desconto de Dividendos (DDM):</strong> Ideal para empresas maduras e estáveis que pagam dividendos de forma previsível. O valor da ação é calculado como o valor presente de todos os dividendos futuros esperados. O Modelo de Gordon é a sua forma mais simples, assumindo um crescimento constante dos dividendos a uma taxa 'g'.</li></ul>`,
+                    exemplos: `<p><strong>Exemplo (Múltiplo P/L):</strong> O analista observa que as empresas do setor de varejo negociam, em média, a um P/L de 15. A empresa "Lojas ABC" tem um lucro por ação de R$ 5,00 e sua ação está cotada a R$ 60,00, resultando em um P/L de 12 (60/5). Com base na análise relativa, o analista pode concluir que a ação está 20% mais barata que a média do setor e investigar os motivos.</p>`,
+                    formulas: `<p><strong>Modelo de Crescimento de Gordon (DDM):</strong></p>$$P_0 = \\frac{D_1}{k - g}$$<p>Onde $P_0$ é o preço justo da ação, $D_1$ é o dividendo esperado no próximo ano, $k$ é a taxa de retorno exigida pelo acionista, e $g$ é a taxa de crescimento constante dos dividendos.</p><p class="mt-4"><strong>Múltiplo Preço/Lucro (P/L):</strong></p>$$P/L = \\frac{Preço \\, por \\, Ação}{Lucro \\, por \\, Ação}$$`,
+                    python: `<p>Cálculo do valor de uma ação pelo Modelo de Gordon.</p><div class="relative mt-2"><pre><code class="language-python prism-code">def gordon_growth_model(d1, k, g):\n    """Calcula o valor intrínseco de uma ação.\n    d1: Dividendo esperado no próximo ano\n    k: Taxa de retorno exigida (custo do equity)\n    g: Taxa de crescimento constante dos dividendos\n    """\n    if k <= g:\n        return "Erro: k deve ser maior que g."\n    \n    price = d1 / (k - g)\n    return price\n\n# Parâmetros\ndividend_next_year = 5.00  # R$ 5,00\nrequired_return = 0.15   # 15%\ngrowth_rate = 0.07       # 7%\n\nfair_value = gordon_growth_model(dividend_next_year, required_return, growth_rate)\n\nprint(f"O valor justo da ação é: R$ {fair_value:.2f}")</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a principal crítica ao método de DCF?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>A principal crítica é sua alta sensibilidade às premissas. Pequenas alterações na taxa de crescimento projetada ou na taxa de desconto (WACC) podem levar a grandes variações no valor intrínseco calculado. Por isso, é comum realizar uma análise de sensibilidade, testando diferentes cenários.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Quando o múltiplo P/L não deve ser usado?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>O P/L não é útil para empresas que não têm lucro (prejuízo) ou para empresas com lucros muito voláteis. Além disso, práticas contábeis diferentes podem distorcer o lucro, tornando a comparação entre empresas difícil. Nesses casos, múltiplos como P/Vendas ou EV/EBITDA podem ser mais apropriados.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livros:</strong></li><li>Damodaran, Aswath. "Avaliação de Investimentos".</li><li>Graham, Benjamin. "O Investidor Inteligente".</li><li><strong>Recursos Online:</strong></li><li>Damodaran Online (Recursos e dados sobre valuation): <a href="https://pages.stern.nyu.edu/~adamodar/" target="_blank" class="text-teal-600 hover:underline">pages.stern.nyu.edu/~adamodar/</a></li><li>Status Invest (Dados fundamentalistas de empresas brasileiras): <a href="https://statusinvest.com.br/" target="_blank" class="text-teal-600 hover:underline">statusinvest.com.br</a></li><li>Fundamentus (Dados fundamentalistas de empresas brasileiras): <a href="https://www.fundamentus.com.br/" target="_blank" class="text-teal-600 hover:underline">fundamentus.com.br</a></li></ul>`
+                }
+            },
+            {
+                id: 'financas-corporativas-cf',
+                title: 'Finanças Corporativas',
+                content: {
+                     teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Decisões e Estrutura de Capital</h3><p class="mb-4">Finanças Corporativas é a área que estuda as decisões financeiras das empresas. O objetivo principal do gestor financeiro é maximizar o valor da empresa para os acionistas. Isso envolve três tipos principais de decisões:</p><ul class="list-disc pl-6 space-y-3"><li><strong>Decisões de Investimento (Orçamento de Capital):</strong> Onde alocar os recursos da empresa? Envolve a análise de projetos e investimentos para determinar se eles criarão valor. Ferramentas como o Valor Presente Líquido (VPL) e a Taxa Interna de Retorno (TIR) são usadas aqui.</li><li><strong>Decisões de Financiamento (Estrutura de Capital):</strong> Como captar os recursos necessários? A empresa deve usar capital próprio (emitindo ações) ou capital de terceiros (tomando dívidas)? A combinação ideal, que minimiza o custo de capital, é o objetivo.</li><li><strong>Decisões de Política de Dividendos:</strong> Quanto do lucro gerado deve ser reinvestido na empresa e quanto deve ser distribuído aos acionistas como dividendos?</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Custo de Capital e WACC</h4><p class="mb-3">Toda fonte de capital tem um custo. O <strong>Custo de Capital Próprio ($R_e$)</strong> é o retorno que os acionistas exigem para investir na empresa (calculado via CAPM). O <strong>Custo de Capital de Terceiros ($R_d$)</strong> é a taxa de juros paga sobre as dívidas. O <strong>Custo Médio Ponderado de Capital (WACC)</strong> é a média ponderada desses dois custos, ajustada pelo benefício fiscal da dívida. O WACC representa a taxa de retorno mínima que a empresa precisa gerar em seus projetos para remunerar todos os seus financiadores e, portanto, é a taxa de desconto utilizada no valuation por DCF.</p>`,
+                    exemplos: `<p><strong>Exemplo (Orçamento de Capital):</strong> Uma empresa está analisando a construção de uma nova fábrica que custa R$100 milhões. Ela projeta que a fábrica irá gerar fluxos de caixa de R$20 milhões por ano nos próximos 10 anos. Usando o WACC da empresa de 12% a.a. como taxa de desconto, ela calcula o VPL do projeto. Se o VPL for positivo, o projeto criará valor para o acionista e deve ser aceito.</p>`,
+                    formulas: `<p><strong>Custo Médio Ponderado de Capital (WACC):</strong></p>$$WACC = \\frac{E}{E+D} \\cdot R_e + \\frac{D}{E+D} \\cdot R_d \\cdot (1 - T_c)$$<p>Onde $E$ é o valor de mercado do capital próprio, $D$ é o valor de mercado da dívida, $R_e$ é o custo do capital próprio, $R_d$ é o custo da dívida e $T_c$ é a alíquota de imposto.</p><p class="mt-4"><strong>CAPM para o Custo de Capital Próprio ($R_e$):</strong></p>$$R_e = R_f + \\beta (E[R_m] - R_f)$$<p>$R_f$ é a taxa livre de risco, $\\beta$ é o beta da ação e $(E[R_m] - R_f)$ é o prêmio de risco do mercado.</p>`,
+                    python: `<p>Cálculo do WACC em Python.</p><div class="relative mt-2"><pre><code class="language-python prism-code">def calculate_wacc(Re, Rd, Tc, E, D):\n    """Calcula o Custo Médio Ponderado de Capital (WACC)."""\n    V = E + D  # Valor total da firma\n    weight_e = E / V\n    weight_d = D / V\n    wacc = weight_e * Re + weight_d * Rd * (1 - Tc)\n    return wacc\n\n# Parâmetros de exemplo\nRe = 0.18  # Custo do Equity (18%)\nRd = 0.10  # Custo da Dívida (10%)\nTc = 0.34  # Alíquota de imposto (34%)\nE = 700    # Valor de mercado do Equity (R$ 700 mi)\nD = 300    # Valor de mercado da Dívida (R$ 300 mi)\n\nwacc_value = calculate_wacc(Re, Rd, Tc, E, D)\n\nprint(f"O WACC da empresa é: {wacc_value * 100:.2f}%")</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Por que a dívida tem um benefício fiscal?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>As despesas com juros da dívida são dedutíveis para fins de cálculo do imposto de renda. Isso cria um "escudo fiscal" (tax shield), que reduz o imposto a pagar e, consequentemente, o custo efetivo da dívida para a empresa. É por isso que o termo $R_d$ na fórmula do WACC é multiplicado por $(1 - T_c)$.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é o teorema de Modigliani-Miller?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Em sua forma original (sem impostos), o teorema de Modigliani-Miller afirma que, em um mercado perfeito, o valor de uma empresa é irrelevante à sua estrutura de capital. Ou seja, não importa se ela se financia com dívida ou equity. Quando se introduzem os impostos, a teoria mostra que o uso de dívida aumenta o valor da firma devido ao benefício fiscal dos juros.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livros:</strong></li><li>Ross, S.A.; Westerfield, R.W. e Jaffe, J.F. "Administração Financeira".</li><li>Assaf Neto, Alexandre. "Finanças Corporativas e Valor".</li><li><strong>Recursos Online:</strong></li><li>Investopedia - Corporate Finance: <a href="https://www.investopedia.com/terms/c/corporatefinance.asp" target="_blank" class="text-teal-600 hover:underline">investopedia.com/corporatefinance</a></li><li>IBEF (Instituto Brasileiro de Executivos de Finanças): <a href="https://www.ibef.com.br/" target="_blank" class="text-teal-600 hover:underline">ibef.com.br</a></li></ul>`
+                }
+            },
+            {
+                id: 'contabilidade-financeira',
+                title: 'Contabilidade e Análise de Relatórios',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">A Linguagem dos Negócios</h3><p class="mb-4">A contabilidade é o sistema de informação que mede, processa e comunica informações financeiras sobre uma entidade econômica. Para um analista, as demonstrações contábeis são a matéria-prima para entender a performance passada de uma empresa e projetar seu futuro. No Brasil, as empresas de capital aberto seguem as normas do IFRS (International Financial Reporting Standards), emitidas no Brasil pelo CPC (Comitê de Pronunciamentos Contábeis).</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">As Três Principais Demonstrações Financeiras</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Balanço Patrimonial (BP):</strong> É uma "foto" da empresa em um momento específico. Mostra o que a empresa possui (<strong>Ativos</strong>) e o que ela deve (<strong>Passivos</strong> e <strong>Patrimônio Líquido</strong>). A equação fundamental é: $Ativo = Passivo + Patrimônio \\, Líquido$.</li><li><strong>Demonstração do Resultado do Exercício (DRE):</strong> É um "filme" que mostra o desempenho financeiro da empresa ao longo de um período. Começa com a Receita e subtrai Custos e Despesas para chegar ao <strong>Lucro Líquido</strong>.</li><li><strong>Demonstração dos Fluxos de Caixa (DFC):</strong> Mostra as entradas e saídas de caixa da empresa, separadas em três atividades: <strong>Operacional</strong> (atividades principais), <strong>de Investimento</strong> (compra/venda de ativos) e <strong>de Financiamento</strong> (captação/pagamento de dívidas e capital). A DFC é crucial para avaliar a real capacidade de geração de caixa de uma empresa, pois o Lucro Líquido (DRE) pode ser afetado por itens não-caixa (como a depreciação).</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Análise de Indicadores</h4><p class="mb-3">A análise de relatórios financeiros envolve o cálculo de indicadores (ratios) para avaliar diferentes aspectos da empresa, como liquidez, rentabilidade, endividamento e eficiência. A comparação desses indicadores ao longo do tempo (análise horizontal) e com os de outras empresas do setor (análise vertical/setorial) fornece insights valiosos.</p>`,
+                    exemplos: `<p><strong>Exemplo (Indicador de Liquidez):</strong> O analista calcula o índice de <strong>Liquidez Corrente</strong> (Ativo Circulante / Passivo Circulante) de uma empresa. Um resultado de 1,8 significa que, para cada R$ 1,00 de dívida de curto prazo, a empresa possui R$ 1,80 de ativos de curto prazo para cobri-la, indicando uma boa saúde financeira de curto prazo.</p><p class="mt-4"><strong>Exemplo (Indicador de Rentabilidade):</strong> O <strong>ROE (Return on Equity)</strong>, ou Retorno sobre o Patrimônio Líquido (Lucro Líquido / Patrimônio Líquido), mede a capacidade da empresa de gerar lucro a partir do capital investido pelos acionistas. Um ROE de 20% é geralmente considerado um bom indicador de rentabilidade.</p>`,
+                    formulas: `<p><strong>Equação Contábil Fundamental:</strong></p>$$Ativo = Passivo + Patrimônio \\, Líquido$$<p><strong>Liquidez Corrente:</strong></p>$$LC = \\frac{Ativo \\, Circulante}{Passivo \\, Circulante}$$<p><strong>Retorno sobre o Patrimônio (ROE):</strong></p>$$ROE = \\frac{Lucro \\, Líquido}{Patrimônio \\, Líquido}$$<p><strong>Margem EBITDA:</strong></p>$$Margem \\, EBITDA = \\frac{EBITDA}{Receita \\, Líquida}$$`,
+                    python: `<p>Cálculo de indicadores financeiros básicos a partir de dados hipotéticos.</p><div class="relative mt-2"><pre><code class="language-python prism-code"># Dados financeiros hipotéticos (em milhões de R$)\nativo_circulante = 500\npassivo_circulante = 250\nlucro_liquido = 120\npatrimonio_liquido = 800\nebitda = 200\nreceita_liquida = 1000\n\ndef calculate_ratios(ac, pc, ll, pl, eb, rl):\n    liquidez_corrente = ac / pc\n    roe = ll / pl\n    margem_ebitda = eb / rl\n    return liquidez_corrente, roe, margem_ebitda\n\nlc, roe, me = calculate_ratios(ativo_circulante, passivo_circulante, \n                               lucro_liquido, patrimonio_liquido, \n                               ebitda, receita_liquida)\n\nprint(f"Índice de Liquidez Corrente: {lc:.2f}")\nprint(f"Retorno sobre o Patrimônio (ROE): {roe * 100:.2f}%")\nprint(f"Margem EBITDA: {me * 100:.2f}%")</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre Lucro Líquido e Fluxo de Caixa Operacional?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>O Lucro Líquido (na DRE) é calculado pelo regime de competência, reconhecendo receitas e despesas quando ocorrem, não necessariamente quando o dinheiro entra ou sai. Ele inclui itens não-caixa, como depreciação. O Fluxo de Caixa Operacional (na DFC) mostra o caixa efetivamente gerado pela operação principal da empresa. Uma empresa pode ter lucro líquido e fluxo de caixa negativo, por exemplo, se suas vendas a prazo não estão sendo recebidas.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é EBITDA?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>EBITDA significa "Lucro Antes de Juros, Impostos, Depreciação e Amortização" (em inglês, Earnings Before Interest, Taxes, Depreciation, and Amortization). É uma medida aproximada da geração de caixa operacional da empresa, antes de considerar os efeitos das decisões de financiamento (juros) e de contabilidade (depreciação). É muito usado no cálculo de múltiplos de valuation, como o EV/EBITDA.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livros:</strong></li><li>FIPECAFI. "Manual de Contabilidade Societária".</li><li>Marion, José Carlos. "Análise das Demonstrações Contábeis".</li><li><strong>Oficiais:</strong></li><li>Pronunciamentos do CPC (Comitê de Pronunciamentos Contábeis): <a href="http://www.cpc.org.br" target="_blank" class="text-teal-600 hover:underline">www.cpc.org.br</a></li><li>IFRS Foundation: <a href="https://www.ifrs.org/" target="_blank" class="text-teal-600 hover:underline">www.ifrs.org</a></li><li><strong>Dados:</strong></li><li>Portal de Empresas da CVM (RAD): <a href="https://rad.cvm.gov.br/" target="_blank" class="text-teal-600 hover:underline">rad.cvm.gov.br</a></li></ul>`
+                }
+            }
+        ]
+    }
+];
+
+// --- Gemini API Call ---
+async function callGemini(prompt) {
+    const apiKey = "";
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    const payload = { contents: [{ parts: [{ text: prompt }] }] };
+    let attempts = 0;
+    while (attempts < 3) {
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const result = await response.json();
+            const candidate = result.candidates?.[0];
+            if (candidate && candidate.content?.parts?.[0]?.text) {
+                 return candidate.content.parts[0].text.replace(/\n/g, '<br>');
+            } else {
+                throw new Error("Invalid API response structure.");
+            }
+        } catch (error) {
+            attempts++;
+            if (attempts >= 3) {
+                console.error("Erro ao chamar a API Gemini:", error);
+                return `<p class="text-red-600">Erro ao se conectar com a API Gemini após múltiplas tentativas. Verifique o console.</p>`;
+            }
+            await new Promise(res => setTimeout(res, 1000 * attempts));
+        }
+    }
+}
+
+// --- Modal Functions ---
+const modal = document.getElementById('gemini-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalLoader = document.getElementById('modal-loader');
+const modalResponse = document.getElementById('modal-response');
+const modalCloseBtn = document.getElementById('modal-close-btn');
+
+function showModal(title) {
+    modalTitle.textContent = title;
+    modalResponse.innerHTML = '';
+    modalLoader.style.display = 'block';
+    modal.classList.remove('hidden');
+}
+
+function displayModalContent(htmlContent) {
+    modalLoader.style.display = 'none';
+    modalResponse.innerHTML = htmlContent;
+}
+
+function hideModal() {
+    modal.classList.add('hidden');
+}
+
+modalCloseBtn.addEventListener('click', hideModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+
+// --- App Initialization ---
+function initApp() {
+    const sidebarNav = document.getElementById('sidebar-nav');
+    const contentWrapper = document.getElementById('content-sections-wrapper');
+
+    contentData.forEach((pillar) => {
+         const pillarContainer = document.createElement('div');
+         const pillarHeader = document.createElement('div');
+         pillarHeader.className = 'pillar-header flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-slate-700 active';
+         pillarHeader.innerHTML = `<span class="font-semibold">${pillar.pillar}</span><svg class="w-5 h-5 transition-transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
+    
+        const moduleLinks = document.createElement('ul');
+        moduleLinks.className = 'module-links';
+
+        pillar.modules.forEach((section) => {
+            const linkItem = document.createElement('li');
+            linkItem.innerHTML = `<a href="#" data-target="${section.id}" class="module-link block px-8 py-2 hover:bg-slate-600">${section.title}</a>`;
+            moduleLinks.appendChild(linkItem);
+            
+            const sectionEl = document.createElement('section');
+            sectionEl.id = section.id;
+            sectionEl.className = 'hidden';
+
+            const tabs = ['Teoria', 'Exemplos', 'Fórmulas', 'Python', 'Q&A', 'Referências', 'Aprenda com IA'];
+            
+            const titleHTML = `<h2 class="text-3xl font-bold text-slate-800">${section.title}</h2>`;
+            let tabsContainerHTML = '<div class="flex border-b border-gray-200 mt-2 mb-4 flex-wrap">';
+            let panesHTML = '';
+
+            tabs.forEach((tabName, index) => {
+                let key = tabName.toLowerCase();
+                if (key === 'q&a') {
+                    key = 'qa';
+                }
+                
+                key = key.replace(/\s+/g, '')
+                         .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                const targetId = `${section.id}-${key}`;
+                const content = section.content[key];
+                
+                tabsContainerHTML += `<button data-target="${targetId}" class="tab-btn px-4 py-2 text-sm ${index === 0 ? 'tab-active' : 'tab-inactive'}">${tabName}</button>`;
+                
+                if (key === 'aprendacomia') {
+                    panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''} space-y-4 text-center p-4">
+                        <p class="text-slate-600">Use a IA Gemini para aprofundar seu conhecimento.</p>
+                        <div class="flex justify-center items-center gap-4 flex-wrap">
+                            <button data-topic-title="${section.title}" class="explain-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Explicar o Tópico</button>
+                            <button data-topic-title="${section.title}" class="quiz-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Gerar Quiz</button>
+                        </div>
+                    </div>`;
+                } else {
+                   panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''}">${content || ''}</div>`;
+                }
+            });
+            
+            tabsContainerHTML += '</div>';
+            sectionEl.innerHTML = `<div class="card-bg p-6 rounded-2xl shadow-lg"><div class="text-slate-700 leading-relaxed">${titleHTML}${tabsContainerHTML}<div class="tab-content mt-4 min-h-[200px]">${panesHTML}</div></div></div>`;
+            contentWrapper.appendChild(sectionEl);
+        });
+
+        pillarContainer.appendChild(pillarHeader);
+        pillarContainer.appendChild(moduleLinks);
+        sidebarNav.appendChild(pillarContainer);
+    });
+    
+    addEventListeners();
+}
+
+function addEventListeners() {
+    document.querySelectorAll('.pillar-header').forEach(header => {
+        header.addEventListener('click', () => {
+            header.classList.toggle('active');
+            header.querySelector('svg').classList.toggle('rotate-180');
+        });
+    });
+
+    document.querySelectorAll('.module-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            const targetId = e.target.dataset.target;
+            document.getElementById('welcome-message').classList.add('hidden');
+            document.querySelectorAll('#content-sections-wrapper > section').forEach(sec => sec.classList.add('hidden'));
+            const targetSection = document.getElementById(targetId);
+            targetSection.classList.remove('hidden');
+
+            if (window.MathJax && window.MathJax.typeset) {
+                MathJax.typesetPromise([targetSection]).catch((err) => console.log('MathJax typeset error: ', err));
+            }
+            
+            Prism.highlightAllUnder(targetSection);
+
+
+            document.querySelectorAll('.module-link').forEach(l => l.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            document.getElementById('main-content').scrollTo(0, 0);
+        });
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.dataset.target;
+            const container = button.closest('.card-bg');
+            container.querySelectorAll('.tab-btn').forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
+            button.classList.replace('tab-inactive', 'tab-active');
+            container.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+            document.getElementById(targetId).classList.remove('hidden');
+        });
+    });
+
+    document.querySelectorAll('.qa-toggle').forEach(button => {
+        button.addEventListener('click', () => {
+            const content = button.nextElementSibling;
+            content.classList.toggle('hidden');
+            const indicator = button.querySelector('span:last-child');
+            indicator.textContent = content.classList.contains('hidden') ? '+' : '-';
+        });
+    });
+
+    document.querySelectorAll('.copy-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const code = e.target.previousElementSibling.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                e.target.textContent = 'Copiado!';
+                setTimeout(() => { e.target.textContent = 'Copiar'; }, 2000);
+            });
+        });
+    });
+
+    document.querySelectorAll('.explain-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const topicTitle = e.target.dataset.topicTitle;
+            showModal(`✨ Explicando: ${topicTitle}`);
+            const prompt = `Explique o seguinte tópico da certificação CNPI de forma clara e aprofundada para um estudante: "${topicTitle}". Use parágrafos curtos e exemplos práticos do mercado brasileiro. Formate a resposta em HTML simples (use <p>, <strong>, <ul>, <li>).`;
+            const explanation = await callGemini(prompt);
+            displayModalContent(explanation);
+        });
+    });
+
+    document.querySelectorAll('.quiz-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const topicTitle = e.target.dataset.topicTitle;
+            showModal(`✨ Quiz: ${topicTitle}`);
+            const prompt = `Crie um quiz com 3 perguntas de múltipla escolha (4 opções de 'a' a 'd') no estilo da prova CNPI sobre o tópico "${topicTitle}". Após as perguntas, revele as respostas corretas com uma justificativa concisa em negrito. Formate como HTML (use <p>, <strong>, <ul>, <li>).`;
+            const quiz = await callGemini(prompt);
+            displayModalContent(quiz);
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
+

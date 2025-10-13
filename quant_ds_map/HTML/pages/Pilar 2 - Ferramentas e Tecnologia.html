@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Estudos Quantitativos - Ferramentas e Tecnologia</title>
+    <!-- Chosen Palette: Dark Slate Sidebar with Warm Neutral Content and Teal Accents -->
+    <!-- Application Structure Plan: A two-column layout with a dark, accordion-style sidebar. The main content area dynamically displays only the selected sub-topic for a focused experience. The layout within each content card is updated to place the main title on its own line, above the tab navigation, improving visual hierarchy. This structure is replicated from the 'Pilar 1' example provided. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Mathematical formulas. Goal: Display notation clearly. Viz/Presentation: Rendered LaTeX. Library/Method: MathJax.
+        2. Report Info: Code examples. Goal: Demonstrate implementation. Viz/Presentation: Code blocks with copy button. Library/Method: Prism.js and custom JS.
+        3. Report Info: Focused topic study. Goal: Enhance understanding. Viz/Presentation: Dynamically shown/hidden content cards. Interaction: Clicking a sidebar link displays one card and hides others.
+        4. Report Info: Complex topics. Goal: On-demand clarification. Viz/Presentation: AI-generated content in a modal. Interaction: Buttons trigger Gemini API calls.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #4a4a4a; }
+        
+        .sidebar-bg { background-color: #1f2937; color: #e5e7eb; }
+        .content-bg { background-color: #f8f7f4; }
+        .card-bg { background-color: #ffffff; }
+        
+        #sidebar .pillar-header.active { background-color: #4a5568; }
+        #sidebar .module-links { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: #111827;}
+        #sidebar .pillar-header.active + .module-links { max-height: 500px; }
+        #sidebar .module-link.active { background-color: #0d9488; color: white; font-weight: 600; }
+        #sidebar::-webkit-scrollbar { width: 8px; }
+        #sidebar::-webkit-scrollbar-track { background: #1f2937; }
+        #sidebar::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 10px; }
+
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s ease-in-out; }
+        .tab-active { color: #0d9488; font-weight: 600; border-bottom-color: #0d9488; }
+        .tab-inactive { color: #6b7280; }
+
+        #gemini-modal { transition: opacity 0.3s ease; }
+        .gemini-btn {
+            background-color: #f0fdfa;
+            color: #0f766e;
+            border: 1px solid #ccfbf1;
+            transition: background-color 0.2s;
+        }
+        .gemini-btn:hover { background-color: #ccfbf1; }
+
+        .prism-code { border-radius: 0.5rem; font-size: 0.875rem; }
+        .copy-button { position: absolute; top: 0.5rem; right: 0.5rem; background-color: rgba(255, 255, 255, 0.1); color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; cursor: pointer; transition: background-color 0.2s; }
+        .copy-button:hover { background-color: rgba(255, 255, 255, 0.2); }
+        .accent-border { border-color: #0d9488; }
+        mjx-container[jax="SVG"][display="true"] { display: block; margin: 1em 0; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-80 sidebar-bg flex-shrink-0 overflow-y-auto hidden lg:block shadow-lg">
+            <div class="p-6 sticky top-0 bg-slate-800 z-10">
+                <h1 class="text-2xl font-semibold text-center text-teal-400">Guia de Estudos</h1>
+                <p class="text-sm text-slate-400 mt-1 text-center">Pilar 2: Ferramentas e Tecnologia</p>
+            </div>
+            <nav id="sidebar-nav" class="text-slate-300 p-2"></nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="main-content" class="flex-1 p-4 sm:p-6 md:p-8 content-bg overflow-y-auto">
+            <div id="welcome-message" class="text-center h-full flex flex-col justify-center items-center">
+                <h1 class="text-4xl font-bold text-slate-700">Ferramentas e Tecnologia</h1>
+                <p class="mt-4 text-xl text-slate-500">Selecione um tópico no menu à esquerda para começar.</p>
+                <svg class="w-24 h-24 mt-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+            <div id="content-sections-wrapper" class="max-w-7xl mx-auto">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Gemini Modal -->
+    <div id="gemini-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b bg-slate-50 rounded-t-lg">
+                <h3 id="modal-title" class="text-xl font-semibold text-slate-800"></h3>
+                <button id="modal-close-btn" class="text-2xl font-bold text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="modal-loader" class="text-center hidden">
+                    <svg class="animate-spin h-8 w-8 text-teal-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="mt-2 text-slate-600">Gerando conteúdo com a IA Gemini...</p>
+                </div>
+                <div id="modal-response" class="prose max-w-none text-slate-700"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const contentData = [
+            {
+                id: 'linguagens',
+                title: 'Linguagens de Programação',
+                subsections: [
+                    {
+                        id: 'python-financas',
+                        title: 'Python para Finanças',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3><p>A hegemonia do Python em finanças quantitativas não é acidental. Ela resulta da confluência de três fatores: <strong>produtividade do desenvolvedor</strong>, um <strong>ecossistema científico maduro</strong> e <strong>capacidades de integração</strong>. A sintaxe de alto nível do Python permite que quants, que são especialistas em domínio (mercado financeiro) e não necessariamente engenheiros de software, traduzam ideias e modelos matemáticos em código funcional de forma muito mais rápida do que em linguagens de baixo nível como C++.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">A Arquitetura da Pilha Científica</h4><p>O verdadeiro poder do Python está em suas bibliotecas, que formam uma pilha de computação de alta performance:</p><ul class="list-disc pl-6 space-y-3"><li><strong>NumPy:</strong> A fundação de tudo. Ele fornece o objeto <code>ndarray</code>, que é um bloco de memória contíguo interpretado como um array multidimensional. Operações matemáticas (funções universais ou "ufuncs") são aplicadas a todo o array em loops C ou Fortran compilados, contornando a lentidão do interpretador Python. Conceitos como <strong>broadcasting</strong> (a capacidade de realizar operações em arrays de diferentes formas) permitem uma escrita de código expressiva e eficiente, crucial para cálculos com vetores de retornos e matrizes de fatores.</li><li><strong>Pandas:</strong> Abstrai a complexidade do NumPy para a análise de dados tabulares. O <code>DataFrame</code> é mais do que uma matriz; é uma estrutura de dados com eixos rotulados (o <code>Index</code>), o que é fundamental para o alinhamento de dados em séries temporais. Sua capacidade de lidar com <strong>dados ausentes</strong> (<code>NaN</code>), realizar operações de <strong>agregação e agrupamento</strong> (<code>.groupby()</code>) e manipular séries temporais com funcionalidades específicas de data e hora (<code>resampling</code>, <code>shifting</code>) o tornam a ferramenta central para a preparação de dados (data munging).</li><li><strong>SciPy:</strong> Enquanto o NumPy fornece as estruturas de dados e operações básicas, o SciPy oferece um conjunto de algoritmos numéricos de nível superior. Para finanças, os módulos <code>scipy.optimize</code> (para encontrar os pesos de um portfólio de variância mínima sob restrições), <code>scipy.stats</code> (para ajustar distribuições de probabilidade aos retornos) e <code>scipy.integrate</code> (para precificar derivativos através de integração numérica) são indispensáveis.</li><li><strong>Matplotlib & Seaborn:</strong> Matplotlib fornece controle total sobre a criação de gráficos, através de sua API orientada a objetos (<code>Figure</code>, <code>Axes</code>). O Seaborn é construído sobre o Matplotlib e fornece uma interface de mais alto nível para criar gráficos estatísticos visualmente atraentes, como mapas de calor para matrizes de correlação e distribuições de retornos.</li></ul>`,
+                            exemplos: `<p><strong>Cenário:</strong> Um analista quer avaliar a relação risco-retorno de dois ativos (ex: PETR4 e VALE3) e visualizar como um portfólio igualmente ponderado se comportaria.</p><p class="mt-2"><strong>Fluxo de Trabalho:</strong></p><ol class="list-decimal pl-5 mt-2"><li>Usar a biblioteca <code>yfinance</code> para baixar os dados de preços.</li><li>Usar <strong>Pandas</strong> para organizar os dados em um DataFrame e calcular os retornos diários com <code>.pct_change()</code>.</li><li>Usar <strong>NumPy</strong> para calcular a média e o desvio padrão (volatilidade) dos retornos.</li><li>Usar <strong>Matplotlib</strong> para plotar os retornos acumulados e visualizar o desempenho histórico.</li></ol>`,
+                            formulas: `<p><strong>Retorno Logarítmico:</strong></p>$$r_t = \\ln\\left(\\frac{P_t}{P_{t-1}}\\right)$$<p class="mt-2">Preferido em modelagem financeira por ser aditivo no tempo.</p><p class="mt-4"><strong>Volatilidade Anualizada:</strong></p>$$\\sigma_{anual} = \\sigma_{diaria} \\times \\sqrt{252}$$<p class="mt-2">Onde 252 é o número aproximado de dias de negociação em um ano.</p>`,
+                            python: `<p>Análise de um portfólio simples com 2 ativos.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\nimport pandas as pd\nimport yfinance as yf\n# import matplotlib.pyplot as plt # Descomente para rodar localmente\n\n# 1. Obter dados\ntickers = ['PETR4.SA', 'VALE3.SA']\ndata = yf.download(tickers, start='2022-01-01', end='2023-12-31')['Adj Close']\n\n# 2. Calcular retornos logarítmicos\nlog_returns = np.log(data / data.shift(1)).dropna()\n\n# 3. Criar portfólio 50/50\nweights = np.array([0.5, 0.5])\nportfolio_returns = log_returns.dot(weights)\n\n# 4. Calcular métricas\nvolatility = portfolio_returns.std() * np.sqrt(252)\nsharpe_ratio = (portfolio_returns.mean() * 252) / volatility\n\nprint(f"Volatilidade Anualizada do Portfólio: {volatility*100:.2f}%")\nprint(f"Índice de Sharpe: {sharpe_ratio:.2f}")\n\n# Plotagem (opcional)\n# cumulative_returns = np.exp(portfolio_returns.cumsum()) - 1\n# cumulative_returns.plot(figsize=(10,6), title='Retorno Acumulado do Portfólio 50/50')\n# plt.show()</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre <code>.iloc</code> e <code>.loc</code> no Pandas?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p><code>.iloc</code> seleciona dados com base na sua posição inteira (índice numérico, de 0 ao final), como em uma lista Python. <code>.loc</code> seleciona dados com base em seus rótulos (labels). Para séries temporais, <code>.loc</code> é muito poderoso, permitindo selecionar fatias de datas, como <code>df.loc['2023-01-01':'2023-01-31']</code>.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Por que a vetorização com NumPy é tão importante?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>A vetorização permite que operações matemáticas complexas em grandes conjuntos de dados sejam executadas de uma só vez, em um nível de código C otimizado, em vez de iterar sobre cada elemento individualmente com um loop Python, que é muito mais lento. Em finanças, onde os datasets são massivos, a diferença de performance é crucial.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><a href="https://pandas.pydata.org/docs/" target="_blank" class="text-teal-600 hover:underline">Documentação Oficial do Pandas</a></li><li><a href="https://numpy.org/doc/" target="_blank" class="text-teal-600 hover:underline">Documentação Oficial do NumPy</a></li><li><strong>Livro:</strong> "Python for Data Analysis" por Wes McKinney (criador do Pandas).</li></ul>`
+                        }
+                    },
+                    {
+                        id: 'sql-analise',
+                        title: 'SQL para Análise de Dados',
+                        content: {
+                           teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3><p>O SQL é a linguagem do dado. Em um ambiente quantitativo, onde as decisões são orientadas por dados, a habilidade de acessar, transformar e agregar eficientemente vastos datasets armazenados em bancos de dados relacionais é uma competência não-negociável. A vantagem do SQL é que ele permite que o processamento pesado seja feito diretamente no servidor do banco de dados, que é otimizado para essa tarefa, em vez de transferir gigabytes de dados brutos pela rede para serem processados na memória local com Python.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Dominando a Lógica Relacional</h4><ul class="list-disc pl-6 space-y-3"><li><strong>JOINs e o Modelo Relacional:</strong> A arte de usar <code>JOIN</code>s reside na compreensão da estrutura relacional dos dados. Por exemplo, em uma base de dados de mercado, você pode ter uma tabela de <code>trades</code>, uma de <code>ativos_info</code> (com setor, nome da empresa) e uma de <code>dados_fundamentalistas</code> (com lucro, receita). Uma query pode unir essas três tabelas para analisar o volume de negociação por setor ou para calcular o P/L de cada ativo em um determinado dia.</li><li><strong>Agregações e Granularidade:</strong> O comando <code>GROUP BY</code> é o motor da sumarização. Compreender como mudar a granularidade dos dados é essencial. Você pode agregar dados de tick para formar barras de 1 minuto, depois agregar essas barras para formar barras diárias, e então calcular o volume médio mensal, tudo dentro do banco de dados.</li><li><strong>Window Functions: A Revolução da Análise de Séries Temporais em SQL:</strong> Antes das funções de janela, calcular uma média móvel ou um retorno diário em SQL era um exercício complexo envolvendo self-joins, que são lentos e pouco intuitivos. As funções de janela realizam um cálculo sobre um conjunto de linhas (a "janela", definida por <code>PARTITION BY</code> e <code>ORDER BY</code>) mas, crucialmente, não colapsam o resultado, retornando um valor para cada linha original. Isso permite a criação de features complexas (como rankings, retornos passados, volatilidade móvel) de forma declarativa e performática.</li></ul>`,
+                           exemplos: `<p><strong>Cenário:</strong> Um analista precisa calcular o retorno diário de todos os ativos em uma tabela de preços e identificar os 5 dias de maior queda para cada ativo.</p><p class="mt-2"><strong>Fluxo de Trabalho:</strong></p><ol class="list-decimal pl-5 mt-2"><li>Usar a função de janela <code>LAG()</code> para buscar o preço do dia anterior na mesma consulta.</li><li>Calcular o retorno diário usando o preço atual e o preço anterior.</li><li>Usar outra função de janela, <code>ROW_NUMBER()</code>, para classificar os retornos diários de cada ativo do menor para o maior.</li><li>Filtrar os resultados para manter apenas as linhas onde o ranking é menor ou igual a 5.</li></ol>`,
+                           formulas: `<p>A sintaxe do SQL é a sua própria "fórmula".</p><p class="mt-4"><strong>Sintaxe da Window Function:</strong></p><pre class="bg-slate-100 p-2 rounded-md"><code>FUNÇÃO() OVER (PARTITION BY ... ORDER BY ...)</code></pre><p class="mt-2">Onde <code>PARTITION BY</code> divide os dados em janelas (ex: por ticker) e <code>ORDER BY</code> define a ordem dentro de cada janela (ex: por data).</p>`,
+                           python: `<p>Embora seja SQL, podemos usar Python com bibliotecas como <code>pandas</code> e <code>sqlalchemy</code> para executar a query e carregar os resultados em um DataFrame.</p><div class="relative mt-2"><pre><code class="language-sql prism-code">WITH DailyReturns AS (\n    SELECT\n        ticker,\n        trade_date,\n        close_price,\n        LAG(close_price, 1) OVER (PARTITION BY ticker ORDER BY trade_date) AS prev_price\n    FROM prices\n),\nRankedReturns AS (\n    SELECT\n        ticker,\n        trade_date,\n        (close_price - prev_price) / prev_price AS daily_return,\n        ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY (close_price - prev_price) / prev_price ASC) as rn\n    FROM DailyReturns\n    WHERE prev_price IS NOT NULL\n)\nSELECT\n    ticker,\n    trade_date,\n    daily_return\nFROM RankedReturns\nWHERE rn <= 5;</code></pre><button class="copy-button">Copiar</button></div>`,
+                           qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre <code>WHERE</code> e <code>HAVING</code>?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>A cláusula <code>WHERE</code> filtra as linhas *antes* de qualquer agregação ser aplicada (antes do <code>GROUP BY</code>). A cláusula <code>HAVING</code> filtra os grupos *depois* que a agregação foi computada. Você usa <code>HAVING</code> para filtrar com base em uma função agregada, como <code>HAVING SUM(volume) > 1000000</code>.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Para que serve um CTE (Common Table Expression)?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Um CTE, definido com a sintaxe <code>WITH nome_cte AS (...)</code>, cria um resultado temporário e nomeado que você pode referenciar dentro da mesma query. Eles são usados para quebrar queries complexas em passos lógicos e mais legíveis, evitando subqueries aninhadas e permitindo referenciar o mesmo resultado temporário múltiplas vezes.</p></div></div></div>`,
+                           referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><a href="https://sqlzoo.net/" target="_blank" class="text-teal-600 hover:underline">SQLZoo (Prática)</a></li><li><a href="https://mode.com/sql-tutorial/introduction-to-sql/" target="_blank" class="text-teal-600 hover:underline">Mode SQL Tutorial</a></li><li><strong>Livro:</strong> "T-SQL Querying" por Itzik Ben-Gan (avançado).</li></ul>`
+                        }
+                    }
+                ]
+            },
+             {
+                id: 'infraestrutura',
+                title: 'Plataformas e Infraestrutura',
+                subsections: [
+                    {
+                        id: 'git',
+                        title: 'Controle de Versão com Git',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3><p>Para uma equipe quantitativa, o código de uma estratégia é um ativo tão importante quanto o capital. O Git é o sistema que gerencia e protege esse ativo. Sua natureza <strong>distribuída</strong> é uma de suas características mais poderosas: cada desenvolvedor tem uma cópia completa do histórico do repositório, permitindo trabalho offline e um sistema de backup inerentemente robusto. A reprodutibilidade da pesquisa — a capacidade de recriar exatamente os resultados de um backtest feito meses atrás — depende de um controle de versão rigoroso.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">O Modelo Mental do Git: As Três Áreas</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Diretório de Trabalho:</strong> Sua "mesa de trabalho" com todos os arquivos. É aqui que você edita o código.</li><li><strong>Área de Preparação (Staging Area):</strong> Pense nela como o rascunho do seu próximo "relatório" (commit). O comando <code>git add</code> move as alterações da sua mesa para este rascunho, permitindo que você agrupe de forma coesa apenas as alterações relacionadas (ex: a função de cálculo e seu respectivo teste), mesmo que você tenha feito outras edições não relacionadas.</li><li><strong>Repositório (.git):</strong> O "arquivo publicado e permanente". O comando <code>git commit</code> pega o rascunho da Staging Area e o salva como uma nova versão permanente no histórico do projeto.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Branching e o Fluxo de Trabalho Colaborativo</h4><p>O branching no Git é extremamente leve. Um branch é apenas um ponteiro para um commit. Isso encoraja o <strong>"Feature Branch Workflow"</strong>: cada nova ideia, bug fix ou experimento é desenvolvido em seu próprio branch. Isso isola o trabalho em andamento do código de produção estável (no branch <code>main</code>). A colaboração ocorre através de <strong>Pull Requests</strong> (ou Merge Requests) em plataformas como o GitHub, que é um mecanismo formal para propor a integração de um branch em outro, permitindo a revisão de código por pares (code review) — um processo crítico para garantir a qualidade, compartilhar conhecimento e reduzir bugs em sistemas de trading complexos.</p>`,
+                            exemplos: `<p><strong>Cenário:</strong> Dois analistas estão trabalhando na mesma estratégia de trading. O Analista A está adicionando um novo indicador, enquanto o Analista B está corrigindo um bug no cálculo de risco.</p><p class="mt-2"><strong>Fluxo de Trabalho com Git:</strong></p><ol class="list-decimal pl-5 mt-2"><li>Ambos começam a partir do branch <code>main</code>.</li><li>O Analista A cria um branch <code>feature/novo-indicador</code>. O Analista B cria um branch <code>fix/bug-risco</code>.</li><li>Cada um trabalha de forma isolada em seu branch, fazendo commits de suas alterações.</li><li>Quando terminam, eles abrem "Pull Requests" no GitHub. Outros membros da equipe revisam o código.</li><li>Após a aprovação, os branches são mesclados (merged) de volta no <code>main</code>, um de cada vez, integrando as novas funcionalidades de forma segura.</li></ol>`,
+                            formulas: `<p>Não há fórmulas matemáticas, mas sim comandos de terminal.</p><p class="mt-4"><strong>Fluxo Básico de Trabalho:</strong></p><ol class="list-decimal pl-5 mt-2 text-sm"><li><code>git pull</code>: Atualizar o seu repositório local.</li><li><code>git checkout -b nome-do-branch</code>: Criar e mudar para um novo branch.</li><li>... fazer alterações no código ...</li><li><code>git add .</code>: Adicionar as alterações à área de preparação.</li><li><code>git commit -m "Mensagem descritiva"</code>: Salvar as alterações.</li><li><code>git push origin nome-do-branch</code>: Enviar o branch para o repositório remoto.</li></ol>`,
+                            python: `<p>Comandos de terminal (Shell/Bash), não Python.</p><div class="relative mt-2"><pre><code class="language-bash prism-code"># Clona um repositório existente\ngit clone https://github.com/usuario/meu-projeto.git\n\n# Entra no diretório do projeto\ncd meu-projeto\n\n# Cria um novo branch para uma nova funcionalidade\ngit checkout -b feature/adicionar-filtro-de-data\n\n# ... modifica o script 'analise.py' ...\n\n# Visualiza o status das modificações\ngit status\n\n# Adiciona o arquivo modificado para o próximo commit\ngit add analise.py\n\n# Faz o commit das alterações\ngit commit -m "Feat: Adiciona filtro de data na análise principal"\n\n# Envia o novo branch para o GitHub\ngit push --set-upstream origin feature/adicionar-filtro-de-data</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é um "merge conflict"?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Um conflito de merge ocorre quando você tenta mesclar dois branches que têm alterações conflitantes na mesma linha do mesmo arquivo. O Git não consegue decidir qual versão manter e pausa o processo de merge, pedindo que você resolva o conflito manualmente editando o arquivo para escolher a versão correta, e então finalize o merge.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre <code>git merge</code> e <code>git rebase</code>?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Ambos integram mudanças de um branch para outro. <code>git merge</code> cria um novo "commit de merge" que une os dois históricos, preservando o histórico exato de como os branches foram desenvolvidos. <code>git rebase</code> reescreve o histórico, movendo os commits do seu branch para o topo do branch de destino, criando um histórico linear e mais limpo. Rebase é ótimo para manter o histórico do projeto limpo, mas deve ser usado com cuidado em branches compartilhados.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><a href="https://git-scm.com/book/en/v2" target="_blank" class="text-teal-600 hover:underline">Livro: Pro Git</a> (leitura essencial e gratuita)</li><li><a href="https://learngitbranching.js.org/" target="_blank" class="text-teal-600 hover:underline">Learn Git Branching</a> (tutorial interativo e visual)</li><li><a href="https://www.atlassian.com/git/tutorials" target="_blank" class="text-teal-600 hover:underline">Atlassian Git Tutorials</a></li></ul>`
+                        }
+                    },
+                     {
+                        id: 'cloud-computing',
+                        title: 'Cloud Computing (Básico)',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3><p>Para a análise quantitativa, a nuvem resolve um problema fundamental: a necessidade de <strong>computação elástica e de alto desempenho sob demanda</strong>. A pesquisa quantitativa é caracterizada por "picos" de trabalho (bursts), como a execução de backtests massivos ou o treinamento de modelos de machine learning. Manter uma infraestrutura local poderosa o suficiente para lidar com esses picos é caro e ineficiente, pois os recursos ficariam ociosos na maior parte do tempo. A nuvem transforma esse custo de capital (CAPEX) em custo operacional (OPEX).</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Serviços Fundamentais e Seus Papéis</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Armazenamento (AWS S3):</strong> O S3 é mais do que um disco rígido na nuvem; é a base para a criação de um <strong>Data Lake</strong>. Sua arquitetura de armazenamento de objetos permite armazenar virtualmente qualquer quantidade de dados não estruturados (PDFs, notícias) e estruturados (CSVs, Parquet). As diferentes <strong>classes de armazenamento</strong> (S3 Standard para acesso frequente, S3 Glacier para arquivamento de longo prazo) permitem otimizar drasticamente os custos.</li><li><strong>Computação (AWS EC2):</strong> O EC2 oferece uma vasta gama de <strong>tipos de instância</strong>, cada um otimizado para uma carga de trabalho diferente (ex: instâncias "c" para computação intensiva, "r" para memória intensiva). Uma das ferramentas mais poderosas para quants são as <strong>Spot Instances</strong>: capacidade EC2 não utilizada que a AWS leiloa com descontos de até 90%. Para cargas de trabalho tolerantes a falhas, como simulações de Monte Carlo, o uso de Spot Instances pode reduzir os custos de pesquisa em uma ordem de magnitude.</li><li><strong>Infraestrutura como Código (IaC):</strong> Ferramentas como <strong>AWS CloudFormation</strong> ou <strong>Terraform</strong> permitem definir toda a sua infraestrutura (servidores, redes, bancos de dados) em arquivos de código. Isso é crucial para a <strong>reprodutibilidade da pesquisa</strong>. Você pode versionar sua infraestrutura junto com o código da sua estratégia, garantindo que você possa recriar o ambiente exato de um backtest meses ou anos depois.</li></ul>`,
+                            exemplos: `<p><strong>Cenário:</strong> Uma equipe de pesquisa precisa testar uma estratégia de machine learning em 20 anos de dados tick-by-tick (vários terabytes).</p><p class="mt-2"><strong>Fluxo de Trabalho na Nuvem (AWS):</strong></p><ol class="list-decimal pl-5 mt-2"><li>Os dados brutos são armazenados em um bucket <strong>S3</strong>.</li><li>Para o processamento, em vez de um único servidor gigante, a equipe usa um serviço como o <strong>AWS EMR (Elastic MapReduce)</strong> para iniciar um cluster de várias instâncias <strong>EC2</strong>.</li><li>O trabalho de processamento de dados e treinamento do modelo é distribuído entre as máquinas do cluster, terminando em horas em vez de dias.</li><li>Os resultados são salvos de volta no <strong>S3</strong>, e o cluster é desligado automaticamente. O custo é apenas pelas horas em que o cluster esteve ativo.</li></ol>`,
+                            python: `<p>Uso da biblioteca <code>boto3</code> (AWS SDK para Python) para interagir com o S3.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import boto3\n\n# Configuração (requer credenciais da AWS configuradas no ambiente)\ns3_client = boto3.client('s3')\nbucket_name = 'meu-data-lake-quant'\n\n# 1. Fazer upload de um arquivo de dados\nfile_path = './dados_diarios.csv'\nobject_key = 'dados-brutos/precos/2023/dados_diarios_2023.csv'\ntry:\n    s3_client.upload_file(file_path, bucket_name, object_key)\n    print(f"Upload de {file_path} para {bucket_name}/{object_key} bem-sucedido.")\nexcept Exception as e:\n    print(f"Erro no upload: {e}")\n\n# 2. Listar objetos em um 'diretório'\nresponse = s3_client.list_objects_v2(Bucket=bucket_name, Prefix='dados-brutos/precos/2023/')\nif 'Contents' in response:\n    print("\\nArquivos em 'dados-brutos/precos/2023/':")\n    for obj in response['Contents']:\n        print(f" - {obj['Key']}")</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é "Serverless" computing?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Serverless (ou "sem servidor") é um modelo de execução na nuvem onde o provedor (ex: AWS Lambda) gerencia dinamicamente a alocação de recursos computacionais. Você escreve o código (uma "função") e a nuvem o executa em resposta a eventos, escalando automaticamente. É ideal para tarefas orientadas a eventos, como um script que é acionado para processar um novo arquivo de dados que chega a um bucket S3.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Para que serve a "Infraestrutura como Código" (IaC)?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>IaC é a prática de gerenciar e provisionar a infraestrutura de nuvem através de arquivos de definição legíveis por máquina (usando ferramentas como AWS CloudFormation ou Terraform), em vez de configuração manual. Isso permite que a infraestrutura seja versionada com Git, reutilizada e recriada de forma consistente, garantindo a reprodutibilidade de ambientes de pesquisa e produção.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><a href="https://aws.amazon.com/getting-started/" target="_blank" class="text-teal-600 hover:underline">AWS Getting Started</a></li><li><a href="https://docs.aws.amazon.com/whitepapers/latest/aws-overview/introduction.html" target="_blank" class="text-teal-600 hover:underline">Overview of Amazon Web Services Whitepaper</a></li><li><a href="https://boto3.amazonaws.com/v1/documentation/api/latest/index.html" target="_blank" class="text-teal-600 hover:underline">Documentação da Boto3 (AWS SDK for Python)</a></li></ul>`
+                        }
+                    },
+                    {
+                        id: 'bancos-dados',
+                        title: 'Bancos de Dados Específicos',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3><p>A escolha do banco de dados é uma decisão de arquitetura crítica que impacta a performance, a escalabilidade e a complexidade do sistema. A filosofia "one size fits all" não se aplica; diferentes tipos de dados e padrões de acesso exigem soluções otimizadas.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">NoSQL e o Trade-off da Flexibilidade (ex: MongoDB)</h4><p>Bancos de dados NoSQL, como o MongoDB, surgiram da necessidade de lidar com a escala e a variedade de dados da web. Eles relaxam as garantias de consistência forte (ACID) dos bancos relacionais em favor de maior escalabilidade e flexibilidade. O modelo de <strong>"schema-on-read"</strong> do MongoDB significa que a estrutura dos dados não é imposta na escrita, mas sim interpretada na leitura. Para finanças, isso é poderoso para <strong>dados alternativos</strong> (notícias, posts de redes sociais, imagens de satélite), onde a estrutura é heterogênea e evolui rapidamente. O desafio é que a responsabilidade pela consistência dos dados é transferida para a aplicação, exigindo uma governança de dados cuidadosa.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Time-Series e a Otimização para o Tempo (ex: InfluxDB)</h4><p>Bancos de dados de séries temporais são projetados com uma premissa fundamental: o tempo é o eixo principal. Sua arquitetura é radicalmente otimizada para cargas de trabalho de séries temporais:</p><ul class="list-disc pl-6 space-y-3"><li><strong>Modelo de Dados (Tags vs Fields):</strong> A distinção entre <strong>tags</strong> (metadados indexados, como ticker) e <strong>fields</strong> (valores, como preço) é crucial. O InfluxDB cria índices em todas as tags, tornando as consultas que filtram por elas extremamente rápidas.</li><li><strong>Ingestão de Alta Performance:</strong> São construídos para lidar com milhões de escritas por segundo, essencial para capturar dados de mercado em tempo real.</li><li><strong>Gerenciamento do Ciclo de Vida dos Dados:</strong> Funcionalidades como <strong>Retention Policies</strong> (que apagam dados automaticamente após um certo tempo) e <strong>Continuous Queries</strong> (que agregam dados de alta resolução para baixa resolução em segundo plano) são vitais para gerenciar os custos de armazenamento massivos associados a dados de alta frequência.</li></ul>`,
+                            exemplos: `<p><strong>Cenário 1 (NoSQL):</strong> Uma firma de trading quer analisar o sentimento do mercado em relação à Apple. Eles coletam milhares de tweets e notícias sobre a AAPL por dia. Cada tweet ou notícia tem uma estrutura diferente. Armazenar esses dados como documentos JSON em um <strong>MongoDB</strong> é ideal, pois o esquema é flexível.</p><p class="mt-4"><strong>Cenário 2 (Time-Series):</strong> Uma estratégia de HFT (High-Frequency Trading) precisa calcular o preço médio ponderado por volume (VWAP) no último segundo para o mini-índice. A estratégia recebe milhões de ticks por minuto. Armazenar esses dados em um <strong>InfluxDB</strong> permite que a consulta do VWAP do último segundo seja executada em milissegundos.</p>`,
+                            python: `<p>Exemplo de escrita de um ponto de dado no InfluxDB usando a biblioteca <code>influxdb-client-python</code>.</p><div class="relative mt-2"><pre><code class="language-python prism-code">from influxdb_client import InfluxDBClient, Point\nfrom influxdb_client.client.write_api import SYNCHRONOUS\n\n# Configuração do Cliente\nurl = "http://localhost:8086"\ntoken = "SEU_TOKEN"\norg = "sua_org"\nbucket = "dados_mercado"\n\nclient = InfluxDBClient(url=url, token=token, org=org)\nwrite_api = client.write_api(write_options=SYNCHRONOUS)\n\n# Cria um Ponto de Dado\n# Measurement: 'trades', Tags: ticker='PETR4', exchange='B3', Fields: price=38.50, volume=100\npoint = Point("trades") \\\n    .tag("ticker", "PETR4") \\\n    .tag("exchange", "B3") \\\n    .field("price", 38.50) \\\n    .field("volume", 100)\n\n# Escreve o ponto no banco de dados\ntry:\n    write_api.write(bucket=bucket, record=point)\n    print("Ponto de dado escrito com sucesso no InfluxDB.")\nexcept Exception as e:\n    print(f"Erro ao escrever no InfluxDB: {e}")\n\nclient.close()</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Quando eu deveria escolher um banco de dados NoSQL em vez de SQL?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Escolha NoSQL quando: 1) Seus dados não têm um esquema fixo ou mudam com frequência. 2) A escalabilidade horizontal (adicionar mais máquinas) é mais importante que a consistência forte (garantias ACID dos bancos SQL). 3) Seu modelo de dados se encaixa melhor em um formato de documento, chave-valor ou grafo do que em tabelas relacionais.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Posso usar um banco de dados relacional para séries temporais?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Sim, e é comum para dados de baixa frequência (diários, por exemplo). No entanto, para grandes volumes de dados de alta frequência, bancos de dados relacionais tradicionais começam a sofrer em performance de ingestão e de consulta. Extensões como o TimescaleDB para PostgreSQL tentam unir o melhor dos dois mundos, adicionando funcionalidades de série temporal sobre um banco de dados SQL.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><a href="https://www.influxdata.com/get-influxdb/" target="_blank" class="text-teal-600 hover:underline">InfluxDB University</a></li><li><a href="https://www.mongodb.com/try/download/community" target="_blank" class="text-teal-600 hover:underline">MongoDB Community Edition</a></li><li><a href="https://docs.timescale.com/" target="_blank" class="text-teal-600 hover:underline">Documentação do TimescaleDB</a></li></ul>`
+                        }
+                    }
+                ]
+            }
+        ];
+
+        // --- Gemini API Call ---
+        async function callGemini(prompt) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                     return candidate.content.parts[0].text;
+                } else {
+                    return `<p class="text-red-600">Não foi possível gerar conteúdo. A resposta da API estava vazia ou malformada.</p>`;
+                }
+            } catch (error) {
+                console.error("Erro ao chamar a API Gemini:", error);
+                return `<p class="text-red-600">Erro ao se conectar com a API Gemini. Verifique o console.</p>`;
+            }
+        }
+
+        // --- Modal Functions ---
+        const modal = document.getElementById('gemini-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalLoader = document.getElementById('modal-loader');
+        const modalResponse = document.getElementById('modal-response');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function showModal(title) {
+            modalTitle.textContent = title;
+            modalResponse.innerHTML = '';
+            modalLoader.style.display = 'block';
+            modal.classList.remove('hidden');
+        }
+
+        function displayModalContent(htmlContent) {
+            modalLoader.style.display = 'none';
+            modalResponse.innerHTML = htmlContent;
+        }
+
+        function hideModal() {
+            modal.classList.add('hidden');
+        }
+
+        modalCloseBtn.addEventListener('click', hideModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+
+        // --- App Initialization ---
+        function initApp() {
+            const sidebarNav = document.getElementById('sidebar-nav');
+            const contentWrapper = document.getElementById('content-sections-wrapper');
+
+            contentData.forEach((pillar) => {
+                 const pillarContainer = document.createElement('div');
+                 const pillarHeader = document.createElement('div');
+                 pillarHeader.className = 'pillar-header flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-slate-700 active';
+                 pillarHeader.innerHTML = `<span class="font-semibold">${pillar.title}</span><svg class="w-5 h-5 transition-transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7 7"></path></svg>`;
+            
+                const moduleLinks = document.createElement('ul');
+                moduleLinks.className = 'module-links';
+
+                pillar.subsections.forEach((section) => {
+                    const linkItem = document.createElement('li');
+                    linkItem.innerHTML = `<a href="#${section.id}" data-target="${section.id}" class="module-link block px-8 py-2 hover:bg-slate-600">${section.title}</a>`;
+                    moduleLinks.appendChild(linkItem);
+                    
+                    const sectionEl = document.createElement('section');
+                    sectionEl.id = section.id;
+                    sectionEl.className = 'hidden mb-8';
+
+                    const tabKeys = {
+                        'Teoria': 'teoria',
+                        'Exemplos': 'exemplos',
+                        'Formulas': 'formulas',
+                        'Python': 'python',
+                        'QA': 'qa',
+                        'Referencias': 'referencias',
+                        'Aprenda com IA': 'aprendacomia'
+                    };
+                    
+                    if (section.id === 'sql-analise') {
+                        tabKeys['Código SQL'] = 'python';
+                        delete tabKeys['Python'];
+                    }
+                    if (section.id === 'git') {
+                        tabKeys['Comandos'] = 'python';
+                        delete tabKeys['Formulas'];
+                        delete tabKeys['Python'];
+                    }
+                     if (section.id === 'cloud-computing' || section.id === 'bancos-dados') {
+                        delete tabKeys['Formulas'];
+                    }
+
+
+                    const titleHTML = `<h2 class="text-3xl font-bold text-slate-800">${section.title}</h2>`;
+                    let tabsContainerHTML = '<div class="flex border-b border-gray-200 mt-2 mb-4 flex-wrap">';
+                    let panesHTML = '';
+
+                    Object.entries(tabKeys).forEach(([tabName, key], index) => {
+                        const targetId = `${section.id}-${key.replace(/\s+/g, '')}`;
+                        const content = section.content[key];
+                        
+                        if(content){
+                            tabsContainerHTML += `<button data-target="${targetId}" class="tab-btn px-4 py-2 text-sm ${index === 0 ? 'tab-active' : 'tab-inactive'}">${tabName}</button>`;
+                            
+                            let paneContent = '';
+                            if (key === 'aprendacomia') {
+                                 paneContent = `<div class="space-y-4 text-center p-4">
+                                    <p class="text-slate-600">Use a IA Gemini para aprofundar seu conhecimento.</p>
+                                    <div class="flex justify-center items-center gap-4 flex-wrap">
+                                        <button data-topic-title="${section.title}" class="explain-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Explicar o Tópico</button>
+                                        <button data-topic-title="${section.title}" class="quiz-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Gerar Quiz</button>
+                                    </div>
+                                </div>`;
+                            } else {
+                                paneContent = content;
+                            }
+                            panesHTML += `<div id="${targetId}" class="tab-pane ${index === 0 ? '' : 'hidden'}">${paneContent}</div>`;
+                        }
+                    });
+                    
+                    tabsContainerHTML += '</div>';
+                    sectionEl.innerHTML = `<div class="card-bg p-6 rounded-2xl shadow-lg"><div class="text-slate-700 leading-relaxed">${titleHTML}${tabsContainerHTML}<div class="tab-content mt-4 min-h-[200px]">${panesHTML}</div></div></div>`;
+                    contentWrapper.appendChild(sectionEl);
+                });
+
+                pillarContainer.appendChild(pillarHeader);
+                pillarContainer.appendChild(moduleLinks);
+                sidebarNav.appendChild(pillarContainer);
+            });
+            
+            addEventListeners();
+        }
+
+        function addEventListeners() {
+            document.querySelectorAll('.pillar-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    header.classList.toggle('active');
+                    header.querySelector('svg').classList.toggle('rotate-180');
+                });
+            });
+
+            document.querySelectorAll('.module-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const targetId = e.target.dataset.target;
+                    document.getElementById('welcome-message').classList.add('hidden');
+                    document.querySelectorAll('#content-sections-wrapper > section').forEach(sec => sec.classList.add('hidden'));
+                    const targetSection = document.getElementById(targetId);
+                    targetSection.classList.remove('hidden');
+
+                    if (window.MathJax && window.MathJax.typeset) {
+                        MathJax.typesetPromise([targetSection]).then(() => {
+                            Prism.highlightAllUnder(targetSection);
+                        }).catch((err) => console.log('MathJax typeset error: ', err));
+                    } else {
+                         Prism.highlightAllUnder(targetSection);
+                    }
+
+                    document.querySelectorAll('.module-link').forEach(l => l.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    document.getElementById('main-content').scrollTo(0, 0);
+                });
+            });
+
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const container = button.closest('.card-bg');
+                    container.querySelectorAll('.tab-btn').forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
+                    button.classList.replace('tab-inactive', 'tab-active');
+                    container.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+                    document.getElementById(targetId).classList.remove('hidden');
+                });
+            });
+
+            document.querySelectorAll('.qa-toggle').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    content.classList.toggle('hidden');
+                    const indicator = button.querySelector('span:last-child');
+                    indicator.textContent = content.classList.contains('hidden') ? '+' : '-';
+                });
+            });
+
+            document.querySelectorAll('.copy-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const code = e.target.closest('pre').querySelector('code').innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        e.target.textContent = 'Copiado!';
+                        setTimeout(() => { e.target.textContent = 'Copiar'; }, 2000);
+                    });
+                });
+            });
+
+            document.querySelectorAll('.explain-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const topicTitle = e.target.dataset.topicTitle;
+                    showModal(`✨ Explicando: ${topicTitle}`);
+                    const prompt = `Explique o seguinte tópico de finanças quantitativas de forma clara e concisa para um estudante: "${topicTitle}". Use parágrafos curtos, analogias simples e exemplos práticos, se possível. Formate a resposta em HTML simples (use <p>, <strong>, <ul>, <li>).`;
+                    const explanation = await callGemini(prompt);
+                    displayModalContent(explanation);
+                });
+            });
+
+            document.querySelectorAll('.quiz-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const topicTitle = e.target.dataset.topicTitle;
+                    showModal(`✨ Quiz: ${topicTitle}`);
+                    const prompt = `Crie um quiz com 3 perguntas de múltipla escolha (4 opções de 'a' a 'd') sobre o tópico "${topicTitle}". Após as perguntas, revele as respostas corretas com uma justificativa concisa em negrito. Formate como HTML (use <p>, <strong>, <ul>, <li>).`;
+                    const quiz = await callGemini(prompt);
+                    displayModalContent(quiz);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
+

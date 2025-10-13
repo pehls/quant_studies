@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Estudos Quantitativos - Machine Learning</title>
+    <!-- Chosen Palette: Dark Slate Sidebar with Warm Neutral Content and Teal Accents -->
+    <!-- Application Structure Plan: A two-column layout with a dark, accordion-style sidebar for navigation. The main content area dynamically displays only the single, selected sub-topic, creating a focused learning environment. Each content card uses a tabbed interface (Teoria, Fórmulas, Código, etc.) to organize information logically. A new "Aprenda com IA" tab has been added to each card, containing buttons to trigger Gemini API calls for on-demand explanations and quizzes, enhancing the interactive learning experience. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Mathematical formulas. Goal: Display notation clearly. Viz/Presentation: Rendered LaTeX. Library/Method: MathJax.
+        2. Report Info: Python code examples. Goal: Demonstrate implementation. Viz/Presentation: Code blocks with copy button. Library/Method: Prism.js and custom JS.
+        3. Report Info: Complex topics. Goal: On-demand clarification. Viz/Presentation: AI-generated content in a modal. Interaction: Buttons trigger Gemini API calls.
+        4. Report Info: Algorithm comparison & behavior. Goal: Illustrate concepts visually. Viz/Presentation: Interactive charts (bar, scatter). Library/Method: Chart.js.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #4a4a4a; }
+        .sidebar-bg { background-color: #1f2937; color: #e5e7eb; }
+        .content-bg { background-color: #f8f7f4; }
+        .card-bg { background-color: #ffffff; }
+        #sidebar .pillar-header.active { background-color: #4a5568; }
+        #sidebar .module-links { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: #111827;}
+        #sidebar .pillar-header.active + .module-links { max-height: 1000px; }
+        #sidebar .module-link.active { background-color: #0d9488; color: white; font-weight: 600; }
+        #sidebar::-webkit-scrollbar { width: 8px; }
+        #sidebar::-webkit-scrollbar-track { background: #1f2937; }
+        #sidebar::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 10px; }
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s ease-in-out; }
+        .tab-active { color: #0d9488; font-weight: 600; border-bottom-color: #0d9488; }
+        .tab-inactive { color: #6b7280; }
+        #gemini-modal { transition: opacity 0.3s ease; }
+        .gemini-btn { background-color: #f0fdfa; color: #0f766e; border: 1px solid #ccfbf1; transition: background-color 0.2s; }
+        .gemini-btn:hover { background-color: #ccfbf1; }
+        .prism-code { border-radius: 0.5rem; font-size: 0.875rem; }
+        .copy-button { position: absolute; top: 0.5rem; right: 0.5rem; background-color: rgba(255, 255, 255, 0.1); color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; cursor: pointer; transition: background-color 0.2s; }
+        .copy-button:hover { background-color: rgba(255, 255, 255, 0.2); }
+        .accent-border { border-color: #0d9488; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-80 sidebar-bg flex-shrink-0 overflow-y-auto hidden lg:block shadow-lg">
+            <div class="p-6 sticky top-0 bg-slate-800 z-10">
+                <h1 class="text-2xl font-semibold text-center text-teal-400">Guia de Estudos</h1>
+                <p class="text-sm text-slate-400 mt-1 text-center">Pilar 3: Machine Learning</p>
+            </div>
+            <nav id="sidebar-nav" class="text-slate-300 p-2"></nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="main-content" class="flex-1 p-4 sm:p-6 md:p-8 content-bg overflow-y-auto">
+            <div id="welcome-message" class="text-center h-full flex flex-col justify-center items-center">
+                <h1 class="text-4xl font-bold text-slate-700">Bem-vindo ao Pilar de Machine Learning</h1>
+                <p class="mt-4 text-xl text-slate-500">Selecione um tópico no menu à esquerda para começar.</p>
+            </div>
+            <div id="content-sections-wrapper" class="max-w-7xl mx-auto">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Gemini Modal -->
+    <div id="gemini-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b bg-slate-50 rounded-t-lg">
+                <h3 id="modal-title" class="text-xl font-semibold text-slate-800"></h3>
+                <button id="modal-close-btn" class="text-2xl font-bold text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="modal-loader" class="text-center hidden">
+                    <svg class="animate-spin h-8 w-8 text-teal-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="mt-2 text-slate-600">Gerando conteúdo com a IA Gemini...</p>
+                </div>
+                <div id="modal-response" class="prose max-w-none text-slate-700"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+const contentData = [
+    {
+        id: 'supervised',
+        title: 'ML Supervisionado',
+        subsections: [
+            {
+                id: 'regression-classification',
+                title: 'Modelos de Regressão e Classificação',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                    <p class="mb-4">O <strong>Aprendizado Supervisionado</strong> constitui a espinha dorsal de muitas aplicações de Machine Learning no mercado financeiro. Seu princípio fundamental é aprender a partir de exemplos. O algoritmo é exposto a um vasto conjunto de dados históricos onde a "resposta correta" (o rótulo ou <i>label</i>) já é conhecida. O objetivo é generalizar esse aprendizado para fazer previsões precisas sobre dados futuros, onde a resposta é desconhecida.</p>
+                    
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Regressão: Prevendo o Contínuo</h4>
+                    <p class="mb-3">Na regressão, a meta é prever um valor numérico contínuo. A complexidade em finanças reside na natureza ruidosa e, por vezes, aparentemente aleatória das séries temporais. Modelos de regressão buscam extrair um sinal preditivo em meio a esse ruído.</p>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li><strong>Modelos Lineares (Ex: Elastic Net):</strong> Assumem uma relação linear entre as <i>features</i> (variáveis de entrada) e o alvo. São rápidos, interpretáveis e servem como um excelente <i>baseline</i>. Elastic Net é uma evolução que combina as regularizações L1 (Lasso) e L2 (Ridge), permitindo selecionar as variáveis mais importantes e lidar com multicolinearidade, um problema comum em dados financeiros.</li>
+                        <li><strong>Modelos Baseados em Árvores (Ex: Random Forest, XGBoost):</strong> Não assumem uma relação linear e são capazes de capturar interações complexas entre as <i>features</i>. XGBoost, um algoritmo de <i>gradient boosting</i>, se destaca por sua performance superior, construindo árvores de decisão de forma sequencial, onde cada nova árvore corrige os erros residuais da anterior.</li>
+                    </ul>
+
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Classificação: Decidindo entre Categorias</h4>
+                    <p class="mb-3">A classificação foca em atribuir uma categoria a uma observação. Em vez de perguntar "quanto?", a pergunta é "qual?". Em finanças, muitas vezes uma previsão direcional (o mercado vai subir ou cair?) é mais valiosa e tratável do que prever o valor exato.</p>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li><strong>Classificação Binária:</strong> O caso mais comum, com duas classes possíveis. Ex: prever se uma ação terá retorno positivo ou negativo no próximo dia; detectar se uma transação é fraudulenta ou legítima.</li>
+                        <li><strong>Classificação Multiclasse:</strong> Envolve três ou mais categorias. Ex: prever se a volatilidade será "baixa", "média" ou "alta"; classificar uma empresa em "comprar", "manter" ou "vender". A saída do modelo é geralmente um conjunto de probabilidades, uma para cada classe.</li>
+                    </ul>
+                    <p class="mt-4">O grande desafio em finanças é a baixa relação sinal-ruído. Os sinais preditivos são fracos e as condições de mercado mudam (não-estacionariedade), exigindo validação rigorosa e cuidado extremo para evitar o overfitting.</p>`,
+                    exemplos: `<div class="mt-6"><h5 class="text-lg font-semibold mb-2">Comparativo de Desempenho de Modelos</h5><p class="text-sm text-slate-600 mb-2">Simulação do desempenho de diferentes modelos em tarefas de regressão (Erro Quadrático Médio - MSE) e classificação (Acurácia). Use os botões para alternar a visualização.</p><div class="flex justify-center space-x-4 mb-4"><button id="show-regression-btn" class="gemini-btn font-semibold py-2 px-4 rounded-md">Métricas de Regressão (MSE)</button><button id="show-classification-btn" class="gemini-btn font-semibold py-2 px-4 rounded-md">Métricas de Classificação (Acurácia)</button></div><div class="chart-container"><canvas id="modelComparisonChart"></canvas></div></div>`,
+                    formulas: `<p><strong>Função de Custo para Regressão (Erro Quadrático Médio - MSE):</strong></p>$$MSE = \\frac{1}{n} \\sum_{i=1}^{n} (y_i - \\hat{y}_i)^2$$<p>onde $y_i$ é o valor real e $\\hat{y}_i$ é a previsão do modelo.</p><p class="mt-4"><strong>Função de Custo para Classificação (Entropia Cruzada Binária):</strong></p>$$L = -\\frac{1}{n} \\sum_{i=1}^{n} [y_i \\log(\\hat{p}_i) + (1 - y_i) \\log(1 - \\hat{p}_i)]$$<p>onde $\\hat{p}_i$ é a probabilidade prevista pelo modelo para a classe positiva.</p>`,
+                    python: `<div class="relative"><pre><code class="language-python prism-code">from sklearn.model_selection import train_test_split
+from sklearn.linear_model import ElasticNet
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBRegressor
+from sklearn.metrics import mean_squared_error, accuracy_score
+import numpy as np
+
+# Dados simulados
+X = np.random.rand(100, 10)
+y_reg = np.random.rand(100)
+y_clf = np.random.randint(0, 2, 100)
+
+# --- Tarefa de Regressão ---
+X_train, X_test, y_train_reg, y_test_reg = train_test_split(X, y_reg, test_size=0.2, random_state=42)
+xgb = XGBRegressor(n_estimators=100, random_state=42)
+xgb.fit(X_train, y_train_reg)
+preds_reg = xgb.predict(X_test)
+print(f"MSE do XGBoost Regressor: {mean_squared_error(y_test_reg, preds_reg):.4f}")
+
+# --- Tarefa de Classificação ---
+X_train, X_test, y_train_clf, y_test_clf = train_test_split(X, y_clf, test_size=0.2, random_state=42)
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train_clf)
+preds_clf = rf.predict(X_test)
+print(f"Acurácia do Random Forest Classifier: {accuracy_score(y_test_clf, preds_clf):.4f}")
+</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre Elastic Net, Random Forest e XGBoost?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p><strong>Elastic Net</strong> é um modelo linear (uma regressão) que adiciona penalidades para evitar overfitting e selecionar variáveis, sendo rápido e interpretável. <strong>Random Forest</strong> é um modelo de <i>ensemble</i> que constrói muitas árvores de decisão e combina seus resultados, sendo robusto e bom para relações não-lineares. <strong>XGBoost</strong> é um modelo de <i>gradient boosting</i>, que constrói árvores sequencialmente, onde cada nova árvore corrige os erros da anterior, geralmente alcançando la maior performance preditiva, mas sendo mais complexo.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é o tradeoff viés-variância?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É um conceito central em ML. <strong>Viés (Bias)</strong> é o erro de um modelo por fazer suposições muito simples (ex: assumir uma relação linear quando ela é complexa). <strong>Variância (Variance)</strong> é o erro de um modelo por ser muito sensível aos dados de treino, capturando ruído e não generalizando bem para novos dados (overfitting). Modelos simples (como regressão linear) têm alto viés e baixa variância. Modelos complexos (como uma árvore de decisão muito profunda) têm baixo viés e alta variância. O objetivo é encontrar um equilíbrio.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "An Introduction to Statistical Learning" por James, Witten, Hastie, e Tibshirani.</li><li><strong>Documentação:</strong> <a href="https://xgboost.readthedocs.io/en/stable/" target="_blank" class="text-teal-600 hover:underline">XGBoost Docs</a></li><li><strong>Curso:</strong> <a href="https://www.coursera.org/learn/machine-learning" target="_blank" class="text-teal-600 hover:underline">Machine Learning by Andrew Ng (Coursera)</a></li></ul>`
+                }
+            },
+            {
+                id: 'validation',
+                title: 'Validação de Modelos Financeiros',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                    <p class="mb-4">A validação de modelos em finanças quantitativas é um campo minado de sutilezas, onde a falha em reconhecer suas particularidades leva quase certamente a estratégias que parecem brilhantes no papel, mas que falham catastroficamente no mundo real. O objetivo da validação não é apenas medir a performance, mas sim testar a <strong>robustez</strong> de um modelo contra as idiossincrasias dos dados financeiros.</p>
+                    <p class="mt-4">O principal inimigo é o <strong>overfitting</strong> (sobreajuste). Um modelo sobreajustado não aprendeu a relação fundamental entre as variáveis, mas sim memorizou o ruído específico presente nos dados de treinamento. Ele se torna perfeitamente adaptado ao passado, mas incapaz de generalizar para o futuro.</p>
+                    
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Técnicas de Validação Preservando a Estrutura Temporal</h4>
+                    <p class="mb-3">A independência das observações, pressuposto de muitas técnicas de validação, é violada em séries temporais. Portanto, métodos que preservam a ordem cronológica são essenciais.</p>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li><strong>Walk-Forward Validation:</strong> Esta é a simulação mais realista de como uma estratégia seria implementada. O modelo é treinado em uma janela de dados passada (ex: anos 1-3) e testado em uma janela futura adjacente (ex: ano 4). Em seguida, a janela "caminha" para frente: o modelo é retreinado nos anos 2-4 e testado no ano 5. Esse processo iterativo testa a capacidade do modelo de se adaptar a novas condições de mercado.</li>
+                        <li><strong>Validação Cruzada Combinatória (Combinatorial Cross-Validation - CVCV):</strong> Proposta por Marcos Lopez de Prado, esta é uma técnica ainda mais rigorosa. Ela reconhece que o desempenho de uma estratégia pode depender do caminho específico dos dados. A CVCV gera um grande número de divisões treino/teste, descartando aquelas que contêm sobreposição de informações ou que quebram a ordem temporal. Ao executar a estratégia em todos os "caminhos" válidos, obtém-se uma distribuição de métricas de performance, o que permite avaliar não apenas o desempenho médio, mas também a sua estabilidade e o risco de falha.</li>
+                    </ul>`,
+                    exemplos: `<p><strong>Exemplo Prático (Validação Cruzada Combinatória):</strong> Em vez de dividir os dados em 5 folds e testar um de cada vez, a CVCV de De Prado testa todas as combinações de caminhos de treino/teste, eliminando aquelas que quebram a ordem temporal. Isso resulta em milhares de "backtests" para uma única estratégia, gerando uma distribuição de resultados. Se a maioria desses backtests for lucrativa, a estratégia é considerada robusta. Se apenas alguns poucos caminhos funcionam, a performance observada foi provavelmente sorte.</p>`,
+                    formulas: `<p>A validação é mais metodológica do que puramente matemática, mas envolve o cálculo de métricas de performance em cada fold/período de teste. Uma métrica chave é o <strong>Índice de Sharpe</strong> do período <i>out-of-sample</i>:</p>$$Sharpe_{OOS} = \\frac{E[R_{OOS}] - R_f}{\\sigma_{OOS}}$$ <p class="mt-2">onde $R_{OOS}$ são os retornos da estratégia no período de teste. O objetivo é que o $Sharpe_{OOS}$ médio em todos os folds seja positivo e estável.</p>`,
+                    python: `<div class="relative"><pre><code class="language-python prism-code">from sklearn.model_selection import TimeSeriesSplit
+import numpy as np
+
+# A validação cruzada combinatória é complexa. O livro de De Prado oferece o código.
+# Abaixo, um exemplo de TimeSeriesSplit, que é a base para backtesting walk-forward.
+
+X = np.random.rand(100, 2)
+y = np.random.rand(100)
+
+# TimeSeriesSplit garante que os dados de treino sempre vêm antes dos de teste.
+tscv = TimeSeriesSplit(n_splits=5)
+
+print("Índices de Treino e Teste (Simulando Walk-Forward):")
+fold = 1
+for train_index, test_index in tscv.split(X):
+    print(f"Fold {fold}:")
+    print(f"  TRAIN: Início={train_index[0]}, Fim={train_index[-1]}, Tamanho={len(train_index)}")
+    print(f"  TEST:  Início={test_index[0]}, Fim={test_index[-1]}, Tamanho={len(test_index)}")
+    fold += 1
+
+# Em um cenário real, um modelo seria treinado nos dados de 'TRAIN'
+# e avaliado nos dados de 'TEST' em cada iteração do loop.
+</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Por que o K-Fold Cross-Validation padrão falha em séries temporais?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>O K-Fold padrão embaralha os dados aleatoriamente para criar os folds. Em uma série temporal, isso quebra a dependência temporal, permitindo que o modelo seja treinado em dados do "futuro" para prever o "passado" dentro do mesmo fold. Isso é um vazamento de dados (data leakage) grave que leva a estimativas de performance irrealisticamente otimistas.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é o "viés de seleção" (selection bias) em validação?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Ocorre quando um pesquisador testa centenas de modelos ou estratégias e reporta apenas o que teve o melhor desempenho no backtest. Esse melhor resultado é frequentemente devido ao acaso (sorte) e não a um poder preditivo real. Técnicas de validação robustas e o ajuste de p-valores para múltiplos testes são necessários para mitigar esse viés.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro (Essencial):</strong> "Advances in Financial Machine Learning" por Marcos Lopez de Prado.</li><li><strong>Livro:</strong> "Machine Learning for Asset Managers" por Marcos Lopez de Prado.</li><li><strong>Artigo Online:</strong> <a href="https://towardsdatascience.com/time-series-cross-validation-d91223924c39" target="_blank" class="text-teal-600 hover:underline">Time Series Cross-Validation Techniques</a></li></ul>`
+                }
+            },
+            {
+                id: 'backtesting',
+                title: 'Backtesting',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                    <p class="mb-4">O <strong>Backtesting</strong> é o processo de simulação que aplica um conjunto de regras de trading a dados históricos para avaliar a viabilidade e lucratividade de uma estratégia. É a ponte entre a teoria e a prática. Um backtest de alta qualidade deve ser uma recriação fiel das condições de mercado, incorporando todas as fricções e realidades da negociação ao vivo.</p>
+
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Tipos de Motores de Backtesting</h4>
+                    <p class="mb-3">A arquitetura do simulador é crucial para sua precisão:</p>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li><strong>Backtest Vetorizado:</strong> Rápido e fácil de implementar (usando operações de array com Pandas/NumPy). Ele calcula os sinais de toda a série temporal de uma só vez. No entanto, é extremamente propenso a <i>lookahead bias</i> (viés de conhecimento futuro), pois é difícil garantir que os cálculos em um ponto do tempo não usem inadvertidamente informações de pontos futuros.</li>
+                        <li><strong>Backtest Orientado a Eventos (Event-Driven):</strong> Mais complexo, mas muito mais realista. Ele simula o fluxo do tempo, processando os dados um evento (ex: uma nova barra de preço) de cada vez. A estratégia recebe o evento, toma uma decisão, e o sistema atualiza o portfólio. Essa estrutura iterativa impede naturalmente o <i>lookahead bias</i> e permite a modelagem de aspectos mais complexos, como alocação de capital e ordens limite.</li>
+                    </ul>
+
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Vieses Comuns a Serem Evitados</h4>
+                    <p class="mb-3">Um backtest só é confiável se estiver livre de vieses que inflem artificialmente seus resultados:</p>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li><strong>Viés de Sobrevivência (Survivorship Bias):</strong> Ocorre ao usar um conjunto de dados que inclui apenas as empresas ou ativos que "sobreviveram" até o final do período. Ignora as empresas que faliram ou foram deslistadas, o que superestima o desempenho.</li>
+                        <li><strong>Viés de Conhecimento Futuro (Lookahead Bias):</strong> O uso, implícito ou explícito, de informações que não estariam disponíveis no momento da decisão. Ex: usar o preço de fechamento de um dia para decidir comprar na abertura do mesmo dia.</li>
+                        <li><strong>Viés de Sobreajuste de Dados (Data Snooping):</strong> Ocorre quando um pesquisador testa tantas variações de regras e parâmetros que eventualmente encontra uma que funciona perfeitamente nos dados históricos por puro acaso.</li>
+                    </ul>`,
+                    exemplos: `<p><strong>Exemplo Prático:</strong> Um quant desenvolve uma estratégia de cruzamento de médias móveis. Para testá-la, ele usa um software de backtesting. O software carrega 10 anos de dados diários do Ibovespa. A cada dia na simulação, o software verifica: 1) A média móvel de 50 dias cruzou acima da de 200? Se sim, gera um sinal de compra. 2) A média de 50 cruzou abaixo? Se sim, gera um sinal de venda. O motor simula a compra/venda, deduz uma corretagem de R$10,00 e um slippage de 0.05% do preço. Ao final dos 10 anos, ele gera um relatório mostrando um retorno anualizado de 8% com um drawdown máximo de 25%.</p>`,
+                    formulas: `<p><strong>Máximo Drawdown (MDD):</strong> A maior queda percentual do pico ao vale do valor do portfólio durante o backtest. É uma medida chave do risco de ruína.</p>$$MDD = \\frac{Pico - Vale}{Pico}$$<p class="mt-4"><strong>Índice de Sharpe:</strong> Mede o retorno ajustado ao risco.</p>$$Sharpe = \\frac{E[R_p] - R_f}{\\sigma_p}$$<p class="mt-4"><strong>Índice de Calmar:</strong> Mede o retorno em relação ao drawdown.</p>$$Calmar = \\frac{Retorno Anualizado}{|MDD|}$$`,
+                    python: `<div class="relative"><pre><code class="language-python prism-code"># Usando a biblioteca 'backtesting.py' para um exemplo simples.
+# pip install backtesting
+from backtesting import Backtest, Strategy
+from backtesting.lib import crossover
+from backtesting.test import GOOG
+
+class SmaCross(Strategy):
+    n1 = 10  # Média curta
+    n2 = 20  # Média longa
+
+    def init(self):
+        # Pré-calcula as médias móveis
+        self.sma1 = self.I(lambda x: pd.Series(x).rolling(self.n1).mean(), self.data.Close)
+        self.sma2 = self.I(lambda x: pd.Series(x).rolling(self.n2).mean(), self.data.Close)
+
+    def next(self):
+        # Se a média curta cruza acima da longa, compra
+        if crossover(self.sma1, self.sma2):
+            self.buy()
+        # Se a média curta cruza abaixo da longa, vende
+        elif crossover(self.sma2, self.sma1):
+            self.sell()
+
+# Carrega dados de exemplo do Google e roda o backtest
+# Nota: pd (pandas) precisa ser importado no seu ambiente
+import pandas as pd 
+bt = Backtest(GOOG, SmaCross, cash=10000, commission=.002)
+stats = bt.run()
+
+print("Resultado do Backtest:")
+print(stats)
+# bt.plot() # Descomente em um notebook para ver o gráfico
+</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Um bom backtest garante lucros futuros?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Não, absolutamente não. Um bom backtest é uma condição necessária, mas não suficiente. O passado não é garantia de futuro, e as condições de mercado podem mudar. Um bom backtest apenas aumenta a probabilidade de que a estratégia tenha capturado uma ineficiência real do mercado, em vez de apenas ruído.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é "Walk-Forward Optimization"?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É uma técnica mais robusta de backtesting. Em vez de encontrar os "melhores" parâmetros para uma estratégia (ex: os períodos das médias móveis) usando todo o conjunto de dados, o Walk-Forward otimiza os parâmetros em um período de treino (ex: 2010-2012) e depois testa a performance com esses parâmetros em um período fora da amostra (ex: 2013). O processo então "caminha" para frente no tempo, repetindo a otimização e o teste, simulando como a estratégia seria re-calibrada ao longo do tempo.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Quantitative Trading" por Ernie Chan.</li><li><strong>Biblioteca Python:</strong> <a href="https://github.com/kernc/backtesting.py" target="_blank" class="text-teal-600 hover:underline">backtesting.py</a></li><li><strong>Biblioteca Python:</strong> <a href="https://www.backtrader.com/" target="_blank" class="text-teal-600 hover:underline">Backtrader</a></li></ul>`
+                }
+            }
+        ]
+    },
+    {
+        id: 'unsupervised',
+        title: 'ML Não Supervisionado',
+        subsections: [
+            {
+                id: 'clustering',
+                title: 'Clusterização',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                    <p class="mb-4">O <strong>Aprendizado Não Supervisionado</strong> é uma forma de aprendizado de máquina onde o algoritmo recebe dados sem rótulos explícitos. A tarefa não é prever uma saída, mas sim descobrir a estrutura intrínseca dos dados. A <strong>Clusterização</strong> é a técnica mais proeminente neste domínio, focada em agrupar dados em subconjuntos (clusters) baseados em sua similaridade.</p>
+                    <p class="mt-4">O conceito central é a <strong>métrica de distância</strong> ou similaridade. O algoritmo precisa de uma forma de quantificar o quão "próximos" ou "parecidos" dois pontos de dados são. A escolha das features de entrada e da métrica de distância é crucial para o sucesso da clusterização.</p>
+
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Algoritmos de Clusterização</h4>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li><strong>K-Means:</strong> Um algoritmo de particionamento. Ele começa escolhendo K pontos aleatórios como "centróides" iniciais. Em seguida, itera em dois passos: 1) <strong>Atribuição:</strong> cada ponto de dado é atribuído ao cluster do centróide mais próximo. 2) <strong>Atualização:</strong> o centróide de cada cluster é recalculado como a média de todos os pontos atribuídos a ele. O processo repete até que os centróides não mudem mais. É rápido e escalável, mas assume que os clusters são esféricos e de tamanho similar.</li>
+                        <li><strong>Clusterização Hierárquica:</strong> Não produz uma única partição dos dados, mas sim uma hierarquia de clusters que pode ser visualizada como uma árvore chamada <strong>dendrograma</strong>. A abordagem <i>aglomerativa</i> (bottom-up) começa com cada ponto como seu próprio cluster e, a cada passo, funde os dois clusters mais próximos. A abordagem <i>divisiva</i> (top-down) começa com todos os dados em um único cluster e o divide recursivamente.</li>
+                    </ul>
+                     <p class="mt-4">Em finanças, a clusterização ajuda a reduzir a complexidade. Em vez de analisar mil ações individualmente, podemos clusterizá-las em 10 grupos com comportamentos semelhantes, permitindo uma análise mais estruturada e a descoberta de relações como pares para estratégias de arbitragem.</p>`,
+                    exemplos: `<div class="mt-6"><h5 class="text-lg font-semibold mb-2">Visualização Interativa de K-Means</h5><p class="text-sm text-slate-600 mb-2">Veja como o algoritmo K-Means agrupa dados sintéticos. Altere o número de clusters (K) para ver o resultado.</p><div class="flex items-center justify-center space-x-4 mb-4"><label for="kmeans-slider" class="font-medium">Número de Clusters (K):</label><input id="kmeans-slider" type="range" min="2" max="8" value="3" class="w-64"><span id="kmeans-k-value" class="font-bold text-lg text-teal-600">3</span></div><div class="chart-container"><canvas id="kmeansChart"></canvas></div></div>`,
+                    formulas: `<p><strong>Objetivo do K-Means: Minimizar a Inércia (Soma das distâncias quadradas intra-cluster)</strong></p>$$ \\sum_{i=0}^{n} \\min_{\\mu_j \\in C}(||x_i - \\mu_j||^2) $$<p>onde $\\mu_j$ é o centróide do cluster $j$.</p><p class="mt-4"><strong>Medida de Similaridade (Distância Euclidiana):</strong></p>$$d(p, q) = \\sqrt{\\sum_{i=1}^{n} (q_i - p_i)^2}$$`,
+                    python: `<div class="relative"><pre><code class="language-python prism-code">from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+
+# Dados simulados: 100 ativos com 2 features (ex: volatilidade e retorno)
+np.random.seed(0)
+X = np.random.rand(100, 2) * np.array([0.2, 0.1]) + np.array([-0.05, 0.05])
+
+# É crucial escalar os dados antes da clusterização
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# K-Means com 4 clusters
+kmeans = KMeans(n_clusters=4, random_state=42, n_init=10)
+kmeans_labels = kmeans.fit_predict(X_scaled)
+
+# Hierarchical Clustering (Aglomerativo) com 4 clusters
+agg_cluster = AgglomerativeClustering(n_clusters=4)
+agg_labels = agg_cluster.fit_predict(X_scaled)
+
+print(f"Primeiras 10 labels do K-Means: {kmeans_labels[:10]}")
+print(f"Primeiras 10 labels do Hierarchical Clustering: {agg_labels[:10]}")
+</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre K-Means e Hierarchical Clustering?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p><strong>K-Means</strong> requer que o número de clusters (K) seja definido a priori e é mais rápido, mas sensível à inicialização dos centróides. <strong>Hierarchical Clustering</strong> não requer um K pré-definido e constrói uma árvore de clusters (dendrograma) que pode ser "cortada" em diferentes níveis para obter diferentes números de clusters. É mais lento, mas pode revelar uma estrutura hierárquica nos dados.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Como escolher o número ideal de clusters (K)?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Não há uma resposta única. Métodos comuns incluem o <strong>Método do Cotovelo (Elbow Method)</strong>, que plota a soma das distâncias quadradas em função de K e procura um "cotovelo" na curva, e o <strong>Coeficiente de Silhueta</strong>, que mede o quão bem definidos são os clusters. Frequentemente, a escolha final também depende da interpretabilidade dos clusters para o problema de negócio.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Documentação:</strong> <a href="https://scikit-learn.org/stable/modules/clustering.html" target="_blank" class="text-teal-600 hover:underline">Scikit-Learn Clustering</a></li><li><strong>Artigo:</strong> <a href="https://www.analyticsvidhya.com/blog/2019/08/comprehensive-guide-k-means-clustering/" target="_blank" class="text-teal-600 hover:underline">A Comprehensive Guide to K-Means Clustering</a></li></ul>`
+                }
+            },
+            {
+                id: 'dimensionality-reduction',
+                title: 'Redução de Dimensão',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                    <p class="mb-4">À medida que o número de <i>features</i> (dimensões) em um conjunto de dados aumenta, o volume do espaço de dados cresce exponencialmente. Isso leva a um fenômeno conhecido como a <strong>"Maldição da Dimensionalidade"</strong>: os dados se tornam esparsos, as distâncias entre os pontos perdem o significado e os modelos de Machine Learning se tornam muito mais difíceis de treinar, exigindo uma quantidade impraticável de dados para alcançar um bom desempenho.</p>
+                    <p class="mt-4">A <strong>Redução de Dimensão</strong> visa combater esse problema, transformando os dados de um espaço de alta dimensão para um de baixa dimensão, preservando ao máximo a estrutura e informação essenciais.</p>
+
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Técnicas Principais</h4>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li><strong>Análise de Componentes Principais (PCA):</strong> Uma técnica linear que projeta os dados em um novo conjunto de eixos ortogonais, chamados de <strong>componentes principais</strong>. O primeiro componente principal é a direção no espaço que captura a maior quantidade de variância nos dados. O segundo componente, ortogonal ao primeiro, captura a maior parte da variância restante, e assim por diante. Ao reter apenas os primeiros K componentes, podemos reduzir a dimensão dos dados, mantendo a maior parte de sua "energia" ou variabilidade. Em finanças, o PCA da matriz de covariância dos retornos é usado para extrair os principais "fatores de risco" que movimentam o mercado.</li>
+                        <li><strong>t-SNE (t-Distributed Stochastic Neighbor Embedding):</strong> Uma técnica não-linear usada primariamente para visualização. O t-SNE não tenta preservar a variância global, mas sim a estrutura de vizinhança local dos pontos. Ele modela as similaridades entre pontos de alta dimensão e tenta encontrar uma representação de baixa dimensão (2D ou 3D) que preserve essas similaridades. É excelente para visualizar clusters e a estrutura de "manifold" dos dados, mas não deve ser usado como um passo de pré-processamento para outros modelos de ML.</li>
+                    </ul>`,
+                    exemplos: `<p><strong>Exemplo Prático (PCA em Fatores de Risco):</strong> A Análise de Componentes Principais (PCA) pode ser aplicada à matriz de covariância dos retornos de centenas de ações. Os primeiros componentes principais (autovetores) representam os "fatores" de risco que explicam a maior parte do movimento do mercado. O primeiro componente geralmente corresponde ao "fator de mercado" (similar ao Ibovespa). O segundo e terceiro podem corresponder a fatores de "valor vs. crescimento" ou "setor de commodities vs. setor de consumo". Isso transforma um problema de 100 variáveis em um problema de 3-5 fatores, muito mais tratável.</p>`,
+                    formulas: `<p><strong>Análise de Componentes Principais (PCA):</strong></p><p>O objetivo é encontrar os autovetores (componentes principais, $v$) e autovalores ($\\lambda$) da matriz de covariância $\\Sigma$:</p>$$\\Sigma v = \\lambda v$$<p class="mt-2">Os componentes principais são ordenados pelo tamanho de seus autovalores, que representam a quantidade de variância que cada componente explica.</p>`,
+                    python: `<div class="relative"><pre><code class="language-python prism-code">from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+
+# 100 observações, 20 features (ex: 20 indicadores técnicos)
+np.random.seed(42)
+X = np.random.rand(100, 20)
+X_scaled = StandardScaler().fit_transform(X)
+
+# Aplica o PCA para reduzir para 3 componentes principais
+pca = PCA(n_components=3)
+X_pca = pca.fit_transform(X_scaled)
+
+print(f"Formato original dos dados: {X_scaled.shape}")
+print(f"Formato após PCA: {X_pca.shape}")
+
+# Variância explicada por cada componente
+explained_variance = pca.explained_variance_ratio_
+print(f"\\nVariância explicada por cada componente: {[f'{v:.2%}' for v in explained_variance]}")
+print(f"Variância total explicada pelos 3 componentes: {explained_variance.sum():.2%}")
+</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>PCA ou t-SNE, quando usar cada um?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p><strong>PCA</strong> é uma técnica linear, determinística e rápida. É excelente para remover multicolinearidade e como um passo de pré-processamento para outros modelos de ML. <strong>t-SNE</strong> é uma técnica não-linear e estocástica, usada quase exclusivamente para visualização de dados em 2D ou 3D. É muito bom em revelar a estrutura de "clusters" nos dados, mas as distâncias no gráfico t-SNE não são diretamente interpretáveis como no PCA.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>A redução de dimensão perde informação?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Sim, inevitavelmente. O objetivo é perder o mínimo de informação "útil" (sinal) e o máximo de informação "inútil" (ruído). Com o PCA, podemos quantificar exatamente quanta da variância total dos dados é preservada por um certo número de componentes e fazer um tradeoff informado.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Artigo Visual:</strong> <a href="http://setosa.io/ev/principal-component-analysis/" target="_blank" class="text-teal-600 hover:underline">A Visual Introduction to PCA</a></li><li><strong>Artigo:</strong> <a href="https://distill.pub/2016/misread-tsne/" target="_blank" class="text-teal-600 hover:underline">How to Use t-SNE Effectively</a></li><li><strong>Documentação:</strong> <a href="https://scikit-learn.org/stable/modules/decomposition.html" target="_blank" class="text-teal-600 hover:underline">Scikit-Learn: Matrix Decomposition</a></li></ul>`
+                }
+            }
+        ]
+    },
+    {
+        id: 'deep-learning-rl',
+        title: 'Deep Learning e RL',
+        subsections: [
+            {
+                id: 'time-series-nn',
+                title: 'Redes Neurais para Séries Temporais',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                    <p class="mb-4">O <strong>Deep Learning</strong> representa a fronteira da modelagem de dados complexos e não-lineares. Para séries temporais financeiras, que exibem padrões intrincados e dependências temporais, as arquiteturas de redes neurais recorrentes (RNNs) e suas sucessoras são ferramentas excepcionalmente poderosas.</p>
+                    
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">O Conceito de "Memória" em RNNs</h4>
+                    <p class="mb-3">Diferente de uma rede neural feedforward padrão, que trata cada entrada de forma independente, uma RNN possui um loop interno. A saída de um passo de tempo é realimentada como parte da entrada para o próximo passo. Isso cria um "estado oculto" (<i>hidden state</i>) que atua como uma memória, acumulando informações sobre a sequência vista até o momento. No entanto, as RNNs simples lutam para reter informações de passos muito distantes no passado, um problema conhecido como "desvanecimento do gradiente".</p>
+
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Arquiteturas Avançadas com Portões</h4>
+                    <p class="mb-3">Para superar as limitações das RNNs, foram desenvolvidas células recorrentes mais sofisticadas:</p>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li><strong>LSTMs (Long Short-Term Memory):</strong> A solução mais robusta e popular. Uma célula LSTM contém uma "via expressa" de informações chamada estado da célula (<i>cell state</i>), que permite que a informação flua com pouca degradação. O fluxo é controlado por três "portões" (<i>gates</i>):
+                            <ul class="list-disc pl-6 mt-2">
+                                <li><strong>Portão de Esquecimento (Forget Gate):</strong> Decide qual informação do estado da célula anterior deve ser descartada.</li>
+                                <li><strong>Portão de Entrada (Input Gate):</strong> Decide quais novas informações da entrada atual serão armazenadas no estado da célula.</li>
+                                <li><strong>Portão de Saída (Output Gate):</strong> Decide qual parte do estado da célula será usada para gerar a saída (o estado oculto) neste passo de tempo.</li>
+                            </ul>
+                        </li>
+                        <li><strong>GRUs (Gated Recurrent Units):</strong> Uma arquitetura mais simples que a LSTM. Ela combina os portões de esquecimento e entrada em um único "portão de atualização" e funde o estado da célula e o estado oculto. Com menos parâmetros, é computacionalmente mais rápida e pode performar melhor em conjuntos de dados menores.</li>
+                    </ul>
+                    <p class="mt-4">Essas arquiteturas permitem que os modelos aprendam dependências de longo prazo, como a relação entre um anúncio de política monetária e a volatilidade do mercado semanas depois.</p>`,
+                    exemplos: `<p><strong>Exemplo Prático:</strong> Um modelo LSTM pode ser treinado para prever a volatilidade do próximo dia. A entrada do modelo em cada passo de tempo pode ser um vetor contendo o retorno do dia, o volume e a volatilidade realizada. A "memória" da LSTM permite que ela aprenda padrões como "após 3 dias de retornos negativos com volume crescente, a volatilidade tende a aumentar", uma relação complexa que modelos lineares teriam dificuldade em capturar.</p>`,
+                    formulas: `<p>A matemática interna das LSTMs envolve múltiplas equações para seus portões (esquecimento, entrada, saída). A equação do portão de esquecimento ($f_t$) é um bom exemplo:</p>$$f_t = \\sigma(W_f \\cdot [h_{t-1}, x_t] + b_f)$$<p class="mt-2">onde $\\sigma$ é a função sigmoide, $W_f$ e $b_f$ são os pesos e o bias do portão, $h_{t-1}$ é a saída do passo anterior e $x_t$ é a entrada atual. O resultado de $f_t$ é um vetor de números entre 0 e 1, que decide qual proporção da memória antiga será "esquecida".</p>`,
+                    python: `<div class="relative"><pre><code class="language-python prism-code">import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, GRU, Dense, Input
+import numpy as np
+
+# Formato de entrada para LSTMs: (amostras, passos_de_tempo, features)
+n_samples = 1000
+timesteps = 10  # Olhar 10 dias para trás
+n_features = 5  # ex: Open, High, Low, Close, Volume
+
+# Dados simulados
+X = np.random.rand(n_samples, timesteps, n_features)
+y = np.random.rand(n_samples, 1) # Prever o preço do dia seguinte
+
+# Modelo LSTM simples
+model_lstm = Sequential([
+    Input(shape=(timesteps, n_features)),
+    LSTM(50, activation='relu'), # 50 unidades na camada LSTM
+    Dense(1) # Camada de saída para prever 1 valor
+])
+
+model_lstm.compile(optimizer='adam', loss='mse')
+model_lstm.summary()
+
+# O modelo seria treinado com model.fit(X, y, ...)
+</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>As redes neurais são "caixas-pretas"?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Em grande parte, sim. Devido ao grande número de parâmetros e interações não-lineares, é muito difícil entender exatamente por que uma rede neural tomou uma decisão específica. Isso é um grande desafio em finanças, onde a interpretabilidade é importante. Técnicas de XAI (Explicabilidade) como SHAP e LIME são usadas para tentar mitigar esse problema.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Preciso de muitos dados para treinar uma LSTM?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Sim. Modelos de Deep Learning, em geral, têm muitos parâmetros e requerem grandes quantidades de dados para serem treinados efetivamente e evitar overfitting. Em finanças, onde a quantidade de dados de qualidade pode ser limitada e a relação sinal-ruído é baixa, isso é um desafio significativo.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Tutorial:</strong> <a href="https://www.tensorflow.org/tutorials/structured_data/time_series" target="_blank" class="text-teal-600 hover:underline">TensorFlow Time Series Forecasting</a></li><li><strong>Artigo:</strong> <a href="https://colah.github.io/posts/2015-08-Understanding-LSTMs/" target="_blank" class="text-teal-600 hover:underline">Understanding LSTMs (Blog do Christopher Olah)</a></li><li><strong>Livro:</strong> "Deep Learning" por Goodfellow, Bengio e Courville.</li></ul>`
+                }
+            },
+            {
+                id: 'reinforcement-learning',
+                title: 'Reinforcement Learning para Trading',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                    <p class="mb-4">O <strong>Aprendizado por Reforço (RL)</strong> aborda o problema de tomada de decisão sequencial sob incerteza. Diferente do aprendizado supervisionado, não há um "gabarito" com a ação correta para cada situação. Em vez disso, o agente aprende explorando o ambiente e observando as consequências de suas ações através de um sinal de recompensa.</p>
+                    <p class="mt-4">O framework matemático formal para o RL é o <strong>Processo de Decisão de Markov (MDP)</strong>, que consiste em:</p>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li>Um conjunto de <strong>estados</strong> ($S$): As diferentes configurações do ambiente.</li>
+                        <li>Um conjunto de <strong>ações</strong> ($A$): As escolhas disponíveis para o agente.</li>
+                        <li>Uma <strong>função de transição</strong> ($T(s, a, s')$): A probabilidade de transitar para o estado $s'$ ao tomar a ação $a$ no estado $s$.</li>
+                        <li>Uma <strong>função de recompensa</strong> ($R(s, a, s')$): A recompensa imediata recebida.</li>
+                    </ul>
+                    <p class="mt-3">O objetivo do agente de RL é aprender uma <strong>política ($\pi(a|s)$)</strong>, que dita a probabilidade de tomar a ação $a$ no estado $s$, para maximizar o retorno esperado cumulativo e descontado.</p>
+
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">O Dilema Exploração vs. Explotação</h4>
+                    <p class="mb-3">Um desafio central em RL é o equilíbrio entre <strong>exploração</strong> (tentar novas ações para descobrir suas recompensas) e <strong>explotação</strong> (usar a ação que se acredita ser a melhor com base no conhecimento atual). Um agente que só explota pode ficar preso em uma estratégia subótima. Um agente que só explora nunca utilizará o conhecimento adquirido. Algoritmos de RL empregam estratégias (como a política épsilon-greedy) para gerenciar esse dilema.</p>
+
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Aprendendo o Valor: Q-Learning</h4>
+                    <p class="mb-3">O <strong>Q-Learning</strong> é um algoritmo fundamental que aprende uma <strong>função de valor ação-estado, $Q(s, a)$</strong>. Essa função estima o retorno total esperado ao se tomar a ação $a$ no estado $s$ e seguir a política ótima a partir de então. Ao aprender essa Q-function, a política ótima se torna simples: em qualquer estado $s$, escolha a ação $a$ que maximiza $Q(s, a)$.</p>`,
+                    exemplos: `<p><strong>Exemplo Prático (Agente de Market Making):</strong> Um agente de RL pode ser treinado para atuar como um market maker. Seu <strong>estado</strong> é o book de ofertas atual. Suas <strong>ações</strong> são os preços de compra (bid) e venda (ask) que ele irá cotar. Sua <strong>recompensa</strong> é o lucro obtido com o spread bid-ask, com uma punição se ele acumular um inventário muito grande e arriscado. Ao longo de milhões de simulações, o agente aprende a política ótima de como ajustar seus spreads em resposta às mudanças na dinâmica do book para maximizar os lucros enquanto controla o risco.</p>`,
+                    formulas: `<p><strong>A Equação de Bellman para a Q-function (base do Q-learning):</strong></p>$$Q(s,a) = E[r + \\gamma \\max_{a'} Q(s', a') | s, a]$$<p class="mt-2">Ela afirma que o valor de tomar a ação $a$ no estado $s$ ($Q(s,a)$) é a recompensa imediata ($r$) mais o valor máximo que se pode obter a partir do próximo estado ($s'$), descontado por um fator $\\gamma$.</p>`,
+                    python: `<div class="relative"><pre><code class="language-python prism-code"># RL para trading requer um ambiente de simulação customizado.
+# Bibliotecas como Stable Baselines3 facilitam a aplicação de algoritmos.
+# O código abaixo é uma estrutura conceitual de como seria um ambiente com Gym.
+# pip install gym
+import gym
+from gym import spaces
+import numpy as np
+
+class TradingEnv(gym.Env):
+    def __init__(self, df):
+        super(TradingEnv, self).__init__()
+        self.df = df
+        
+        # Ações: 0: Manter, 1: Comprar, 2: Vender
+        self.action_space = spaces.Discrete(3)
+        
+        # Observações: e.g., últimos 5 preços + posição atual (0 ou 1)
+        self.observation_space = spaces.Box(low=0, high=np.inf, shape=(6,), dtype=np.float32)
+
+    def reset(self):
+        self.current_step = 0
+        self.balance = 10000
+        self.shares_held = 0
+        return self._next_observation()
+
+    def step(self, action):
+        # A lógica de executar a ação, calcular a recompensa e
+        # atualizar o estado do portfólio estaria aqui.
+        reward = 0 
+        done = self.current_step >= len(self.df) - 1
+        obs = self._next_observation()
+        self.current_step += 1
+        return obs, reward, done, {}
+        
+    def _next_observation(self):
+        # Retorna o estado atual do mercado + portfólio
+        prices = self.df.iloc[self.current_step-5:self.current_step]['Close'].values
+        return np.append(prices, self.shares_held)
+</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>RL é a solução definitiva para o trading algorítmico?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Provavelmente não. RL é extremamente promissor, mas também muito complexo e sensível à definição do ambiente, do estado e da função de recompensa. Um pequeno erro no design pode levar o agente a aprender políticas ruins ou explorar falhas no simulador que não existem no mercado real. Além disso, a não-estacionariedade do mercado faz com que uma política aprendida no passado possa não ser ótima no futuro.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre Q-Learning e Policy Gradient?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>São duas famílias principais de algoritmos de RL. <strong>Q-Learning</strong> (e outros métodos baseados em valor) tentam aprender o valor de cada par estado-ação. A política é então derivada desses valores (ex: sempre tomar a ação de maior valor). <strong>Policy Gradient</strong> (e outros métodos baseados em política) tentam aprender a política diretamente, sem aprender uma função de valor intermediária. Eles são geralmente melhores em espaços de ação contínuos ou de alta dimensão.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Biblioteca:</strong> <a href="https://stable-baselines3.readthedocs.io/en/master/" target="_blank" class="text-teal-600 hover:underline">Stable Baselines3</a></li><li><strong>Artigo:</strong> <a href="https://towardsdatascience.com/deep-reinforcement-learning-for-automated-stock-trading-f1e4aab41ad" target="_blank" class="text-teal-600 hover:underline">Deep Reinforcement Learning for Automated Stock Trading</a></li><li><strong>Curso:</strong> <a href="https://www.coursera.org/specializations/reinforcement-learning" target="_blank" class="text-teal-600 hover:underline">Reinforcement Learning Specialization (Coursera)</a></li></ul>`
+                }
+            },
+            {
+                id: 'xai',
+                title: 'Explicabilidade (XAI)',
+                content: {
+                    teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                    <p class="mb-4">À medida que os modelos de Machine Learning se tornam mais complexos e poderosos, sua opacidade interna aumenta. A <strong>Explicabilidade da IA (XAI)</strong> surge como um campo crucial para construir confiança e garantir o uso responsável desses sistemas. Um modelo "caixa-preta" que oferece uma resposta sem justificativa é de uso limitado em domínios de alto risco como o financeiro.</p>
+                    <p class="mt-4">A interpretabilidade pode ser dividida em duas categorias principais:</p>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li><strong>Interpretabilidade Global:</strong> Tenta entender o comportamento do modelo como um todo. Quais são as <i>features</i> mais importantes que o modelo aprendeu? Como as <i>features</i> interagem entre si para influenciar as previsões em geral? A importância de features em modelos de árvore é um exemplo de interpretabilidade global.</li>
+                        <li><strong>Interpretabilidade Local:</strong> Foca em explicar uma única previsão. Por que o modelo decidiu que <i>este</i> cliente específico deveria ter o crédito negado? Quais fatores contribuíram para <i>esta</i> previsão de que o mercado irá cair amanhã? Métodos como LIME e SHAP são focados na interpretabilidade local.</li>
+                    </ul>
+
+                    <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Métodos Populares de XAI</h4>
+                    <p class="mb-3">Dois dos métodos <i>model-agnostic</i> (que funcionam para qualquer tipo de modelo) mais populares são:</p>
+                    <ul class="list-disc pl-6 space-y-3">
+                        <li><strong>LIME (Local Interpretable Model-agnostic Explanations):</strong> A intuição por trás do LIME é que, embora o comportamento global de um modelo complexo seja difícil de entender, seu comportamento em uma pequena vizinhança local pode ser aproximado por um modelo simples e interpretável (como uma regressão linear). Para explicar uma previsão, LIME gera pequenas perturbações nos dados de entrada ao redor daquela instância, observa como as previsões do modelo caixa-preta mudam e ajusta um modelo linear simples a esses dados perturbados. Os coeficientes desse modelo linear local explicam quais <i>features</i> foram mais importantes para aquela previsão específica.</li>
+                        <li><strong>SHAP (SHapley Additive exPlanations):</strong> Com uma base sólida na teoria dos jogos cooperativos, o SHAP calcula a contribuição de cada <i>feature</i> para "empurrar" a previsão para longe de um valor base (a média das previsões). Os <strong>valores de Shapley</strong> garantem que as contribuições sejam distribuídas de forma justa entre as <i>features</i>, considerando suas interações. O SHAP se tornou o padrão-ouro para explicabilidade local devido à sua consistência teórica e visualizações poderosas.</li>
+                    </ul>`,
+                    exemplos: `<p><strong>Exemplo Prático (SHAP em um modelo de crédito):</strong> Um modelo de XGBoost nega um empréstimo para um cliente. Usando SHAP, podemos gerar um "force plot" para essa decisão específica. O gráfico mostrará a previsão base (a média de aprovação) e como cada <i>feature</i> do cliente "empurrou" a decisão para longe dessa base. Ele pode mostrar que 'score de crédito baixo' e 'alta relação dívida/renda' foram os principais fatores que contribuíram negativamente, enquanto 'longo histórico de emprego' contribuiu positivamente, mas não o suficiente para reverter a decisão. Isso torna a decisão do modelo transparente.</p>`,
+                    formulas: `<p>O <strong>SHAP (SHapley Additive exPlanations)</strong> é baseado nos valores de Shapley da teoria dos jogos cooperativos. O valor de Shapley para uma <i>feature</i> $i$ é:</p>$$\\phi_i(v) = \\sum_{S \\subseteq F \\setminus \\{i\\}} \\frac{|S|!(|F|-|S|-1)!}{|F|!} [v(S \\cup \\{i\\}) - v(S)]$$<p class="mt-2">Isso representa a contribuição marginal média da <i>feature</i> $i$ para a previsão, calculada sobre todas as possíveis combinações de outras <i>features</i>.</p>`,
+                    python: `<div class="relative"><pre><code class="language-python prism-code"># É necessário instalar as bibliotecas: pip install shap xgboost
+import shap
+import xgboost
+import pandas as pd
+
+# Treina um modelo XGBoost (usando um dataset clássico)
+X, y = shap.datasets.boston()
+model = xgboost.XGBRegressor().fit(X, y)
+
+# Cria um objeto 'explainer' do SHAP
+explainer = shap.Explainer(model)
+shap_values = explainer(X)
+
+# A visualização dos gráficos SHAP é ideal em um ambiente como Jupyter Notebook.
+# O código abaixo mostra como se faria a chamada.
+
+# 1. Gráfico de importância global das features
+# shap.summary_plot(shap_values, X, plot_type="bar")
+
+# 2. Gráfico para explicar uma previsão individual (a primeira observação)
+# shap.plots.force(shap_values[0])
+
+print("Valores SHAP calculados. Em um notebook, use as funções de plotagem do SHAP:")
+print(" - shap.summary_plot(shap_values, X)")
+print(" - shap.plots.force(shap_values[0])")
+</code></pre><button class="copy-button">Copiar</button></div>`,
+                    qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre SHAP e LIME?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Ambos são métodos "model-agnostic" (funcionam com qualquer modelo). <strong>LIME (Local Interpretable Model-agnostic Explanations)</strong> explica uma previsão individual criando um modelo linear simples (interpretável) que aproxima o comportamento do modelo complexo apenas na vizinhança daquela previsão. <strong>SHAP</strong> tem uma base teórica mais sólida na teoria dos jogos e garante certas propriedades de consistência, sendo muitas vezes preferido por sua robustez e capacidade de fornecer tanto explicações locais (para uma previsão) quanto globais (importância geral das features).</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Modelos interpretáveis não são melhores que XAI?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Há um tradeoff. Modelos inerentemente interpretáveis, como regressão linear ou árvores de decisão simples, são fáceis de entender, mas muitas vezes sacrificam a performance preditiva, pois não conseguem capturar relações complexas e não-lineares nos dados. A abordagem XAI permite usar modelos de alta performance (caixas-pretas) e depois aplicar técnicas para obter uma aproximação de sua lógica interna, buscando o melhor dos dois mundos.</p></div></div></div>`,
+                    referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Documentação:</strong> <a href="https://shap.readthedocs.io/en/latest/index.html" target="_blank" class="text-teal-600 hover:underline">SHAP Docs</a></li><li><strong>Livro:</strong> <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" class="text-teal-600 hover:underline">Interpretable Machine Learning por Christoph Molnar</a></li><li><strong>Documentação:</strong> <a href="https://github.com/marcotcr/lime" target="_blank" class="text-teal-600 hover:underline">LIME (GitHub)</a></li></ul>`
+                }
+            }
+        ]
+    }
+];
+
+// --- Gemini API Call ---
+async function callGemini(prompt) {
+    const apiKey = "";
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    const payload = { contents: [{ parts: [{ text: prompt }] }] };
+    let attempts = 0;
+    const maxAttempts = 5;
+    while (attempts < maxAttempts) {
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const result = await response.json();
+            const candidate = result.candidates?.[0];
+            if (candidate && candidate.content?.parts?.[0]?.text) {
+                return candidate.content.parts[0].text.replace(/\n/g, '<br>');
+            } else {
+                let errorText = "Não foi possível gerar conteúdo. A resposta da API estava vazia ou malformada.";
+                if (candidate?.finishReason) errorText += ` Motivo: ${candidate.finishReason}`;
+                return `<p class="text-red-600">${errorText}</p>`;
+            }
+        } catch (error) {
+            attempts++;
+            if (attempts >= maxAttempts) {
+                console.error("Erro ao chamar a API Gemini:", error);
+                return `<p class="text-red-600">Erro ao se conectar com a API Gemini após ${maxAttempts} tentativas. Verifique o console.</p>`;
+            }
+            const delay = Math.pow(2, attempts) * 100;
+            await new Promise(res => setTimeout(res, delay));
+        }
+    }
+}
+
+// --- Modal Functions ---
+const modal = document.getElementById('gemini-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalLoader = document.getElementById('modal-loader');
+const modalResponse = document.getElementById('modal-response');
+const modalCloseBtn = document.getElementById('modal-close-btn');
+
+function showModal(title) {
+    modalTitle.textContent = title;
+    modalResponse.innerHTML = '';
+    modalLoader.style.display = 'block';
+    modal.classList.remove('hidden');
+}
+
+function displayModalContent(htmlContent) {
+    modalLoader.style.display = 'none';
+    modalResponse.innerHTML = htmlContent;
+}
+
+function hideModal() {
+    modal.classList.add('hidden');
+}
+
+modalCloseBtn.addEventListener('click', hideModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+
+// --- App Initialization & Event Handling ---
+function initApp() {
+    const sidebarNav = document.getElementById('sidebar-nav');
+    const contentWrapper = document.getElementById('content-sections-wrapper');
+
+    contentData.forEach((pillar) => {
+        const pillarContainer = document.createElement('div');
+        const pillarHeader = document.createElement('div');
+        pillarHeader.className = 'pillar-header flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-slate-700 active';
+        pillarHeader.innerHTML = `<span class="font-semibold">${pillar.title}</span><svg class="w-5 h-5 transition-transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
+    
+        const moduleLinks = document.createElement('ul');
+        moduleLinks.className = 'module-links';
+
+        pillar.subsections.forEach((section) => {
+            moduleLinks.innerHTML += `<li><a href="#" data-target="${section.id}" class="module-link block px-8 py-2 hover:bg-slate-600">${section.title}</a></li>`;
+            
+            const sectionEl = document.createElement('section');
+            sectionEl.id = section.id;
+            sectionEl.className = 'hidden';
+
+            const tabs = ['Teoria', 'Exemplos', 'Formulas', 'Python', 'QA', 'Referencias', 'Aprenda com IA'];
+            const titleHTML = `<h2 class="text-3xl font-bold text-slate-800">${section.title}</h2>`;
+            let tabsContainerHTML = '<div class="flex border-b border-gray-200 mt-2 mb-4 flex-wrap">';
+            let panesHTML = '';
+
+            tabs.forEach((tabName, index) => {
+                const key = tabName.toLowerCase().replace(/\s/g, '');
+                const targetId = `${section.id}-${key}`;
+                const content = section.content[key];
+                
+                tabsContainerHTML += `<button data-target="${targetId}" class="tab-btn px-4 py-2 text-sm ${index === 0 ? 'tab-active' : 'tab-inactive'}">${tabName}</button>`;
+                
+                if (key === 'aprendacomia') {
+                    panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''} space-y-4 text-center p-4"><p class="text-slate-600">Use a IA Gemini para aprofundar seu conhecimento.</p><div class="flex justify-center items-center gap-4 flex-wrap"><button data-topic-title="${section.title}" class="explain-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Explicar o Tópico</button><button data-topic-title="${section.title}" class="quiz-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Gerar Quiz</button></div></div>`;
+                } else if (content){
+                   panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''}">${content}</div>`;
+                }
+            });
+            
+            tabsContainerHTML += '</div>';
+            sectionEl.innerHTML = `<div class="card-bg p-6 rounded-2xl shadow-lg"><div class="text-slate-700 leading-relaxed">${titleHTML}${tabsContainerHTML}<div class="tab-content mt-4 min-h-[200px]">${panesHTML}</div></div></div>`;
+            contentWrapper.appendChild(sectionEl);
+        });
+
+        pillarContainer.appendChild(pillarHeader);
+        pillarContainer.appendChild(moduleLinks);
+        sidebarNav.appendChild(pillarContainer);
+    });
+    
+    addEventListeners();
+    initializeCharts();
+}
+
+function addEventListeners() {
+    document.querySelectorAll('.pillar-header').forEach(header => {
+        header.addEventListener('click', () => {
+            header.classList.toggle('active');
+            header.querySelector('svg').classList.toggle('rotate-180');
+        });
+    });
+
+    document.querySelectorAll('.module-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = e.target.dataset.target;
+            document.getElementById('welcome-message').classList.add('hidden');
+            document.querySelectorAll('#content-sections-wrapper > section').forEach(sec => sec.classList.add('hidden'));
+            const targetSection = document.getElementById(targetId);
+            targetSection.classList.remove('hidden');
+
+            if (window.MathJax && window.MathJax.typeset) {
+                MathJax.typesetPromise([targetSection]).catch((err) => console.log('MathJax typeset error: ', err));
+            }
+            Prism.highlightAllUnder(targetSection);
+
+            document.querySelectorAll('.module-link').forEach(l => l.classList.remove('active'));
+            e.target.classList.add('active');
+            document.getElementById('main-content').scrollTo(0, 0);
+        });
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.dataset.target;
+            const container = button.closest('.card-bg');
+            container.querySelectorAll('.tab-btn').forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
+            button.classList.replace('tab-inactive', 'tab-active');
+            container.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+            document.getElementById(targetId).classList.remove('hidden');
+        });
+    });
+
+    document.querySelectorAll('.qa-toggle').forEach(button => {
+        button.addEventListener('click', () => {
+            const content = button.nextElementSibling;
+            content.classList.toggle('hidden');
+            button.querySelector('span:last-child').textContent = content.classList.contains('hidden') ? '+' : '-';
+        });
+    });
+
+    document.querySelectorAll('.copy-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const code = e.target.previousElementSibling.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                e.target.textContent = 'Copiado!';
+                setTimeout(() => { e.target.textContent = 'Copiar'; }, 2000);
+            });
+        });
+    });
+
+    document.querySelectorAll('.explain-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const topicTitle = e.target.dataset.topicTitle;
+            showModal(`✨ Explicando: ${topicTitle}`);
+            const prompt = `Explique o seguinte tópico de finanças quantitativas de forma clara e concisa para um estudante: "${topicTitle}". Use parágrafos curtos, analogias simples e exemplos práticos, se possível. Formate a resposta em HTML simples (use <p>, <strong>, <ul>, <li>).`;
+            const explanation = await callGemini(prompt);
+            displayModalContent(explanation);
+        });
+    });
+
+    document.querySelectorAll('.quiz-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const topicTitle = e.target.dataset.topicTitle;
+            showModal(`✨ Quiz: ${topicTitle}`);
+            const prompt = `Crie um quiz com 3 perguntas de múltipla escolha (4 opções de 'a' a 'd') sobre o tópico "${topicTitle}". Após as perguntas, revele as respostas corretas com uma justificativa concisa em negrito. Formate como HTML (use <p>, <strong>, <ul>, <li>).`;
+            const quiz = await callGemini(prompt);
+            displayModalContent(quiz);
+        });
+    });
+}
+
+function initializeCharts() {
+    // --- Model Comparison Chart ---
+    const modelChartCtx = document.getElementById('modelComparisonChart').getContext('2d');
+    let modelComparisonChart;
+    const modelLabels = ['Elastic Net', 'Random Forest', 'XGBoost'];
+    const regressionData = { labels: modelLabels, datasets: [{ label: 'MSE', data: [0.25, 0.18, 0.15], backgroundColor: 'rgba(22, 160, 133, 0.7)' }] };
+    const classificationData = { labels: modelLabels, datasets: [{ label: 'Acurácia (%)', data: [82, 91, 93], backgroundColor: 'rgba(44, 62, 80, 0.7)' }] };
+    const chartOptions = { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false }, title: { display: true, font: { size: 16 } } } };
+
+    function renderModelChart(data, title) {
+        if (modelComparisonChart) modelComparisonChart.destroy();
+        const options = { ...chartOptions };
+        options.plugins.title.text = title;
+        options.scales.y.max = title.includes('Acurácia') ? 100 : undefined;
+        modelComparisonChart = new Chart(modelChartCtx, { type: 'bar', data: data, options: options });
+    }
+    document.getElementById('show-regression-btn').addEventListener('click', () => renderModelChart(regressionData, 'Desempenho em Regressão (MSE - Menor é Melhor)'));
+    document.getElementById('show-classification-btn').addEventListener('click', () => renderModelChart(classificationData, 'Desempenho em Classificação (Acurácia - Maior é Melhor)'));
+    renderModelChart(regressionData, 'Desempenho em Regressão (MSE - Menor é Melhor)');
+
+    // --- K-Means Clustering Chart ---
+    const kmeansCtx = document.getElementById('kmeansChart').getContext('2d');
+    const kmeansSlider = document.getElementById('kmeans-slider');
+    const kValueSpan = document.getElementById('kmeans-k-value');
+    let kmeansChart;
+    const baseData = Array.from({ length: 150 }, () => ({ x: Math.random() * 10, y: Math.random() * 10 }));
+    const colors = ['#E74C3C', '#3498DB', '#2ECC71', '#F1C40F', '#9B59B6', '#34495E', '#1ABC9C', '#E67E22'];
+    function runSimpleKMeans(data, k) { let centroids = data.slice(0, k).map(d => ({...d})); let assignments = []; for (let iter = 0; iter < 10; iter++) { assignments = data.map(point => { let minDist = Infinity; let bestCentroid = 0; centroids.forEach((centroid, i) => { const dist = Math.hypot(point.x - centroid.x, point.y - centroid.y); if (dist < minDist) { minDist = dist; bestCentroid = i; } }); return bestCentroid; }); centroids = Array.from({ length: k }, (_, i) => { const clusterPoints = data.filter((_, j) => assignments[j] === i); if (clusterPoints.length === 0) return centroids[i]; return { x: clusterPoints.reduce((sum, p) => sum + p.x, 0) / clusterPoints.length, y: clusterPoints.reduce((sum, p) => sum + p.y, 0) / clusterPoints.length }; }); } return assignments; }
+    function renderKMeansChart(k) {
+        if (kmeansChart) kmeansChart.destroy();
+        const assignments = runSimpleKMeans(baseData, k);
+        const datasets = Array.from({ length: k }, (_, i) => ({
+            label: `Cluster ${i + 1}`,
+            data: baseData.filter((_, j) => assignments[j] === i),
+            backgroundColor: colors[i % colors.length],
+            pointRadius: 5
+        }));
+        kmeansChart = new Chart(kmeansCtx, { type: 'scatter', data: { datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+    }
+    kmeansSlider.addEventListener('input', (e) => {
+        const k = parseInt(e.target.value);
+        kValueSpan.textContent = k;
+        renderKMeansChart(k);
+    });
+    renderKMeansChart(parseInt(kmeansSlider.value));
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
+

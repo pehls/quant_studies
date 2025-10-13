@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teoria dos Valores Extremos (EVT) em Gestão de Risco</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    
+    <!-- Prism.js for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <!-- Chart.js for interactive plots -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #d1d5db; }
+        .content-page { @apply bg-gray-800 p-6 md:p-8 rounded-2xl shadow-lg; }
+        h1, h2, h3 { @apply text-white font-bold tracking-tight; }
+        h1 { @apply text-4xl md:text-5xl mb-4; }
+        h2 { @apply text-3xl border-b-2 border-cyan-500 pb-2 mb-6 mt-8; }
+        h3 { @apply text-2xl mb-4 mt-6; }
+        p, li { @apply text-lg leading-relaxed text-gray-300; }
+        a { @apply text-cyan-400 hover:text-cyan-300 transition-colors; }
+        pre[class*="language-"] { @apply rounded-xl text-sm; }
+        .gemini-analysis { @apply bg-gradient-to-r from-gray-700 to-gray-800 border-l-4 border-purple-500 p-6 rounded-lg my-6 shadow-inner; }
+        .gemini-analysis h4 { @apply text-xl font-semibold text-purple-300 mb-2 flex items-center; }
+        .gemini-analysis p { @apply text-base text-gray-200; }
+        .katex-display { overflow-x: auto; overflow-y: hidden; }
+        .katex { font-size: 1.1em !important; }
+        table { @apply w-full text-left border-collapse my-6; }
+        th, td { @apply p-3 border border-gray-600; }
+        th { @apply bg-gray-700 text-white font-semibold; }
+        .active-link { @apply bg-cyan-500 text-white shadow-md; }
+        .gemini-btn { @apply bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors; }
+        .gemini-result-container { @apply bg-gray-900/50 p-4 rounded-lg mt-4 border border-gray-700; }
+        .loader { @apply w-8 h-8 border-4 border-dashed rounded-full animate-spin border-cyan-400 mx-auto; }
+        
+        @media print {
+            body { background-color: white; color: black; }
+            #sidebar, #menu-toggle, .gemini-btn, #export-menu { display: none; }
+            main { padding: 0; }
+            .content-page { display: block !important; box-shadow: none; border-radius: 0; margin-bottom: 2rem; page-break-before: always; }
+            .content-page:first-child { page-break-before: auto; }
+            h1, h2, h3, p, li { color: black; }
+            h2 { border-color: #ccc; }
+            pre[class*="language-"] { background-color: #f5f5f5 !important; color: black !important; border: 1px solid #ccc; white-space: pre-wrap; word-wrap: break-word; }
+            .gemini-analysis { background: #eef2ff !important; border-color: #8b5cf6 !important; }
+            canvas { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="relative min-h-screen md:flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-gray-800 text-gray-100 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-20 flex flex-col justify-between">
+            <div>
+                <a href="#" class="text-white flex items-center space-x-2 px-4">
+                    <svg class="w-8 h-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>
+                    <span class="text-2xl font-extrabold">EVT Quant</span>
+                </a>
+                <nav class="mt-6">
+                    <a href="#" data-target="intro" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Introdução</a>
+                    <a href="#" data-target="gev" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Modelo GEV</a>
+                    <a href="#" data-target="gpd" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Modelo GPD (POT)</a>
+                    <a href="#" data-target="risk" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Cálculo de Risco</a>
+                    <a href="#" data-target="project" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Projeto Final: VIX</a>
+                    <a href="#" data-target="references" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Referências</a>
+                </nav>
+            </div>
+            <div class="px-4 pb-4">
+                <div class="relative">
+                    <button id="export-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                        Exportar Conteúdo
+                    </button>
+                    <div id="export-menu" class="absolute bottom-full mb-2 w-full bg-gray-600 rounded-lg shadow-lg hidden">
+                        <a href="#" id="export-pdf" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-t-lg">Exportar para PDF</a>
+                        <a href="#" id="export-md" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-b-lg">Exportar para Markdown</a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 p-6 md:p-10">
+            <div id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-30">
+                <button id="menu-toggle" class="text-white bg-gray-800 p-2 rounded-md focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            
+            <section id="intro" class="content-page">
+                <header class="text-center mb-12">
+                    <h1 class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Teoria dos Valores Extremos (EVT)</h1>
+                    <p class="text-xl text-gray-400 mt-2">Modelando o Risco de Cauda em Finanças</p>
+                </header>
+                <p>A história dos mercados financeiros é marcada por eventos súbitos e violentos que desafiam a explicação estatística convencional. A falha central dos modelos de risco tradicionais reside em sua suposição fundamental de uma distribuição normal (Gaussiana). Os dados financeiros do mundo real, no entanto, são caracterizados por **leptocurtose**, ou "caudas gordas", o que significa que resultados extremos são muito mais prováveis do que um modelo Gaussiano sugeriria.</p>
+                <p class="mt-4">É aqui que entra a <strong>Teoria dos Valores Extremos (EVT)</strong>. A EVT é um ramo da estatística que fornece um framework dedicado e baseado em princípios para analisar o comportamento de valores extremos, em vez de focar na tendência central de uma distribuição. Ela oferece um conjunto de ferramentas para modelar a cauda de uma distribuição diretamente, permitindo uma avaliação mais precisa da probabilidade e magnitude de eventos raros.</p>
+                <div class="my-6"><canvas id="introChart" height="200"></canvas></div>
+            </section>
+
+            <section id="gev" class="content-page hidden">
+                <h2>Modelando Máximos de Bloco com a Distribuição de Valores Extremos Generalizada (GEV)</h2>
+                <p>O método de <strong>Máximos de Bloco (BM)</strong> é a abordagem clássica na EVT. O procedimento envolve particionar uma série temporal em blocos não sobrepostos de tamanho igual (por exemplo, anos) e coletar a observação máxima de cada bloco. Assume-se então que esses máximos de bloco seguem uma Distribuição de Valores Extremos Generalizada (GEV).</p>
+                <p class="mt-4">A distribuição GEV unifica as famílias Gumbel, Fréchet e Weibull em uma única forma paramétrica, governada por um parâmetro de forma, $\xi$. Para retornos de ativos financeiros, esperamos encontrar $\xi > 0$, indicando uma distribuição do tipo Fréchet com caudas pesadas.</p>
+
+                <h3>Exemplo em Python: Ajustando uma GEV às Perdas Máximas Anuais do S&P 500</h3>
+                <pre><code class="language-python" id="code-gev">
+import yfinance as yf
+import numpy as np
+import pandas as pd
+from scipy.stats import genextreme
+
+# 1. Aquisição e Preparação dos Dados
+sp500_data = yf.download('^GSPC', start='1990-01-01', end='2023-12-31')
+log_returns = np.log(sp500_data['Adj Close'] / sp500_data['Adj Close'].shift(1))
+losses = -log_returns.dropna()
+
+# 2. Extrair Máximos de Bloco (Anual)
+annual_max_losses = losses.resample('Y').max()
+
+# 3. Ajustar a Distribuição GEV aos Máximos de Bloco
+# A função genextreme.fit retorna forma (xi), localização (mu) e escala (sigma)
+xi_gev, mu_gev, sigma_gev = genextreme.fit(annual_max_losses)
+
+print("\nParâmetros GEV Ajustados:")
+print(f"Forma (xi): {xi_gev:.4f}")
+print(f"Localização (mu): {mu_gev:.4f}")
+print(f"Escala (sigma): {sigma_gev:.4f}")
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-gev" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-gev" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="gpd" class="content-page hidden">
+                <h2>Modelando Excedentes de Limiar com a Distribuição de Pareto Generalizada (GPD)</h2>
+                <p>A abordagem de <strong>Picos Acima do Limiar (POT)</strong> é mais moderna e eficiente em termos de dados. Ela utiliza todas as observações que excedem um limiar suficientemente alto, $u$. A teoria justifica que a distribuição desses excedentes converge para uma Distribuição de Pareto Generalizada (GPD).</p>
+                
+                <h3>A Arte e a Ciência da Seleção de Limiar</h3>
+                <p>A etapa mais crítica em qualquer análise POT prática é a seleção do limiar, $u$. Esta escolha incorpora um trade-off fundamental entre viés e variância. Ferramentas gráficas como o <strong>Gráfico de Vida Residual Média (MRL)</strong> e o <strong>Gráfico de Estabilidade de Parâmetros</strong> são usadas para informar esta decisão.</p>
+                
+                <h3>Exemplo em Python: Seleção Interativa de Limiar com `pyextremes`</h3>
+                <pre><code class="language-python" id="code-gpd-selection">
+import yfinance as yf
+import numpy as np
+# A biblioteca pyextremes precisa ser instalada: pip install pyextremes
+from pyextremes import plot_mean_residual_life, plot_parameter_stability
+
+# 1. Obter dados para um ativo volátil (ex: Tesla)
+tsla_data = yf.download('TSLA', start='2015-01-01', end='2023-12-31')
+tsla_log_returns = np.log(tsla_data['Adj Close'] / tsla_data['Adj Close'].shift(1))
+tsla_losses = -tsla_log_returns.dropna()
+
+# 2. Gerar e Interpretar o Gráfico de Vida Residual Média
+# plot_mean_residual_life(tsla_losses)
+
+# 3. Gerar e Interpretar o Gráfico de Estabilidade de Parâmetros
+# plot_parameter_stability(tsla_losses)
+
+# A análise desses gráficos ajuda a escolher um limiar apropriado (ex: 0.04).
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-gpd-selection" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-gpd-selection" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="risk" class="content-page hidden">
+                <h2>Das Distribuições às Decisões: Calculando VaR e Expected Shortfall</h2>
+                <p>O objetivo final de ajustar modelos EVT em finanças é derivar medidas de risco acionáveis. As duas medidas de risco de cauda mais proeminentes são o Value at Risk (VaR) e o Expected Shortfall (ES).</p>
+                <p>Para a abordagem POT, dadas um limiar $u$, o número total de observações $n$, o número de excedentes $N_u$, e os parâmetros GPD ajustados $\hat{\xi}$ e $\hat{\sigma}$, o VaR para um nível de confiança $p$ é:</p>
+                <div class="my-4 text-center">
+                    $VaR_p = u + \frac{\hat{\sigma}}{\hat{\xi}} \left[ \left(\frac{n}{N_u}(1-p)\right)^{-\hat{\xi}} - 1 \right]$
+                </div>
+                <p>O Expected Shortfall correspondente é então calculado como:</p>
+                <div class="my-4 text-center">
+                    $ES_p = \frac{VaR_p}{1-\hat{\xi}} + \frac{\hat{\sigma} - \hat{\xi}u}{1-\hat{\xi}}$
+                </div>
+
+                <h3>Exemplo em Python: Comparando Estimativas de VaR e ES</h3>
+                <pre><code class="language-python" id="code-risk-calc">
+import pandas as pd
+from scipy.stats import norm
+
+# --- Parâmetros de exemplos anteriores ---
+# tsla_losses, threshold, xi_gpd, sigma_gpd, n, Nu
+
+def calculate_gpd_var_es(p, u, xi, sigma, n, Nu):
+    var_p = u + (sigma / xi) * ((((n / Nu) * (1 - p)) ** -xi) - 1)
+    es_p = (var_p / (1 - xi)) + ((sigma - xi * u) / (1 - xi))
+    return var_p, es_p
+
+# --- Comparação com Simulação Histórica e Variância-Covariância ---
+# evt_results = calculate_gpd_var_es(...)
+# hs_results = tsla_losses.quantile(...)
+# norm_results = norm.ppf(...)
+
+# O EVT-GPD produzirá estimativas de VaR e ES significativamente mais altas (mais conservadoras)
+# do que os outros dois métodos, especialmente para níveis de confiança elevados.
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-risk-calc" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-risk-calc" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="project" class="content-page hidden">
+                <h2>Projeto Final: Análise de Risco Extremo do Índice de Volatilidade (VIX)</h2>
+                <p>O VIX, conhecido como o "medidor de medo do investidor", é caracterizado por picos ascendentes súbitos e extremos durante períodos de estresse de mercado. Sua distribuição é altamente não-normal, tornando-o um candidato ideal para análise usando a Teoria dos Valores Extremos.</p>
+                
+                <h3>Análise e Quantificação de Risco Extremo</h3>
+                <p>Neste projeto, realizamos uma análise POT completa das variações percentuais diárias do VIX para quantificar o risco de picos extremos, calculando o VaR e o ES para níveis de confiança muito elevados (99%, 99.5% e 99.9%).</p>
+                <pre><code class="language-python" id="code-project-vix">
+from pyextremes import EVA
+from scipy.stats import genpareto
+
+# --- Aquisição de Dados e Análise Exploratória ---
+# vix_data = yf.download('^VIX', start='2004-01-01', end='today')
+# vix_pct_change = vix_data['Close'].pct_change().dropna()
+
+# --- Análise POT ---
+# threshold = 0.12 # Selecionado a partir de gráficos de diagnóstico
+# vix_model = EVA(vix_pct_change)
+# vix_model.get_extremes(method="POT", threshold=threshold, r="24H", extremes_type="high")
+# exceedances = vix_model.extremes - threshold
+
+# --- Ajuste do GPD e Cálculo de Risco ---
+# xi_gpd_vix, _, sigma_gpd_vix = genpareto.fit(exceedances, floc=0)
+# n = len(vix_pct_change)
+# Nu = len(vix_model.extremes)
+
+# conf_levels = [0.99, 0.995, 0.999]
+# for p in conf_levels:
+#     var_p, es_p = calculate_gpd_var_es(p, threshold, xi_gpd_vix, sigma_gpd_vix, n, Nu)
+#     print(f"VaR {p*100}%: {var_p:.2%}, ES {p*100}%: {es_p:.2%}")
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-project-vix" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-project-vix" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="references" class="content-page hidden">
+                <h2>Referências</h2>
+                <ul class="list-decimal list-inside space-y-2">
+                    <li>Extreme Value Theory in Financial Risk Management - SAPUB</li>
+                    <li>Mastering Extreme Value Theory - Number Analytics</li>
+                    <li>Extreme Value Theory: the Block-Maxima approach and the Peak-Over-Threshold approach - SimTrade</li>
+                    <li>E muitas outras fontes acadêmicas e de praticantes...</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+            
+            const menuLinks = document.querySelectorAll('.nav-link');
+            const contentPages = document.querySelectorAll('.content-page');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const exportBtn = document.getElementById('export-btn');
+            const exportMenu = document.getElementById('export-menu');
+            const exportPdfBtn = document.getElementById('export-pdf');
+            const exportMdBtn = document.getElementById('export-md');
+
+            const showPage = (targetId) => {
+                contentPages.forEach(page => page.classList.add('hidden'));
+                const targetPage = document.getElementById(targetId);
+                if (targetPage) targetPage.classList.remove('hidden');
+                menuLinks.forEach(link => {
+                    link.classList.remove('active-link');
+                    if (link.dataset.target === targetId) link.classList.add('active-link');
+                });
+            };
+
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage(link.dataset.target);
+                    if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                });
+            });
+
+            menuToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+            exportBtn.addEventListener('click', () => exportMenu.classList.toggle('hidden'));
+            
+            document.addEventListener('click', (e) => {
+                if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+                    exportMenu.classList.add('hidden');
+                }
+            });
+
+            showPage('intro');
+
+            // --- Export Logic ---
+            exportPdfBtn.addEventListener('click', (e) => { e.preventDefault(); window.print(); exportMenu.classList.add('hidden'); });
+            exportMdBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                let markdownContent = '';
+                document.querySelectorAll('.content-page').forEach(page => {
+                    Array.from(page.children).forEach(el => {
+                        switch(el.tagName) {
+                            case 'HEADER': markdownContent += `# ${el.querySelector('h1').textContent.trim()}\n\n> ${el.querySelector('p').textContent.trim()}\n\n`; break;
+                            case 'H2': markdownContent += `## ${el.textContent.trim()}\n\n`; break;
+                            case 'H3': markdownContent += `### ${el.textContent.trim()}\n\n`; break;
+                            case 'P': markdownContent += `${el.textContent.trim()}\n\n`; break;
+                            case 'UL': case 'OL': Array.from(el.children).forEach(li => { markdownContent += `* ${li.textContent.trim()}\n`; }); markdownContent += '\n'; break;
+                            case 'PRE': markdownContent += `\`\`\`${el.querySelector('code').className.replace('language-', '')}\n${el.textContent}\n\`\`\`\n\n`; break;
+                            case 'DIV':
+                                if (el.classList.contains('katex-display')) { markdownContent += `$$${el.querySelector('.katex-mathml annotation').textContent}$$\n\n` }
+                                break;
+                        }
+                    });
+                    markdownContent += '---\n\n';
+                });
+                const blob = new Blob([markdownContent], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'teoria_valores_extremos.md';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                exportMenu.classList.add('hidden');
+            });
+
+            // --- Gemini API Logic ---
+            const geminiButtons = document.querySelectorAll('.gemini-btn');
+            async function callGemini(prompt, resultContainer, button) {
+                button.disabled = true;
+                resultContainer.innerHTML = '<div class="loader"></div>';
+                resultContainer.classList.remove('hidden');
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        resultContainer.innerHTML = `<pre class="whitespace-pre-wrap text-base font-sans">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
+                    } else {
+                        resultContainer.innerHTML = '<p class="text-red-400">Não foi possível obter uma resposta da IA.</p>';
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    resultContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro ao chamar a API: ${error.message}.</p>`;
+                } finally {
+                    button.disabled = false;
+                }
+            }
+            geminiButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const type = button.dataset.type;
+                    const contentElement = document.getElementById(targetId);
+                    const resultContent = contentElement.textContent;
+                    const resultContainer = document.getElementById(`result-${targetId}`);
+                    let prompt = `Explique o seguinte código Python, linha por linha, de forma clara para um estudante de finanças quantitativas. Foque na intuição por trás de cada passo. Responda em português do Brasil.\n\n\`\`\`python\n${resultContent}\n\`\`\``;
+                    if (prompt) callGemini(prompt, resultContainer, button);
+                });
+            });
+
+            // --- Charting Logic ---
+            const generateRandomData = (numPoints, mean, stdDev, fatness=1) => Array.from({length: numPoints}, () => mean + (Math.random() - 0.5) * 2 * stdDev * Math.pow(Math.random(), -1/fatness));
+            
+            // Intro Chart
+            const ctxIntro = document.getElementById('introChart').getContext('2d');
+            const returnsData = generateRandomData(1000, 0, 0.01, 3);
+            const x_norm = Array.from({length: 100}, (_, i) => -0.05 + i * 0.001);
+            const y_norm = x_norm.map(x => (1 / (0.01 * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow(x / 0.01, 2)));
+            
+            const createHistogramData = (data, numBins) => {
+                const min = Math.min(...data);
+                const max = Math.max(...data);
+                const binWidth = (max - min) / numBins;
+                const labels = [];
+                const counts = Array(numBins).fill(0);
+                for (let i = 0; i < numBins; i++) {
+                    labels.push(min + i * binWidth);
+                }
+                for (const value of data) {
+                    let binIndex = Math.floor((value - min) / binWidth);
+                    if (binIndex === numBins) binIndex--;
+                    if(binIndex >= 0 && binIndex < numBins) counts[binIndex]++;
+                }
+                const density = counts.map(c => c / (data.length * binWidth));
+                return { labels, density };
+            };
+            const histData = createHistogramData(returnsData.filter(r => r > -0.05 && r < 0.05), 100);
+
+            new Chart(ctxIntro, {
+                type: 'bar',
+                data: {
+                    labels: histData.labels.map(l => l.toFixed(3)),
+                    datasets: [{
+                        label: 'Retornos S&P 500',
+                        data: histData.density,
+                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0
+                    }, {
+                        type: 'line',
+                        label: 'Distribuição Normal Ajustada',
+                        data: y_norm.map((y, i) => ({x: x_norm[i], y: y})),
+                        borderColor: 'rgb(239, 68, 68)',
+                        tension: 0.1,
+                        pointRadius: 0
+                    }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: "Retornos Diários vs. Distribuição Normal", color: 'white' } }, scales: { x: { ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} }, y: { title: { display: true, text: "Densidade", color: 'white' }, ticks:{color:'white'}, grid:{color:'rgba(255,255,255,0.1)'} } } }
+            });
+        });
+    </script>
+</body>
+</html>

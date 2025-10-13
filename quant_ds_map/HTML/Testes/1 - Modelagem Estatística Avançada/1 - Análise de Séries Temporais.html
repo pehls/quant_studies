@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Séries Temporais: Modelos ARIMA e GARCH</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    
+    <!-- Prism.js for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <!-- Chart.js for interactive plots -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #d1d5db; }
+        .content-page { @apply bg-gray-800 p-6 md:p-8 rounded-2xl shadow-lg; }
+        h1, h2, h3 { @apply text-white font-bold tracking-tight; }
+        h1 { @apply text-4xl md:text-5xl mb-4; }
+        h2 { @apply text-3xl border-b-2 border-cyan-500 pb-2 mb-6 mt-8; }
+        h3 { @apply text-2xl mb-4 mt-6; }
+        p, li { @apply text-lg leading-relaxed text-gray-300; }
+        a { @apply text-cyan-400 hover:text-cyan-300 transition-colors; }
+        pre[class*="language-"] { @apply rounded-xl text-sm; }
+        .gemini-analysis { @apply bg-gradient-to-r from-gray-700 to-gray-800 border-l-4 border-purple-500 p-6 rounded-lg my-6 shadow-inner; }
+        .gemini-analysis h4 { @apply text-xl font-semibold text-purple-300 mb-2 flex items-center; }
+        .gemini-analysis p { @apply text-base text-gray-200; }
+        .katex { font-size: 1.1em !important; }
+        table { @apply w-full text-left border-collapse my-6; }
+        th, td { @apply p-3 border border-gray-600; }
+        th { @apply bg-gray-700 text-white font-semibold; }
+        .active-link { @apply bg-cyan-500 text-white shadow-md; }
+        .gemini-btn { @apply bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors; }
+        .gemini-result-container { @apply bg-gray-900/50 p-4 rounded-lg mt-4 border border-gray-700; }
+        .loader { @apply w-8 h-8 border-4 border-dashed rounded-full animate-spin border-cyan-400 mx-auto; }
+        
+        @media print {
+            body { background-color: white; color: black; }
+            #sidebar, #menu-toggle, .gemini-btn, #export-menu { display: none; }
+            main { padding: 0; }
+            .content-page { display: block !important; box-shadow: none; border-radius: 0; margin-bottom: 2rem; page-break-before: always; }
+            .content-page:first-child { page-break-before: auto; }
+            h1, h2, h3, p, li { color: black; }
+            h2 { border-color: #ccc; }
+            pre[class*="language-"] { background-color: #f5f5f5 !important; color: black !important; border: 1px solid #ccc; white-space: pre-wrap; word-wrap: break-word; }
+            .gemini-analysis { background: #eef2ff !important; border-color: #8b5cf6 !important; }
+            canvas { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="relative min-h-screen md:flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-gray-800 text-gray-100 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-20 flex flex-col justify-between">
+            <div>
+                <a href="#" class="text-white flex items-center space-x-2 px-4">
+                    <svg class="w-8 h-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" /></svg>
+                    <span class="text-2xl font-extrabold">Finanças Quant</span>
+                </a>
+                <nav class="mt-6">
+                    <a href="#" data-target="intro" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Introdução</a>
+                    <a href="#" data-target="stationarity" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Estacionariedade</a>
+                    <a href="#" data-target="arima" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Modelo ARIMA</a>
+                    <a href="#" data-target="volatility" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Volatilidade</a>
+                    <a href="#" data-target="garch" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Modelo GARCH</a>
+                    <a href="#" data-target="project" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Projeto Final: VaR</a>
+                    <a href="#" data-target="references" class="nav-link block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">Referências</a>
+                </nav>
+            </div>
+            <div class="px-4 pb-4">
+                <div class="relative">
+                    <button id="export-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                        Exportar Conteúdo
+                    </button>
+                    <div id="export-menu" class="absolute bottom-full mb-2 w-full bg-gray-600 rounded-lg shadow-lg hidden">
+                        <a href="#" id="export-pdf" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-t-lg">Exportar para PDF</a>
+                        <a href="#" id="export-md" class="block px-4 py-2 text-white hover:bg-gray-500 rounded-b-lg">Exportar para Markdown</a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 p-6 md:p-10">
+            <div id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-30">
+                <button id="menu-toggle" class="text-white bg-gray-800 p-2 rounded-md focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            
+            <section id="intro" class="content-page">
+                <header class="text-center mb-12">
+                    <h1 class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Análise de Séries Temporais Financeiras</h1>
+                    <p class="text-xl text-gray-400 mt-2">Um Guia Completo para Modelos ARIMA e GARCH</p>
+                </header>
+                <p>Este guia serve como uma introdução abrangente a duas das classes de modelos mais fundamentais em finanças quantitativas: <strong>ARIMA</strong> e <strong>GARCH</strong>. Agora, com a integração da API do Gemini, você pode ir além da leitura e interagir com o conteúdo de forma inteligente.</p>
+                <div class="gemini-analysis mt-8">
+                    <h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-6 w-6"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/><path d="m15.6 9.9-1.1 2.2-2.2 1.1-2.2 1.1-1.1 2.2"/><path d="m8.4 14.1 1.1-2.2 2.2-1.1 2.2-1.1 1.1-2.2"/></svg>Novos Recursos com IA</h4>
+                    <p>Em cada seção, você encontrará botões "✨" que ativam a IA para:</p>
+                    <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                        <li><strong>Explicar Códigos:</strong> Obtenha uma análise detalhada de qualquer bloco de código Python.</li>
+                        <li><strong>Interpretar Resultados:</strong> Entenda o que os sumários estatísticos dos modelos realmente significam.</li>
+                    </ul>
+                    <p class="mt-2">Explore as seções e experimente os novos recursos para aprofundar seu aprendizado!</p>
+                </div>
+            </section>
+
+            <section id="stationarity" class="content-page hidden">
+                <h2>A Natureza das Séries Temporais Financeiras: Estacionariedade</h2>
+                <p>Séries temporais financeiras, como preços de ações, não são sequências aleatórias simples. Elas possuem propriedades estatísticas bem documentadas que as distinguem. Entender esses "fatos estilizados" é o primeiro passo para construir modelos quantitativos eficazes.</p>
+                
+                <h3>Python na Prática: Testando a Estacionariedade</h3>
+                <p>Os testes estatísticos formais, como o Augmented Dickey-Fuller (ADF) e o Kwiatkowski-Phillips-Schmidt-Shin (KPSS), são usados para validar se a estacionariedade foi alcançada.</p>
+                
+                <div class="my-6"><canvas id="stationarityChart" height="200"></canvas></div>
+                
+                <pre><code class="language-python" id="code-stationarity">
+# Código para baixar dados do S&P 500 e testar a estacionariedade
+import pandas as pd
+import numpy as np
+import yfinance as yf
+from statsmodels.tsa.stattools import adfuller, kpss
+
+# Baixar dados do S&P 500 (SPY)
+spy_data = yf.download('SPY', start='2010-01-01', end='2023-12-31')
+prices = spy_data['Adj Close'].dropna()
+returns = np.log(prices).diff().dropna()
+
+# --- Testes de Estacionariedade ---
+def run_stationarity_tests(series, series_name):
+    print(f"--- Testes de Estacionariedade para {series_name} ---")
+    
+    # Teste ADF
+    adf_result = adfuller(series)
+    print(f'Estatística ADF: {adf_result[0]:.4f}')
+    print(f'p-valor: {adf_result[1]:.4f}')
+    print('Conclusão ADF: Série provavelmente NÃO-ESTACIONÁRIA' if adf_result[1] > 0.05 else 'Conclusão ADF: Série provavelmente ESTACIONÁRIA')
+    
+    print("\n")
+    
+    # Teste KPSS
+    kpss_result = kpss(series, regression='c', nlags="auto")
+    print(f'Estatística KPSS: {kpss_result[0]:.4f}')
+    print(f'p-valor: {kpss_result[1]:.4f}')
+    print('Conclusão KPSS: Série provavelmente NÃO-ESTACIONÁRIA' if kpss_result[1] < 0.05 else 'Conclusão KPSS: Série provavelmente ESTACIONÁRIA')
+    print("-" * 40 + "\n")
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-stationarity" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-stationarity" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+            
+            <section id="arima" class="content-page hidden">
+                <h2>Modelando a Média: A Estrutura ARIMA</h2>
+                <p>A construção de um modelo ARIMA eficaz segue o processo estruturado e iterativo de Box-Jenkins.</p>
+                
+                <div class="my-6"><canvas id="acfPacfChart" height="200"></canvas></div>
+
+                <pre><code class="language-python" id="code-arima">
+# Código para construir um modelo ARIMA
+import pmdarima as pmd
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.stats.diagnostic import acorr_ljungbox
+
+# returns = ... (usando a série de retornos da seção anterior)
+
+# Usar auto_arima para encontrar a melhor ordem (p,q) automaticamente
+auto_model = pmd.auto_arima(returns, 
+                            start_p=1, start_q=1,
+                            test='adf', max_p=5, max_q=5, m=1,              
+                            d=0, seasonal=False, trace=True,
+                            error_action='ignore', suppress_warnings=True, 
+                            stepwise=True)
+
+print(auto_model.summary())
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-arima" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-arima" class="gemini-result-container mt-4 hidden"></div>
+                
+                <h3>Interpretando os Resultados do Modelo</h3>
+                <pre><code class="language-text" id="summary-arima">
+                               SARIMAX Results                                
+==============================================================================
+Dep. Variable:                      y   No. Observations:                 3522
+Model:               SARIMAX(2, 0, 2)   Log Likelihood                -4811.132
+Date:                Mon, 26 Aug 2024   AIC                           9634.264
+Time:                        02:45:05   BIC                           9671.219
+Sample:                             0   HQIC                          9647.423
+                               - 3522                                         
+Covariance Type:                  opg                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+intercept      0.0610      0.017      3.504      0.000       0.027       0.095
+ar.L1         -0.0053      0.132     -0.040      0.968      -0.264       0.253
+ar.L2         -0.8409      0.122     -6.877      0.000      -1.080      -0.601
+ma.L1          0.0076      0.133      0.057      0.954      -0.253       0.268
+ma.L2          0.8524      0.122      6.979      0.000       0.613       1.092
+sigma2         0.9429      0.012     76.483      0.000       0.919       0.967
+===================================================================================
+Ljung-Box (L1) (Q):                   0.00   Jarque-Bera (JB):              6048.92
+Prob(Q):                              0.96   Prob(JB):                         0.00
+Heteroskedasticity (H):               0.64   Skew:                            -0.56
+Prob(H) (two-sided):                  0.00   Kurtosis:                         8.93
+===================================================================================
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="summary-arima" data-type="interpret-results">✨ Interpretar Resultados com IA</button>
+                </div>
+                <div id="result-summary-arima" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="volatility" class="content-page hidden">
+                <h2>O Elefante na Sala: Agrupamento de Volatilidade</h2>
+                <p>A descoberta de autocorrelação significativa nos <em>resíduos quadrados</em> de um modelo ARIMA bem especificado invalida a estrutura simples do ARIMA para finanças e necessita da introdução do GARCH.</p>
+                
+                <div class="my-6"><canvas id="volatilityChart" height="200"></canvas></div>
+
+                <pre><code class="language-python" id="code-volatility">
+# Código para visualizar o agrupamento de volatilidade
+# squared_returns = returns**2
+
+# Plotar retornos e retornos quadrados
+# ... código de plotagem ...
+
+# Teste estatístico
+# Usar resíduos do modelo auto_arima ajustado anteriormente
+# residuals = auto_model.resid()
+# squared_residuals = residuals**2
+
+# Realizar o teste de Ljung-Box nos resíduos quadrados
+# ljung_box_squared_result = acorr_ljungbox(squared_residuals, lags=[10], return_df=True)
+# print("\nTeste de Ljung-Box nos Resíduos QUADRADOS:")
+# print(ljung_box_squared_result)
+# Um p-valor baixo indica a presença de efeitos ARCH.
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-volatility" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-volatility" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="garch" class="content-page hidden">
+                <h2>Modelando a Volatilidade: A Família GARCH</h2>
+                <p>O modelo GJR-GARCH é frequentemente preferido para ações, pois captura o "efeito alavancagem" - a tendência da volatilidade aumentar mais após notícias ruins do que após boas notícias.</p>
+                <pre><code class="language-python" id="code-garch">
+# Código para ajustar modelos GARCH
+from arch import arch_model
+
+# Usar os resíduos do modelo ARIMA 
+# Multiplicar por 100 para ajudar na convergência do otimizador
+# garch_data = returns * 100
+
+# Ajustar o modelo GJR-GARCH(1,1)
+# o=1 ativa o termo assimétrico
+# gjr_model = arch_model(garch_data, vol='Garch', p=1, o=1, q=1, dist='t')
+# gjr_result = gjr_model.fit(disp='off')
+# print("\n--- Resultados do GJR-GARCH(1,1) ---")
+# print(gjr_result.summary())
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-garch" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-garch" class="gemini-result-container mt-4 hidden"></div>
+                
+                <h3>Interpretando os Resultados do Modelo GARCH</h3>
+                 <pre><code class="language-text" id="summary-garch">
+ T-Student GJR-GARCH(1, 1, 1) Model Results                        
+==================================================================================
+Dep. Variable:                          y   R-squared:                       0.000
+Mean Model:                    Constant Mean   Adj. R-squared:                  0.000
+Vol Model:              GJR-GARCH(1, 1, 1)   Log-Likelihood:               -4885.25
+Distribution:                      T-Student   AIC:                           9780.50
+Method:                  Maximum Likelihood   BIC:                           9811.23
+==================================================================================
+                                   coef    std err          t      P>|t|    
+----------------------------------------------------------------------------------
+mu                                 0.0819  1.597e-02      5.130  2.905e-07
+omega                              0.0165  4.067e-03      4.053  5.059e-05
+alpha[1]                           0.0000  2.045e-02      0.000      1.000
+gamma[1]                           0.1557  2.249e-02      6.923  4.423e-12
+beta[1]                            0.9029  1.448e-02     62.348      0.000
+nu                                 6.5709      0.548     11.984  2.593e-33
+==================================================================================
+                </code></pre>
+                <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="summary-garch" data-type="interpret-results">✨ Interpretar Resultados com IA</button>
+                </div>
+                <div id="result-summary-garch" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="project" class="content-page hidden">
+                <h2>Projeto Final: Gestão de Risco Dinâmica com VaR Baseado em GARCH</h2>
+                <p>Este projeto sintetiza todos os conceitos para construir e avaliar uma ferramenta prática de gerenciamento de risco. O objetivo é construir, prever e fazer o backtest de um modelo dinâmico de <strong>Value at Risk (VaR) de 1 dia e 99%</strong> para o índice S&P 500.</p>
+                
+                <div class="my-8"><canvas id="varBacktestChart" height="250"></canvas></div>
+
+                <pre><code class="language-python" id="code-project">
+# Código para o projeto de VaR
+# (Este é um resumo conceitual, o código completo é mais extenso)
+from scipy.stats import chi2
+
+# Carregar dados e definir divisões de treino/teste
+# data = yf.download('SPY', start='2010-01-01', end='2023-12-31')['Adj Close']
+# returns = 100 * np.log(data).diff().dropna()
+# test_data = returns['2021-01-01':]
+
+# Parâmetros
+window_size = 1000
+var_level = 99
+forecasts = []
+
+# Loop de validação walk-forward (simplificado)
+# for i in range(len(test_data)):
+#     current_window = returns.iloc[i : i + window_size]
+#     model = arch_model(current_window, vol='Garch', p=1, o=1, q=1, dist='t')
+#     res = model.fit(disp='off')
+#     forecast = res.forecast(horizon=1)
+#     mu = forecast.mean.iloc[-1, 0]
+#     sigma = np.sqrt(forecast.variance.iloc[-1, 0])
+#     q = res.distribution.ppf(1 - (var_level / 100.0))
+#     var_forecast = mu + sigma * q
+#     forecasts.append(var_forecast)
+
+# Identificar exceções e realizar o Teste POF de Kupiec
+# ...
+                </code></pre>
+                 <div class="mt-4 flex justify-end">
+                    <button class="gemini-btn" data-target="code-project" data-type="explain-code">✨ Explicar este código com IA</button>
+                </div>
+                <div id="result-code-project" class="gemini-result-container mt-4 hidden"></div>
+            </section>
+
+            <section id="references" class="content-page hidden">
+                <h2>Referências</h2>
+                <ul class="list-decimal list-inside space-y-2">
+                    <li>Time-Series Analysis | CFA Institute</li>
+                    <li>The Ultimate Guide to Time Series Finance - Number Analytics</li>
+                    <li>Beginner's Guide to Time Series Analysis | QuantStart</li>
+                    <li>ARIMA-GARCH Model(Part 1) - TEJ</li>
+                    <li>VaR: Value at Risk: Estimating VaR with GARCH | FasterCapital</li>
+                    <li>E muitas outras fontes acadêmicas e de praticantes...</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+            
+            const menuLinks = document.querySelectorAll('.nav-link');
+            const contentPages = document.querySelectorAll('.content-page');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const exportBtn = document.getElementById('export-btn');
+            const exportMenu = document.getElementById('export-menu');
+            const exportPdfBtn = document.getElementById('export-pdf');
+            const exportMdBtn = document.getElementById('export-md');
+
+            const showPage = (targetId) => {
+                contentPages.forEach(page => page.classList.add('hidden'));
+                const targetPage = document.getElementById(targetId);
+                if (targetPage) targetPage.classList.remove('hidden');
+                menuLinks.forEach(link => {
+                    link.classList.remove('active-link');
+                    if (link.dataset.target === targetId) link.classList.add('active-link');
+                });
+            };
+
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage(link.dataset.target);
+                    if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                });
+            });
+
+            menuToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+            exportBtn.addEventListener('click', () => exportMenu.classList.toggle('hidden'));
+            
+            document.addEventListener('click', (e) => {
+                if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+                    exportMenu.classList.add('hidden');
+                }
+            });
+            
+            showPage('intro');
+
+            // --- Export Logic ---
+            exportPdfBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.print();
+                exportMenu.classList.add('hidden');
+            });
+
+            exportMdBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                let markdownContent = '';
+                const pages = document.querySelectorAll('.content-page');
+                
+                pages.forEach(page => {
+                    Array.from(page.children).forEach(el => {
+                        switch(el.tagName) {
+                            case 'HEADER':
+                                markdownContent += `# ${el.querySelector('h1').textContent.trim()}\n\n`;
+                                markdownContent += `> ${el.querySelector('p').textContent.trim()}\n\n`;
+                                break;
+                            case 'H2':
+                                markdownContent += `## ${el.textContent.trim()}\n\n`;
+                                break;
+                            case 'H3':
+                                markdownContent += `### ${el.textContent.trim()}\n\n`;
+                                break;
+                            case 'P':
+                                markdownContent += `${el.textContent.trim()}\n\n`;
+                                break;
+                            case 'UL':
+                            case 'OL':
+                                Array.from(el.children).forEach(li => {
+                                    markdownContent += `* ${li.textContent.trim()}\n`;
+                                });
+                                markdownContent += '\n';
+                                break;
+                            case 'PRE':
+                                const lang = el.querySelector('code').className.replace('language-', '');
+                                markdownContent += `\`\`\`${lang}\n${el.textContent}\n\`\`\`\n\n`;
+                                break;
+                            case 'DIV':
+                                if (el.classList.contains('gemini-analysis')) {
+                                    markdownContent += `> #### ${el.querySelector('h4').textContent.trim()}\n`;
+                                    markdownContent += `> ${el.querySelector('p').textContent.trim()}\n\n`;
+                                } else if (el.querySelector('canvas')) {
+                                    // Skip canvas divs
+                                } else if (el.classList.contains('katex-display')) {
+                                     markdownContent += `$$${el.querySelector('.katex-mathml annotation').textContent}$$\n\n`
+                                }
+                                break;
+                        }
+                    });
+                    markdownContent += '---\n\n';
+                });
+
+                const blob = new Blob([markdownContent], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'analise_series_temporais.md';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                exportMenu.classList.add('hidden');
+            });
+
+            // --- Gemini API Logic ---
+            const geminiButtons = document.querySelectorAll('.gemini-btn');
+            
+            async function callGemini(prompt, resultContainer, button) {
+                button.disabled = true;
+                resultContainer.innerHTML = '<div class="loader"></div>';
+                resultContainer.classList.remove('hidden');
+
+                const apiKey = ""; // Provided by the environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                    const result = await response.json();
+                    
+                    if (result.candidates && result.candidates.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        resultContainer.innerHTML = `<pre class="whitespace-pre-wrap text-base font-sans">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
+                    } else {
+                        resultContainer.innerHTML = '<p class="text-red-400">Não foi possível obter uma resposta da IA.</p>';
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    resultContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro ao chamar a API: ${error.message}.</p>`;
+                } finally {
+                    button.disabled = false;
+                }
+            }
+
+            geminiButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const type = button.dataset.type;
+                    const contentElement = document.getElementById(targetId);
+                    const resultContent = contentElement.textContent;
+                    const resultContainer = document.getElementById(`result-${targetId}`);
+                    
+                    let prompt = '';
+                    if (type === 'explain-code') {
+                        prompt = `Explique o seguinte código Python, linha por linha, de forma clara para um estudante de finanças quantitativas. Foque na intuição por trás de cada passo. Responda em português do Brasil.\n\n\`\`\`python\n${resultContent}\n\`\`\``;
+                    } else if (type === 'interpret-results') {
+                        prompt = `Interprete o seguinte sumário de um modelo estatístico para um analista financeiro júnior. Explique o significado dos coeficientes, seus p-valores (significância), e o que as métricas como AIC, BIC e Log-Likelihood nos dizem sobre a qualidade do modelo. Responda em português do Brasil.\n\n\`\`\`text\n${resultContent}\n\`\`\``;
+                    }
+
+                    if (prompt) callGemini(prompt, resultContainer, button);
+                });
+            });
+
+            // --- Charting Logic ---
+            const generateRandomData = (numPoints, mean, stdDev) => Array.from({length: numPoints}, () => mean + (Math.random() - 0.5) * 2 * stdDev);
+            const generateDateLabels = (numPoints) => Array.from({length: numPoints}, (_, i) => new Date(new Date('2022-01-01').setDate(i + 1)));
+
+            const ctxStationarity = document.getElementById('stationarityChart').getContext('2d');
+            const priceData = Array.from({length: 252}, (_, i) => 100 + i * 0.1 + (Math.random() - 0.5) * 5);
+            const returnData = priceData.map((p, i) => i > 0 ? (p / priceData[i-1] - 1) * 100 : 0).slice(1);
+            new Chart(ctxStationarity, { type: 'line', data: { labels: generateDateLabels(252), datasets: [{ label: 'Preço (Não-Estacionário)', data: priceData, borderColor: 'rgb(59, 130, 246)', tension: 0.1, pointRadius: 0, yAxisID: 'y' }, { label: 'Retorno (Estacionário)', data: returnData, borderColor: 'rgb(236, 72, 153)', tension: 0.1, pointRadius: 0, yAxisID: 'y1' }] }, options: { responsive: true, scales: { x: { type: 'time', time: { unit: 'month' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, y: { position: 'left', title: { display: true, text: 'Preço' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, y1: { position: 'right', title: { display: true, text: 'Retorno (%)' }, grid: { drawOnChartArea: false } } } } });
+            const ctxAcfPacf = document.getElementById('acfPacfChart').getContext('2d');
+            new Chart(ctxAcfPacf, { type: 'bar', data: { labels: Array.from({length: 40}, (_, i) => i + 1), datasets: [{ label: 'ACF', data: [1, 0.4, 0.2, 0.1, 0.05, ...generateRandomData(35, 0, 0.08)], backgroundColor: 'rgba(75, 192, 192, 0.6)', yAxisID: 'y' }, { label: 'PACF', data: [1, 0.4, 0.05, -0.02, 0.01, ...generateRandomData(35, 0, 0.08)], backgroundColor: 'rgba(255, 99, 132, 0.6)', yAxisID: 'y1' }] }, options: { responsive: true, scales: { x: { title: { display: true, text: 'Lag' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, y: { position: 'left', min: -1, max: 1, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, y1: { position: 'right', min: -1, max: 1, grid: { drawOnChartArea: false } } } } });
+            const ctxVolatility = document.getElementById('volatilityChart').getContext('2d');
+            const returnsCluster = [...generateRandomData(100, 0, 0.5), ...generateRandomData(50, 0, 2.5), ...generateRandomData(100, 0, 0.7)];
+            new Chart(ctxVolatility, { type: 'line', data: { labels: generateDateLabels(250), datasets: [{ label: 'Retornos', data: returnsCluster, borderColor: 'rgb(139, 92, 246)', pointRadius: 0, yAxisID: 'y' }, { label: 'Retornos Quadrados (Proxy da Variância)', data: returnsCluster.map(r => r*r), borderColor: 'rgb(244, 63, 94)', pointRadius: 0, yAxisID: 'y1' }] }, options: { responsive: true, scales: { x: { type: 'time', time: { unit: 'month' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, y: { position: 'left', title: { display: true, text: 'Retorno' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, y1: { position: 'right', title: { display: true, text: 'Retorno^2' }, grid: { drawOnChartArea: false } } } } });
+            const ctxVar = document.getElementById('varBacktestChart').getContext('2d');
+            const actualReturns = generateRandomData(252, 0.05, 1.2);
+            const varForecasts = actualReturns.map(() => -2.5 + (Math.random() - 0.5));
+            const exceptions = actualReturns.map((ret, i) => ret < varForecasts[i] ? {x: generateDateLabels(252)[i], y: ret} : null).filter(Boolean);
+            new Chart(ctxVar, { type: 'line', data: { labels: generateDateLabels(252), datasets: [ { label: 'Retornos Reais', data: actualReturns, borderColor: 'rgba(59, 130, 246, 0.8)', borderWidth: 1, pointRadius: 0, tension: 0.1 }, { label: 'Previsão VaR 99%', data: varForecasts, borderColor: 'rgba(239, 68, 68, 0.9)', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, tension: 0.1 }, { type: 'scatter', label: 'Exceções', data: exceptions, backgroundColor: 'rgb(34, 197, 94)', radius: 5 } ] }, options: { responsive: true, plugins: { title: { display: true, text: 'Backtest do VaR de 1 Dia e 99% para o S&P 500', color: 'white', font: { size: 16 } }, legend: { labels: { color: 'white' } } }, scales: { x: { type: 'time', time: { unit: 'month' }, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white' } }, y: { title: { display: true, text: 'Retorno (%)', color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white' } } } } });
+        });
+    </script>
+</body>
+</html>

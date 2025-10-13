@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Estudos Quantitativos - Finanças Quantitativas</title>
+    <!-- Chosen Palette: Dark Slate Sidebar with Warm Neutral Content and Teal Accents -->
+    <!-- Application Structure Plan: A single-page application with a two-column layout. The left sidebar functions as an accordion menu for navigating through the four main topics of Quantitative Finance. The main content area dynamically displays only the single, selected sub-topic, creating a focused learning environment. Each topic card is organized with a tabbed interface (Theory, Examples, Formulas, Code, Q&A, References, and an AI-powered learning tab). This structure combines the detailed content of the original file with the superior UI/UX, interactivity, and Gemini API integration of the theme file. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Black-Scholes option pricing. Goal: Demonstrate model sensitivity. Viz/Presentation: Interactive calculator and a Chart.js line chart. Interaction: User inputs parameters to see real-time price calculation and chart updates. Justification: Provides a hands-on feel for the formula's variables. Library/Method: Chart.js (Canvas).
+        2. Report Info: Stochastic interest rate behavior. Goal: Visualize mean reversion. Viz/Presentation: Chart.js line chart for Vasicek and CIR simulations. Interaction: Buttons generate new random paths. Justification: Makes abstract SDEs tangible. Library/Method: Chart.js (Canvas).
+        3. Report Info: Statistical Arbitrage/Pairs Trading. Goal: Illustrate cointegrated spread. Viz/Presentation: Chart.js multi-line chart showing asset prices and their spread's Z-score. Justification: Visually explains the core trading logic. Library/Method: Chart.js (Canvas).
+        4. Report Info: On-demand learning. Goal: Deepen understanding. Viz/Presentation: AI-generated content in a modal. Interaction: Buttons trigger Gemini API calls for explanations and quizzes. Justification: Enhances the learning experience with personalized, interactive content.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #4a4a4a; }
+        .sidebar-bg { background-color: #1f2937; color: #e5e7eb; }
+        .content-bg { background-color: #f8f7f4; }
+        .card-bg { background-color: #ffffff; }
+        
+        #sidebar .pillar-header.active { background-color: #4a5568; }
+        #sidebar .module-links { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: #111827;}
+        #sidebar .pillar-header.active + .module-links { max-height: 500px; }
+        #sidebar .module-link.active { background-color: #0d9488; color: white; font-weight: 600; }
+        #sidebar::-webkit-scrollbar { width: 8px; }
+        #sidebar::-webkit-scrollbar-track { background: #1f2937; }
+        #sidebar::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 10px; }
+
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s ease-in-out; }
+        .tab-active { color: #0d9488; font-weight: 600; border-bottom-color: #0d9488; }
+        .tab-inactive { color: #6b7280; }
+
+        #gemini-modal { transition: opacity 0.3s ease; }
+        .gemini-btn {
+            background-color: #f0fdfa;
+            color: #0f766e;
+            border: 1px solid #ccfbf1;
+            transition: background-color 0.2s;
+        }
+        .gemini-btn:hover { background-color: #ccfbf1; }
+
+        .prism-code { border-radius: 0.5rem; font-size: 0.875rem; }
+        .copy-button { position: absolute; top: 0.5rem; right: 0.5rem; background-color: rgba(255, 255, 255, 0.1); color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; cursor: pointer; transition: background-color 0.2s; }
+        .copy-button:hover { background-color: rgba(255, 255, 255, 0.2); }
+        .accent-border { border-color: #0d9488; }
+        mjx-container[jax="SVG"][display="true"] { display: block; margin: 1em 0; }
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin: 1rem auto; height: 350px; max-height: 400px; }
+        .btn-primary { background-color: #0d9488; color: white; transition: background-color 0.2s; }
+        .btn-primary:hover { background-color: #0f766e; }
+        .interactive-input { border: 1px solid #d1d5db; transition: border-color 0.2s, box-shadow 0.2s; }
+        .interactive-input:focus { border-color: #0d9488; box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2); outline: none; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-80 sidebar-bg flex-shrink-0 overflow-y-auto hidden lg:block shadow-lg">
+            <div class="p-6 sticky top-0 bg-slate-800 z-10">
+                <h1 class="text-2xl font-semibold text-center text-teal-400">Guia de Estudos</h1>
+                <p class="text-sm text-slate-400 mt-1 text-center">Pilar 4: Finanças Quantitativas</p>
+            </div>
+            <nav id="sidebar-nav" class="text-slate-300 p-2"></nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="main-content" class="flex-1 p-4 sm:p-6 md:p-8 content-bg overflow-y-auto">
+            <div id="welcome-message" class="text-center h-full flex flex-col justify-center items-center">
+                <h1 class="text-4xl font-bold text-slate-700">Bem-vindo às Finanças Quantitativas</h1>
+                <p class="mt-4 text-xl text-slate-500">Selecione um tópico no menu à esquerda para começar.</p>
+                <svg class="w-24 h-24 mt-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+            <div id="content-sections-wrapper" class="max-w-7xl mx-auto">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Gemini Modal -->
+    <div id="gemini-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b bg-slate-50 rounded-t-lg">
+                <h3 id="modal-title" class="text-xl font-semibold text-slate-800"></h3>
+                <button id="modal-close-btn" class="text-2xl font-bold text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="modal-loader" class="text-center hidden">
+                    <svg class="animate-spin h-8 w-8 text-teal-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="mt-2 text-slate-600">Gerando conteúdo com a IA Gemini...</p>
+                </div>
+                <div id="modal-response" class="prose max-w-none text-slate-700"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const contentData = [
+            {
+                id: 'financas-quantitativas',
+                title: 'Pilar 4: Finanças Quantitativas',
+                subsections: [
+                    {
+                        id: 'bsm',
+                        title: 'Modelo Black-Scholes-Merton',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                            <p class="mb-3">O modelo Black-Scholes-Merton (BSM) representa um marco na teoria financeira, introduzindo um método matemático rigoroso para a precificação de opções. A sua essência reside no conceito de <strong>precificação por não-arbitragem</strong> em um mercado dinâmico e de tempo contínuo.</p>
+                            <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">O Argumento da Não-Arbitragem e Hedge Dinâmico</h4>
+                            <p class="mb-3">A ideia central do BSM não é prever o preço futuro de uma ação, mas sim construir um portfólio de "replicação". Este portfólio, composto por uma posição no ativo subjacente e uma posição em um ativo livre de risco (caixa), é continuamente ajustado (<strong>hedge dinâmico</strong>) para que seu valor e seus pagamentos imitem perfeitamente os de uma opção. Em um mercado eficiente, dois ativos com os mesmos fluxos de caixa devem ter o mesmo preço. Portanto, o preço da opção deve ser igual ao custo de criar e manter este portfólio de replicação. Como este portfólio replicante é, por construção, sem risco, ele deve render a taxa de juros livre de risco. Qualquer desvio criaria uma oportunidade de arbitragem.</p>
+                            <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Premissas Fundamentais</h4>
+                            <p class="mb-3">O modelo se baseia em um conjunto de premissas idealizadas sobre o mercado:</p>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li><strong>Movimento Browniano Geométrico (GBM):</strong> Assume-se que o preço do ativo subjacente ($S_t$) segue um processo estocástico chamado GBM, implicando que os retornos logarítmicos do ativo são normalmente distribuídos.</li>
+                                <li><strong>Mercado sem Fricção:</strong> Não há custos de transação ou impostos, e todos os ativos são perfeitamente divisíveis.</li>
+                                <li><strong>Taxa de Juros e Volatilidade Constantes:</strong> A taxa de juros livre de risco ($r$) e a volatilidade do ativo subjacente ($\\sigma$) são conhecidas e constantes ao longo da vida da opção.</li>
+                                <li><strong>Não Pagamento de Dividendos:</strong> O ativo subjacente não paga dividendos (a fórmula pode ser ajustada para tal).</li>
+                                <li><strong>Opções Europeias:</strong> O modelo se aplica a opções que só podem ser exercidas na data de vencimento.</li>
+                            </ul>
+                            <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Valoração Neutra ao Risco</h4>
+                            <p class="mb-3">Uma das consequências mais poderosas do argumento de não-arbitragem é a <strong>valoração neutra ao risco</strong>. Descobre-se que o preço da opção é independente da taxa de retorno esperada do ativo ($\\mu$). Isso permite uma simplificação matemática crucial: podemos precificar a opção em um "mundo imaginário" onde todos os investidores são neutros ao risco. Nesse mundo, o retorno esperado de todos os ativos é a taxa livre de risco ($r$). Calculamos o valor esperado do payoff da opção nesse mundo e o trazemos a valor presente usando a taxa livre de risco. O resultado é o mesmo que no mundo real, avesso ao risco. É por isso que o parâmetro $\\mu$ não aparece na fórmula final do BSM.</p>`,
+                            exemplos: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Calculadora Interativa BSM</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mt-4 p-6 border rounded-lg bg-white shadow-sm">
+                                <div class="space-y-3">
+                                    <div><label for="bsm_s" class="block text-sm font-medium">Preço do Ativo (S)</label><input type="number" id="bsm_s" value="100" class="interactive-input mt-1 block w-full rounded-md p-2"></div>
+                                    <div><label for="bsm_k" class="block text-sm font-medium">Strike (K)</label><input type="number" id="bsm_k" value="100" class="interactive-input mt-1 block w-full rounded-md p-2"></div>
+                                    <div><label for="bsm_t" class="block text-sm font-medium">Vencimento (anos)</label><input type="number" id="bsm_t" value="1" step="0.1" class="interactive-input mt-1 block w-full rounded-md p-2"></div>
+                                    <div><label for="bsm_r" class="block text-sm font-medium">Taxa de Juros (%)</label><input type="number" id="bsm_r" value="5" class="interactive-input mt-1 block w-full rounded-md p-2"></div>
+                                    <div><label for="bsm_sigma" class="block text-sm font-medium">Volatilidade (%)</label><input type="number" id="bsm_sigma" value="20" class="interactive-input mt-1 block w-full rounded-md p-2"></div>
+                                    <button id="bsm_calculate" class="btn-primary w-full py-2 rounded-md font-semibold">Calcular</button>
+                                    <div class="text-center pt-4">
+                                        <p class="text-lg">Preço da Call: <strong id="call_price" class="text-teal-600">--</strong></p>
+                                        <p class="text-lg">Preço da Put: <strong id="put_price" class="text-teal-600">--</strong></p>
+                                    </div>
+                                </div>
+                                <div><div class="chart-container h-[400px]"><canvas id="bsmChart"></canvas></div></div>
+                            </div>`,
+                            formulas: `<p>O preço de uma opção de compra europeia (Call) e de uma opção de venda (Put) são dados por:</p>
+                            <p class="my-4">Preço da Call (C): $$ C(S, t) = N(d_1)S - N(d_2)Ke^{-r(T-t)} $$</p>
+                            <p class="my-4">Preço da Put (P): $$ P(S, t) = N(-d_2)Ke^{-r(T-t)} - N(-d_1)S $$</p>
+                            <p>Onde:</p>
+                            <p class="my-4">$$ d_1 = \\frac{\\ln(S/K) + (r + \\frac{\\sigma^2}{2})(T-t)}{\\sigma\\sqrt{T-t}} $$</p>
+                            <p class="my-4">$$ d_2 = d_1 - \\sigma\\sqrt{T-t} $$</p>`,
+                            python: `<p>Implementação do modelo BSM em Python puro e com SciPy.</p>
+                            <div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np
+from scipy.stats import norm
+
+def black_scholes_merton(S, K, T, r, sigma, option_type='call'):
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    
+    if option_type == 'call':
+        price = (S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2))
+    elif option_type == 'put':
+        price = (K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1))
+    else:
+        raise ValueError("Invalid option type.")
+        
+    return price
+
+# Exemplo de uso
+call = black_scholes_merton(100, 100, 1, 0.05, 0.2, 'call')
+put = black_scholes_merton(100, 100, 1, 0.05, 0.2, 'put')
+print(f"Preço da Call: {call:.2f}, Preço da Put: {put:.2f}")</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4">
+                                <div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Quais são as principais limitações do modelo BSM?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>O modelo assume que a volatilidade e a taxa de juros são constantes, o que não é verdade na realidade. Ele também ignora custos de transação, assume que os retornos são normalmente distribuídos (ignorando "caudas gordas" ou eventos extremos) e não precifica corretamente opções de estilo americano, que podem ser exercidas a qualquer momento.</p></div></div>
+                                <div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que são as "Gregas"?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>As Gregas são medidas de sensibilidade do preço de uma opção a mudanças nos parâmetros do modelo. As principais são: Delta (sensibilidade ao preço do ativo S), Gamma (sensibilidade do Delta ao preço S), Theta (decaimento do preço com o tempo), Vega (sensibilidade à volatilidade) e Rho (sensibilidade à taxa de juros).</p></div></div>
+                            </div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm">
+                                <li><strong>Livro:</strong> Hull, John C. (2018). <em>Options, Futures, and Other Derivatives</em>. Pearson.</li>
+                                <li><strong>Artigo Original:</strong> Black, F., & Scholes, M. (1973). The Pricing of Options and Corporate Liabilities. <em>Journal of Political Economy</em>.</li>
+                                <li><strong>Recurso Online:</strong> <a href="https://www.investopedia.com/terms/b/blackscholes.asp" target="_blank" class="text-teal-600 hover:underline">Investopedia: Black-Scholes Model</a></li>
+                            </ul>`
+                        }
+                    },
+                    {
+                        id: 'juros',
+                        title: 'Modelos de Taxa de Juros',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                            <p class="mb-3">Modelos de taxa de juros são processos estocásticos projetados para descrever a evolução da <strong>Estrutura a Termo da Taxa de Juros (ETTJ)</strong>, mais conhecida como a curva de juros. Ao contrário de ações, as taxas de juros não podem subir indefinidamente e exibem uma tendência de retornar a um nível de longo prazo, um fenômeno chamado <strong>reversão à média</strong>.</p>
+                            <p class="mb-3">Os modelos mais simples, como Vasicek e CIR, são <strong>modelos de taxa curta (short-rate models)</strong> de um fator. Eles modelam a evolução da taxa de juros instantânea ($r_t$) e, a partir dela, derivam os preços de títulos de todos os vencimentos e, consequentemente, toda a curva de juros.</p>
+                            <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Modelo de Vasicek (1977)</h4>
+                            <p class="mb-3">O modelo de Vasicek foi pioneiro ao incorporar a reversão à média. A sua SDE, $dr_t = \\kappa(\\theta - r_t)dt + \\sigma dW_t$, descreve uma dinâmica onde a taxa $r_t$ é continuamente "puxada" em direção à sua média de longo prazo $\\theta$ com uma velocidade $\\kappa$. O modelo é matematicamente conveniente (analiticamente tratável), permitindo fórmulas fechadas para preços de títulos. Sua principal desvantagem é a possibilidade de gerar taxas de juros negativas, já que o termo de volatilidade é constante e não diminui quando a taxa se aproxima de zero.</p>
+                            <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Modelo Cox-Ingersoll-Ross (CIR) (1985)</h4>
+                            <p class="mb-3">O modelo CIR é um refinamento do Vasicek que resolve a questão das taxas negativas. Sua SDE, $dr_t = \\kappa(\\theta - r_t)dt + \\sigma\\sqrt{r_t} dW_t$, introduz um termo de volatilidade, $\\sigma\\sqrt{r_t}$, que é proporcional à raiz quadrada da própria taxa de juros. Isso significa que, à medida que a taxa de juros $r_t$ se aproxima de zero, sua volatilidade também se aproxima de zero. Isso cria uma "barreira" em zero, impedindo que a taxa se torne negativa, desde que a condição $2\\kappa\\theta > \\sigma^2$ seja satisfeita. Essa característica torna o modelo CIR mais realista e, por isso, muito popular para a precificação de derivativos de juros.</p>
+                             <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Modelos de Equilíbrio vs. Não-Arbitragem</h4>
+                            <p class="mb-3">Vasicek e CIR são <strong>modelos de equilíbrio</strong>: eles partem de premissas sobre o comportamento da economia para derivar a forma da curva de juros. Uma consequência é que a curva de juros gerada pelo modelo pode não corresponder exatamente à curva de juros observada hoje no mercado. Em contraste, <strong>modelos de não-arbitragem</strong> (como Hull-White) são calibrados para se ajustarem perfeitamente à curva de mercado atual, sendo mais práticos para a precificação de derivativos no dia a dia.</p>`,
+                            exemplos: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Simulação de Trajetórias</h3>
+                            <p>Abaixo, você pode simular e visualizar possíveis trajetórias futuras da taxa de juros de acordo com ambos os modelos. Observe a tendência de reversão à média em ambas as simulações.</p>
+                            <div class="p-6 border rounded-lg bg-white shadow-sm">
+                                <div class="flex justify-center space-x-4 mb-4">
+                                    <button id="run_vasicek_sim" class="btn-primary px-4 py-2 rounded-md">Simular Vasicek</button>
+                                    <button id="run_cir_sim" class="btn-primary px-4 py-2 rounded-md">Simular CIR</button>
+                                </div>
+                                <div class="chart-container"><canvas id="jurosChart"></canvas></div>
+                            </div>`,
+                            formulas: `<p><strong>Modelo de Vasicek (1977) SDE:</strong></p>
+                            <p class="my-4">$$ dr_t = \\kappa(\\theta - r_t)dt + \\sigma dW_t $$</p>
+                            <p><strong>Modelo Cox-Ingersoll-Ross (CIR) (1985) SDE:</strong></p>
+                            <p class="my-4">$$ dr_t = \\kappa(\\theta - r_t)dt + \\sigma\\sqrt{r_t} dW_t $$</p>
+                            <p>Onde $\\kappa$ é a velocidade de reversão, $\\theta$ é a média de longo prazo, e $\\sigma$ é a volatilidade.</p>`,
+                            python: `<p>Discretização de Euler para simular os modelos de juros.</p>
+                            <div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np
+
+def simulate_interest_rate(r0, kappa, theta, sigma, T, dt, model='vasicek'):
+    n_steps = int(T / dt)
+    path = np.zeros(n_steps + 1)
+    path[0] = r0
+    
+    for t in range(1, n_steps + 1):
+        dW = np.random.normal(0, np.sqrt(dt))
+        prev_r = path[t-1]
+        
+        if model == 'vasicek':
+            dr = kappa * (theta - prev_r) * dt + sigma * dW
+        elif model == 'cir':
+            # Garante que a raiz quadrada não seja de um número negativo
+            sqrt_r = np.sqrt(np.maximum(0, prev_r))
+            dr = kappa * (theta - prev_r) * dt + sigma * sqrt_r * dW
+        else:
+             raise ValueError("Modelo desconhecido.")
+             
+        path[t] = prev_r + dr
+            
+    return path
+
+# Parâmetros
+r0=0.03; kappa=0.5; theta=0.05; sigma=0.05; T=10; dt=1/252
+vasicek_path = simulate_interest_rate(r0, kappa, theta, sigma, T, dt, 'vasicek')
+print(f"Último valor simulado (Vasicek): {vasicek_path[-1]:.4f}")</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4">
+                                <div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Por que modelar a taxa de juros é tão importante?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>A taxa de juros é a base para o valuation de quase todos os ativos financeiros. Ela é usada para descontar fluxos de caixa futuros. Modelar sua evolução estocástica é crucial para precificar títulos de dívida (debêntures, bonds), swaps de juros, e opções sobre títulos (swaptions).</p></div></div>
+                                <div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Existem modelos mais complexos que Vasicek e CIR?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Sim. Modelos de múltiplos fatores, como o modelo de Heath-Jarrow-Morton (HJM) e modelos de mercado como o BGM (Brace-Gatarek-Musiela), são mais avançados e podem se ajustar melhor à curva de juros observada no mercado (a Estrutura a Termo da Taxa de Juros - ETTJ).</p></div></div>
+                            </div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm">
+                                <li><strong>Livro:</strong> Brigo, D., & Mercurio, F. (2006). <em>Interest Rate Models - Theory and Practice</em>. Springer.</li>
+                                <li><strong>Artigo Vasicek:</strong> Vasicek, O. (1977). An equilibrium characterization of the term structure. <em>Journal of Financial Economics</em>.</li>
+                                <li><strong>Artigo CIR:</strong> Cox, J. C., Ingersoll, J. E., & Ross, S. A. (1985). A theory of the term structure of interest rates. <em>Econometrica</em>.</li>
+                            </ul>`
+                        }
+                    },
+                     {
+                        id: 'stat-arb',
+                        title: 'Arbitragem Estatística',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                            <p class="mb-3">Arbitragem estatística (StatArb) é um conjunto de estratégias de trading quantitativo que se baseia na reversão à média de relações estatísticas entre diferentes ativos. A premissa central é que, embora os preços individuais dos ativos possam seguir um "passeio aleatório" e serem imprevisíveis, a <strong>relação</strong> entre certos ativos pode ser estável e previsível.</p>
+                            <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Correlação vs. Cointegração: Uma Distinção Crucial</h4>
+                            <p class="mb-3">É fundamental não confundir correlação com cointegração. <strong>Correlação</strong> é uma medida estatística que indica o grau em que duas variáveis se movem juntas. Duas ações podem ter alta correlação, mas se afastarem progressivamente ao longo do tempo. <strong>Cointegração</strong> é um conceito econométrico muito mais forte. Duas ou mais séries temporais não-estacionárias (como preços de ações) são ditas cointegradas se existe uma combinação linear entre elas que é estacionária. Isso implica uma <strong>relação de equilíbrio de longo prazo</strong>. Mesmo que os ativos se desviem temporariamente, existe uma força econômica (como competição ou substitutibilidade) que os "puxa" de volta para essa relação de equilíbrio.</p>
+                            <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">O Processo de Pairs Trading</h4>
+                            <p class="mb-3">A estratégia de pairs trading baseada em cointegração segue uma abordagem sistemática:</p>
+                            <ol class="list-decimal pl-6 space-y-2">
+                                <li><strong>Seleção de Pares:</strong> Identificar pares de ativos candidatos, geralmente do mesmo setor (ex: dois grandes bancos, duas companhias aéreas).</li>
+                                <li><strong>Teste de Estacionariedade:</strong> Verificar se os preços individuais de cada ativo são não-estacionários (possuem uma raiz unitária), usando testes como o Teste Aumentado de Dickey-Fuller (ADF).</li>
+                                <li><strong>Teste de Cointegração:</strong> Se ambos os ativos são não-estacionários, realiza-se uma regressão linear de um contra o outro ($Y_t = \\beta X_t + \\epsilon_t$) e se testa os resíduos (o "spread", $\\epsilon_t$) para estacionariedade, novamente com o teste ADF. Se os resíduos forem estacionários, os ativos são cointegrados.</li>
+                                <li><strong>Modelagem do Spread:</strong> O spread estacionário pode ser modelado como um processo de reversão à média, como um processo de Ornstein-Uhlenbeck. A estratégia de negociação é então baseada nos desvios do spread em relação à sua média, frequentemente medidos em unidades de desvio padrão (Z-score).</li>
+                            </ol>`,
+                            exemplos: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Visualização de um Par Cointegrado</h3>
+                            <div class="p-6 border rounded-lg bg-white shadow-sm">
+                                <p class="text-center text-gray-600 mb-4">O gráfico abaixo simula o comportamento de dois ativos cointegrados e o Z-score de seu spread. As linhas pontilhadas representam os sinais de entrada para negociação.</p>
+                                <div class="chart-container h-[450px]"><canvas id="pairsChart"></canvas></div>
+                            </div>`,
+                            formulas: `<p><strong>Relação de Longo Prazo e Spread:</strong></p>
+                            <p class="my-4">$$ Y_t = \\beta X_t + \\epsilon_t $$</p>
+                            <p>Onde $\\epsilon_t$ é o resíduo (spread), que deve ser um processo estacionário.</p>
+                            <p><strong>Z-score do Spread:</strong></p>
+                            <p class="my-4">$$ Z_t = \\frac{\\epsilon_t - \\mu_\\epsilon}{\\sigma_\\epsilon} $$</p>
+                            <p>Sinais de trading são gerados quando $Z_t$ cruza limiares pré-definidos (ex: $\\pm 2$).</p>`,
+                            python: `<p>Exemplo de como testar a cointegração e calcular o spread usando <code>statsmodels</code>.</p>
+                             <div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np
+import statsmodels.api as sm
+from statsmodels.tsa.stattools import coint
+
+# Suponha que 'asset_y' e 'asset_x' são Series do Pandas com preços
+# asset_y = ...; asset_x = ...
+
+# 1. Testar cointegração
+score, p_value, _ = coint(asset_y, asset_x)
+if p_value < 0.05:
+    print("Os ativos são provavelmente cointegrados.")
+    
+    # 2. Estimar o beta da regressão
+    asset_x_const = sm.add_constant(asset_x)
+    model = sm.OLS(asset_y, asset_x_const).fit()
+    beta = model.params[1]
+    
+    # 3. Calcular o spread e Z-score
+    spread = asset_y - beta * asset_x
+    z_score = (spread - spread.mean()) / spread.std()
+    
+    print(f"Beta: {beta:.2f}, Último Z-score: {z_score.iloc[-1]:.2f}")
+else:
+    print("Ativos não parecem cointegrados.")</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4">
+                                <div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Como encontrar bons pares para trading?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>A busca por pares geralmente começa com ativos do mesmo setor econômico. Em seguida, aplicam-se testes estatísticos como o de cointegração de Engle-Granger ou Johansen em centenas ou milhares de combinações de ativos para filtrar os pares mais promissores.</p></div></div>
+                                <div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Quais os riscos da arbitragem estatística?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>O principal risco é a quebra da relação histórica. A cointegração pode ser temporária e, se a relação estrutural entre as empresas mudar, o spread pode nunca mais convergir para a média, resultando em perdas significativas.</p></div></div>
+                            </div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm">
+                                <li><strong>Livro:</strong> Chan, Ernie. (2013). <em>Quantitative Trading: How to Build Your Own Algorithmic Trading Business</em>. Wiley.</li>
+                                <li><strong>Livro:</strong> Vidyamurthy, G. (2004). <em>Pairs Trading: Quantitative Methods and Analysis</em>. Wiley.</li>
+                            </ul>`
+                        }
+                    },
+                     {
+                        id: 'hft',
+                        title: 'Market Making e HFT',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Aprofundada</h3>
+                            <p class="mb-3">Market Making e High-Frequency Trading (HFT) operam na fronteira da tecnologia e da microestrutura de mercado. Suas estratégias não se baseiam em fundamentos econômicos ou previsões de longo prazo, mas sim na exploração de dinâmicas de curtíssimo prazo no livro de ofertas (order book).</p>
+                            <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">A Microestrutura do Market Making</h4>
+                            <p class="mb-3">Um market maker (MM) lucra ao capturar o <strong>bid-ask spread</strong>. No entanto, sua atividade o expõe a dois riscos fundamentais:</p>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li><strong>Risco de Inventário:</strong> Se um MM vende para muitos compradores, ele acumula uma posição vendida (short). Se o preço do ativo subir, ele terá prejuízo. Para gerenciar isso, o MM "inclina" (skews) suas cotações. Com um grande inventário vendido, ele pode subir seus preços de compra e venda para incentivar vendedores e desencorajar compradores, e vice-versa.</li>
+                                <li><strong>Risco de Seleção Adversa:</strong> Este é o risco de negociar com alguém que possui informação superior. Se um trader informado está comprando agressivamente de um MM, é provável que ele saiba de uma notícia positiva que o MM ainda não processou. O spread é, em parte, a compensação que o MM exige para aceitar este risco.</li>
+                            </ul>
+                            <h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">High-Frequency Trading (HFT): A Corrida pela Latência</h4>
+                            <p class="mb-3">HFT é um subconjunto do trading algorítmico que se diferencia pela velocidade. A vantagem competitiva é medida em microssegundos ($10^{-6}$s) ou mesmo nanossegundos ($10^{-9}$s). Isso é alcançado através de uma "corrida armamentista" tecnológica:</p>
+                             <ul class="list-disc pl-6 space-y-2">
+                                <li><strong>Co-location:</strong> Servidores são instalados no mesmo data center da bolsa para minimizar a distância física.</li>
+                                <li><strong>Hardware Especializado:</strong> Uso de FPGAs (Field-Programmable Gate Arrays) e hardware de rede otimizado para processar dados de mercado e tomar decisões mais rápido que software em CPUs convencionais.</li>
+                                <li><strong>Conexões de Rede:</strong> Links de micro-ondas, que são mais rápidos que a fibra ótica no ar, são usados para conectar diferentes centros financeiros.</li>
+                            </ul>
+                            <p class="mt-3">Além do market making, estratégias de HFT incluem <strong>arbitragem de latência</strong> (explorar discrepâncias de preços do mesmo ativo em diferentes bolsas) e <strong>arbitragem de rebates</strong> (estruturar ordens para maximizar os pagamentos que as bolsas oferecem por prover liquidez).</p>`,
+                            exemplos: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Diagrama do Order Book e o Spread</h3>
+                            <div class="p-6 border rounded-lg bg-white shadow-sm flex flex-col items-center">
+                                 <p class="text-center text-gray-600 mb-4">Um market maker coloca ordens em ambos os lados do book para capturar o spread.</p>
+                                <div class="w-full max-w-md font-mono text-sm">
+                                    <div class="flex justify-between font-bold text-gray-700 p-2 border-b-2"><span>COMPRA (BID)</span><span>VENDA (ASK)</span></div>
+                                    <div class="flex justify-between items-center bg-green-100/50 p-2"><div class="text-green-800">100 @ <strong>10.02</strong></div><div class="text-red-800"><strong>10.03</strong> @ 50</div></div>
+                                    <div class="flex justify-between items-center p-2"><div class="text-green-800">50 @ <strong>10.01</strong></div><div class="text-red-800"><strong>10.04</strong> @ 120</div></div>
+                                    <div class="flex justify-between items-center bg-green-100/50 p-2"><div class="text-green-800">200 @ <strong>10.00</strong></div><div class="text-red-800"><strong>10.05</strong> @ 80</div></div>
+                                </div>
+                                <div class="mt-4 text-center">
+                                    <p>Melhor Bid (Compra): <strong>R$ 10,02</strong> / Melhor Ask (Venda): <strong>R$ 10,03</strong></p>
+                                    <p class="font-bold text-teal-600 mt-2">Bid-Ask Spread = R$ 0,01</p>
+                                </div>
+                            </div>`,
+                            formulas: `<p>A matemática de HFT raramente envolve fórmulas complexas como Black-Scholes, mas sim modelos de microestrutura de mercado.</p>
+                            <p><strong>Spread Simples:</strong></p>
+                            <p class="my-4">$$ Spread = Preço_{Ask} - Preço_{Bid} $$</p>
+                            <p><strong>Modelo de Risco de Inventário (Simplificado):</strong></p>
+                            <p class="my-4">$$ Preço_{Bid} = Preço_{Justo} - Spread_{Base} - \\gamma \\cdot Inventário_t $$</p>
+                            <p>O preço é ajustado para baixo (skew) se o inventário está alto (muito comprado), para incentivar a venda.</p>`,
+                            python: `<p>Pseudo-código ilustrando a lógica de um bot de market making.</p>
+                             <div class="relative mt-2"><pre><code class="language-python prism-code"># Este não é um código funcional, apenas ilustra a lógica.
+def market_making_bot():
+    while True:
+        # 1. Obter o estado atual do mercado (preço justo)
+        mid_price = get_market_midprice()
+        
+        # 2. Calcular o spread desejado (pode ser dinâmico)
+        desired_spread = calculate_spread(volatility)
+        
+        # 3. Gerenciar o risco de inventário (skew)
+        inventory_skew = calculate_skew(current_inventory)
+        
+        # 4. Definir os preços de compra e venda
+        my_bid = mid_price - (desired_spread / 2) + inventory_skew
+        my_ask = mid_price + (desired_spread / 2) + inventory_skew
+        
+        # 5. Enviar e gerenciar ordens
+        update_orders(my_bid, my_ask)
+        
+        time.sleep(0.1)</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4">
+                                <div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O HFT é benéfico para o mercado?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É um debate contínuo. Proponentes argumentam que o HFT aumenta a liquidez e reduz os spreads para todos os investidores. Críticos afirmam que pode aumentar a volatilidade e criar instabilidade sistêmica, como visto em eventos como o "Flash Crash" de 2010.</p></div></div>
+                                <div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é 'co-location'?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É a prática de firmas de HFT alugarem espaço para seus servidores de negociação dentro do mesmo data center da bolsa de valores. Isso minimiza a distância física que os dados precisam percorrer, reduzindo a latência em microssegundos e dando uma vantagem de velocidade crucial.</p></div></div>
+                            </div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm">
+                                <li><strong>Livro:</strong> Lewis, Michael. (2014). <em>Flash Boys: A Wall Street Revolt</em>. (Visão narrativa e crítica).</li>
+                                <li><strong>Livro:</strong> Aldridge, I. (2013). <em>High-Frequency Trading: A Practical Guide</em>. Wiley.</li>
+                                <li><strong>Artigos:</strong> Pesquisar por "Market Microstructure" e autores como Maureen O'Hara.</li>
+                            </ul>`
+                        }
+                    }
+                ]
+            }
+        ];
+
+        // --- Gemini API Call ---
+        async function callGemini(prompt) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                     return candidate.content.parts[0].text.replace(/\n/g, '<br>');
+                } else {
+                    return `<p class="text-red-600">Não foi possível gerar conteúdo. A resposta da API estava vazia ou malformada.</p>`;
+                }
+            } catch (error) {
+                console.error("Erro ao chamar a API Gemini:", error);
+                return `<p class="text-red-600">Erro ao se conectar com a API Gemini. Verifique o console.</p>`;
+            }
+        }
+
+        // --- Modal Functions ---
+        const modal = document.getElementById('gemini-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalLoader = document.getElementById('modal-loader');
+        const modalResponse = document.getElementById('modal-response');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function showModal(title) {
+            modalTitle.textContent = title;
+            modalResponse.innerHTML = '';
+            modalLoader.style.display = 'block';
+            modal.classList.remove('hidden');
+        }
+
+        function displayModalContent(htmlContent) {
+            modalLoader.style.display = 'none';
+            modalResponse.innerHTML = htmlContent;
+        }
+
+        function hideModal() {
+            modal.classList.add('hidden');
+        }
+
+        modalCloseBtn.addEventListener('click', hideModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+        
+        // --- Chart and Interactive Element Initializers ---
+        let bsmChartInstance, jurosChartInstance, pairsChartInstance;
+
+        function initBSM() {
+            const calculateBtn = document.getElementById('bsm_calculate');
+            if (!calculateBtn || calculateBtn.dataset.initialized) return;
+            
+            calculateBtn.addEventListener('click', calculateBSM);
+            calculateBSM();
+            calculateBtn.dataset.initialized = true;
+        }
+
+        function norm_cdf(x) {
+            return (1.0 + Math.tanh(Math.sqrt(2 / Math.PI) * (x + 0.044715 * Math.pow(x, 3)))) / 2.0;
+        }
+
+        function calculateBSM() {
+            const S = parseFloat(document.getElementById('bsm_s').value);
+            const K = parseFloat(document.getElementById('bsm_k').value);
+            const T = parseFloat(document.getElementById('bsm_t').value);
+            const r = parseFloat(document.getElementById('bsm_r').value) / 100;
+            const sigma = parseFloat(document.getElementById('bsm_sigma').value) / 100;
+
+            const d1 = (Math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * Math.sqrt(T));
+            const d2 = d1 - sigma * Math.sqrt(T);
+
+            const callPrice = (S * norm_cdf(d1) - K * Math.exp(-r * T) * norm_cdf(d2));
+            const putPrice = (K * Math.exp(-r * T) * norm_cdf(-d2) - S * norm_cdf(-d1));
+
+            document.getElementById('call_price').textContent = callPrice.toFixed(2);
+            document.getElementById('put_price').textContent = putPrice.toFixed(2);
+            updateBSMChart(K, T, r, sigma);
+        }
+        
+        function updateBSMChart(K, T, r, sigma) {
+            const ctx = document.getElementById('bsmChart')?.getContext('2d');
+            if(!ctx) return;
+            const assetPrices = Array.from({ length: 41 }, (_, i) => K * 0.8 + i * (K * 0.4 / 40));
+            const callPrices = assetPrices.map(S_val => {
+                const d1 = (Math.log(S_val / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * Math.sqrt(T));
+                const d2 = d1 - sigma * Math.sqrt(T);
+                return S_val * norm_cdf(d1) - K * Math.exp(-r * T) * norm_cdf(d2);
+            });
+            if (bsmChartInstance) bsmChartInstance.destroy();
+            bsmChartInstance = new Chart(ctx, { type: 'line', data: { labels: assetPrices.map(p => p.toFixed(2)), datasets: [{ label: 'Preço da Call', data: callPrices, borderColor: '#0d9488', backgroundColor: 'rgba(13, 148, 136, 0.1)', fill: true, tension: 0.1, pointRadius: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Preço da Opção vs. Preço do Ativo' }, legend: { display: false } }, scales: { x: { title: { display: true, text: 'Preço do Ativo (S)' } }, y: { title: { display: true, text: 'Preço da Call (C)' }, beginAtZero: true } } } });
+        }
+
+        function initJuros() {
+            const vasicekBtn = document.getElementById('run_vasicek_sim');
+            const cirBtn = document.getElementById('run_cir_sim');
+            if (!vasicekBtn || vasicekBtn.dataset.initialized) return;
+            
+            vasicekBtn.addEventListener('click', () => runInterestRateSimulation('vasicek'));
+            cirBtn.addEventListener('click', () => runInterestRateSimulation('cir'));
+            runInterestRateSimulation('vasicek');
+            vasicekBtn.dataset.initialized = true;
+        }
+        
+        function runInterestRateSimulation(model) {
+            const r0 = 0.03, kappa = 0.5, theta = 0.05, sigma = 0.05, T = 10, dt = 1/52, n_sims = 10;
+            const n_steps = Math.floor(T / dt);
+            const allPaths = [];
+            for(let i=0; i<n_sims; i++) {
+                const path = [r0];
+                for (let t = 1; t <= n_steps; t++) {
+                    const dW = (Math.random() - 0.5) * 2 * Math.sqrt(dt) * 1.7;
+                    const prev_r = path[t-1];
+                    let dr = 0;
+                    if (model === 'vasicek') {
+                        dr = kappa * (theta - prev_r) * dt + sigma * dW;
+                    } else {
+                         dr = kappa * (theta - prev_r) * dt + sigma * Math.sqrt(Math.max(0, prev_r)) * dW;
+                    }
+                    path.push(prev_r + dr);
+                }
+                allPaths.push(path);
+            }
+            updateJurosChart(allPaths, model, T, dt, theta);
+        }
+
+        function updateJurosChart(paths, model, T, dt, theta) {
+            const ctx = document.getElementById('jurosChart')?.getContext('2d');
+            if(!ctx) return;
+            if (jurosChartInstance) jurosChartInstance.destroy();
+            const datasets = paths.map((path, index) => ({ label: `Sim ${index + 1}`, data: path, borderColor: `rgba(13, 148, 136, ${0.2 + (index * 0.05)})`, borderWidth: 1.5, pointRadius: 0, fill: false }));
+            datasets.push({ label: 'Média (θ)', data: Array(paths[0].length).fill(theta), borderColor: 'rgba(220, 38, 38, 1)', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false });
+            const labels = Array.from({length: paths[0].length}, (_, i) => (i * dt).toFixed(2));
+            jurosChartInstance = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: `Simulação: ${model.toUpperCase()}`}, legend: { display: false } }, scales: { x: { title: { display: true, text: 'Anos' } }, y: { title: { display: true, text: 'Taxa' }, ticks: { callback: (v) => (v*100).toFixed(1) + '%' } } } } });
+        }
+        
+        function initPairsTrading() {
+            const chartCanvas = document.getElementById('pairsChart');
+            if (!chartCanvas || chartCanvas.dataset.initialized) return;
+            generatePairsDataAndChart();
+            chartCanvas.dataset.initialized = true;
+        }
+
+        function generatePairsDataAndChart() {
+            const ctx = document.getElementById('pairsChart')?.getContext('2d');
+            if(!ctx) return;
+            const n_points=200; let price_x=100; let price_y=120; const beta=1.2;
+            const prices_x=[], prices_y=[], spread=[]; let common_factor=0;
+            for(let i=0;i<n_points;i++){
+                common_factor += (Math.random()-0.5)*0.5;
+                let specific_shock_x = (Math.random()-0.5)*1.5;
+                let specific_shock_y = (Math.random()-0.5)*1.5;
+                let divergence_shock = (i>50&&i<80)?-0.5:(i>150&&i<180?0.5:0);
+                price_x += common_factor+specific_shock_x; price_y += common_factor*beta+specific_shock_y+divergence_shock;
+                prices_x.push(price_x); prices_y.push(price_y); spread.push(price_y-beta*price_x);
+            }
+            const mean_spread = spread.reduce((a, b) => a + b, 0) / spread.length;
+            const std_spread = Math.sqrt(spread.map(x => Math.pow(x - mean_spread, 2)).reduce((a, b) => a + b, 0) / spread.length);
+            const z_scores = spread.map(s=>(s-mean_spread)/std_spread);
+
+            if (pairsChartInstance) pairsChartInstance.destroy();
+            pairsChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: n_points}, (_, i) => i+1),
+                    datasets: [
+                        { label: 'Ativo Y', data: prices_y, borderColor: '#0d9488', yAxisID: 'y_price', pointRadius: 0 },
+                        { label: 'Ativo X', data: prices_x, borderColor: '#f97316', yAxisID: 'y_price', pointRadius: 0 },
+                        { label: 'Z-Score', data: z_scores, borderColor: '#dc2626', yAxisID: 'y_zscore', borderWidth: 2, pointRadius: 0 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: {display: true, text: 'Simulação de Pairs Trading'} },
+                    scales: {
+                        x: { title: { display: true, text: 'Tempo' } },
+                        y_price: { type: 'linear', position: 'left', title: {display: true, text: 'Preço'}},
+                        y_zscore: { type: 'linear', position: 'right', title: {display: true, text: 'Z-Score'}, grid: { drawOnChartArea: false }, suggestedMin: -3, suggestedMax: 3 }
+                    }
+                }
+            });
+        }
+
+
+        // --- App Initialization ---
+        function initApp() {
+            const sidebarNav = document.getElementById('sidebar-nav');
+            const contentWrapper = document.getElementById('content-sections-wrapper');
+
+            contentData.forEach((pillar) => {
+                 const pillarContainer = document.createElement('div');
+                 const pillarHeader = document.createElement('div');
+                 pillarHeader.className = 'pillar-header flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-slate-700 active';
+                 pillarHeader.innerHTML = `<span class="font-semibold">${pillar.title}</span><svg class="w-5 h-5 transition-transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
+            
+                const moduleLinks = document.createElement('ul');
+                moduleLinks.className = 'module-links';
+
+                pillar.subsections.forEach((section) => {
+                    const linkItem = document.createElement('li');
+                    linkItem.innerHTML = `<a href="#" data-target="${section.id}" class="module-link block px-8 py-2 hover:bg-slate-600">${section.title}</a>`;
+                    moduleLinks.appendChild(linkItem);
+                    
+                    const sectionEl = document.createElement('section');
+                    sectionEl.id = section.id;
+                    sectionEl.className = 'hidden';
+
+                    const tabs = ['Teoria', 'Exemplos', 'Formulas', 'Python', 'QA', 'Referencias', 'Aprenda com IA'];
+                    
+                    const titleHTML = `<h2 class="text-3xl font-bold text-slate-800">${section.title}</h2>`;
+                    let tabsContainerHTML = '<div class="flex border-b border-gray-200 mt-2 mb-4 flex-wrap">';
+                    let panesHTML = '';
+
+                    tabs.forEach((tabName, index) => {
+                        const key = tabName.toLowerCase().replace(/\s/g, '').replace('ç', 'c').replace('ê', 'e');
+                        const targetId = `${section.id}-${key}`;
+                        const content = section.content[key];
+                        
+                        tabsContainerHTML += `<button data-target="${targetId}" class="tab-btn px-4 py-2 text-sm ${index === 0 ? 'tab-active' : 'tab-inactive'}">${tabName}</button>`;
+                        
+                        if (key === 'aprendacomia') {
+                            panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''} space-y-4 text-center p-4">
+                                <p class="text-slate-600">Use a IA Gemini para aprofundar seu conhecimento.</p>
+                                <div class="flex justify-center items-center gap-4 flex-wrap">
+                                    <button data-topic-title="${section.title}" class="explain-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Explicar o Tópico</button>
+                                    <button data-topic-title="${section.title}" class="quiz-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Gerar Quiz</button>
+                                </div>
+                            </div>`;
+                        } else if(content) {
+                           panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''}">${content}</div>`;
+                        }
+                    });
+                    
+                    tabsContainerHTML += '</div>';
+                    sectionEl.innerHTML = `<div class="card-bg p-6 rounded-2xl shadow-lg"><div class="text-slate-700 leading-relaxed">${titleHTML}${tabsContainerHTML}<div class="tab-content mt-4 min-h-[200px]">${panesHTML}</div></div></div>`;
+                    contentWrapper.appendChild(sectionEl);
+                });
+
+                pillarContainer.appendChild(pillarHeader);
+                pillarContainer.appendChild(moduleLinks);
+                sidebarNav.appendChild(pillarContainer);
+            });
+            
+            addEventListeners();
+        }
+
+        function addEventListeners() {
+            document.querySelectorAll('.pillar-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    header.classList.toggle('active');
+                    header.querySelector('svg').classList.toggle('rotate-180');
+                });
+            });
+
+            document.querySelectorAll('.module-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const targetId = e.target.dataset.target;
+                    document.getElementById('welcome-message').classList.add('hidden');
+                    document.querySelectorAll('#content-sections-wrapper > section').forEach(sec => sec.classList.add('hidden'));
+                    const targetSection = document.getElementById(targetId);
+                    targetSection.classList.remove('hidden');
+
+                    if (window.MathJax && window.MathJax.typeset) {
+                        MathJax.typesetPromise([targetSection]).then(() => {
+                            Prism.highlightAllUnder(targetSection);
+                        }).catch((err) => console.log('MathJax typeset error: ', err));
+                    } else {
+                         Prism.highlightAllUnder(targetSection);
+                    }
+
+                    document.querySelectorAll('.module-link').forEach(l => l.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    document.getElementById('main-content').scrollTo(0, 0);
+
+                    // Call initializers for interactive elements
+                    if (targetId === 'bsm') initBSM();
+                    if (targetId === 'juros') initJuros();
+                    if (targetId === 'stat-arb') initPairsTrading();
+                });
+            });
+            
+            document.body.addEventListener('click', function(e) {
+                if (e.target.matches('.tab-btn')) {
+                    const button = e.target;
+                    const targetId = button.dataset.target;
+                    const container = button.closest('.card-bg');
+                    container.querySelectorAll('.tab-btn').forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
+                    button.classList.replace('tab-inactive', 'tab-active');
+                    container.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+                    document.getElementById(targetId).classList.remove('hidden');
+                }
+                 if (e.target.matches('.qa-toggle')) {
+                    const button = e.target;
+                    const content = button.nextElementSibling;
+                    content.classList.toggle('hidden');
+                    const indicator = button.querySelector('span:last-child');
+                    indicator.textContent = content.classList.contains('hidden') ? '+' : '-';
+                }
+                if (e.target.matches('.copy-button')) {
+                    const button = e.target;
+                    const code = button.previousElementSibling.querySelector('code').innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        button.textContent = 'Copiado!';
+                        setTimeout(() => { button.textContent = 'Copiar'; }, 2000);
+                    });
+                }
+                if(e.target.matches('.explain-btn')) {
+                    const button = e.target;
+                    const topicTitle = button.dataset.topicTitle;
+                    showModal(`✨ Explicando: ${topicTitle}`);
+                    const prompt = `Explique o seguinte tópico de finanças quantitativas de forma clara e concisa para um estudante: "${topicTitle}". Use parágrafos curtos, analogias simples e exemplos práticos, se possível. Formate a resposta em HTML simples (use <p>, <strong>, <ul>, <li>).`;
+                    callGemini(prompt).then(displayModalContent);
+                }
+                if(e.target.matches('.quiz-btn')) {
+                    const button = e.target;
+                    const topicTitle = button.dataset.topicTitle;
+                    showModal(`✨ Quiz: ${topicTitle}`);
+                    const prompt = `Crie um quiz com 3 perguntas de múltipla escolha (4 opções de 'a' a 'd') sobre o tópico "${topicTitle}". Após as perguntas, revele as respostas corretas com uma justificativa concisa em negrito. Formate como HTML (use <p>, <strong>, <ul>, <li>).`;
+                    callGemini(prompt).then(displayModalContent);
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
+

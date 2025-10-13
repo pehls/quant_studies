@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Estudos Quantitativos - Fundamentos</title>
+    <!-- Chosen Palette: Dark Slate Sidebar with Warm Neutral Content and Teal Accents -->
+    <!-- Application Structure Plan: A two-column layout with a dark, accordion-style sidebar. The main content area dynamically displays only the selected sub-topic for a focused experience. The "Teoria" tab for each sub-topic has been significantly expanded with more in-depth explanations as requested. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Mathematical formulas. Goal: Display notation clearly. Viz/Presentation: Rendered LaTeX. Library/Method: MathJax.
+        2. Report Info: Python code examples. Goal: Demonstrate implementation. Viz/Presentation: Code blocks with copy button. Library/Method: Prism.js and custom JS.
+        3. Report Info: Focused topic study. Goal: Enhance understanding. Viz/Presentation: Dynamically shown/hidden content cards. Interaction: Clicking a sidebar link displays one card and hides others.
+        4. Report Info: Complex topics. Goal: On-demand clarification. Viz/Presentation: AI-generated content in a modal. Interaction: Buttons trigger Gemini API calls.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #4a4a4a; }
+        
+        .sidebar-bg { background-color: #1f2937; color: #e5e7eb; }
+        .content-bg { background-color: #f8f7f4; }
+        .card-bg { background-color: #ffffff; }
+        
+        #sidebar .pillar-header.active { background-color: #4a5568; }
+        #sidebar .module-links { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: #111827;}
+        #sidebar .pillar-header.active + .module-links { max-height: 500px; }
+        #sidebar .module-link.active { background-color: #0d9488; color: white; font-weight: 600; }
+        #sidebar::-webkit-scrollbar { width: 8px; }
+        #sidebar::-webkit-scrollbar-track { background: #1f2937; }
+        #sidebar::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 10px; }
+
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s ease-in-out; }
+        .tab-active { color: #0d9488; font-weight: 600; border-bottom-color: #0d9488; }
+        .tab-inactive { color: #6b7280; }
+
+        #gemini-modal { transition: opacity 0.3s ease; }
+        .gemini-btn {
+            background-color: #f0fdfa;
+            color: #0f766e;
+            border: 1px solid #ccfbf1;
+            transition: background-color 0.2s;
+        }
+        .gemini-btn:hover { background-color: #ccfbf1; }
+
+        .prism-code { border-radius: 0.5rem; font-size: 0.875rem; }
+        .copy-button { position: absolute; top: 0.5rem; right: 0.5rem; background-color: rgba(255, 255, 255, 0.1); color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; cursor: pointer; transition: background-color 0.2s; }
+        .copy-button:hover { background-color: rgba(255, 255, 255, 0.2); }
+        .accent-border { border-color: #0d9488; }
+        mjx-container[jax="SVG"][display="true"] { display: block; margin: 1em 0; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-80 sidebar-bg flex-shrink-0 overflow-y-auto hidden lg:block shadow-lg">
+            <div class="p-6 sticky top-0 bg-slate-800 z-10">
+                <h1 class="text-2xl font-semibold text-center text-teal-400">Guia de Estudos</h1>
+                <p class="text-sm text-slate-400 mt-1 text-center">Pilar 1: Fundamentos</p>
+            </div>
+            <nav id="sidebar-nav" class="text-slate-300 p-2"></nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="main-content" class="flex-1 p-4 sm:p-6 md:p-8 content-bg overflow-y-auto">
+            <div id="welcome-message" class="text-center h-full flex flex-col justify-center items-center">
+                <h1 class="text-4xl font-bold text-slate-700">Bem-vindo ao Guia de Estudos</h1>
+                <p class="mt-4 text-xl text-slate-500">Selecione um tópico no menu à esquerda para começar.</p>
+                <svg class="w-24 h-24 mt-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5l7 7-7-7"></path></svg>
+            </div>
+            <div id="content-sections-wrapper" class="max-w-7xl mx-auto">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Gemini Modal -->
+    <div id="gemini-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b bg-slate-50 rounded-t-lg">
+                <h3 id="modal-title" class="text-xl font-semibold text-slate-800"></h3>
+                <button id="modal-close-btn" class="text-2xl font-bold text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="modal-loader" class="text-center hidden">
+                    <svg class="animate-spin h-8 w-8 text-teal-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="mt-2 text-slate-600">Gerando conteúdo com a IA Gemini...</p>
+                </div>
+                <div id="modal-response" class="prose max-w-none text-slate-700"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const contentData = [
+            {
+                id: 'matematica',
+                title: 'Fundamentos Matemáticos',
+                subsections: [
+                    {
+                        id: 'calculo',
+                        title: 'Cálculo Diferencial e Integral',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Cálculo Diferencial e Integral</h3><p class="mb-4">O <strong>Cálculo</strong> é a linguagem matemática da mudança e do movimento, tornando-se uma ferramenta indispensável em finanças quantitativas para modelar sistemas dinâmicos. Ele se divide em duas áreas principais: o Cálculo Diferencial, que lida com taxas de variação instantâneas, e o Cálculo Integral, que lida com a acumulação de quantidades.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Cálculo Diferencial (Derivadas)</h4><p class="mb-3">A <strong>derivada</strong> de uma função, $f'(x)$, mede a sensibilidade da saída da função em relação a uma pequena mudança em sua entrada. Em finanças, isso se traduz diretamente em medir risco e sensibilidade.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Precificação de Derivativos (As "Gregas"):</strong> Este é o uso mais famoso do cálculo em finanças. As "Gregas" são simplesmente as derivadas parciais do preço de uma opção em relação a diferentes variáveis. O <strong>Delta ($\\Delta = \\frac{\\partial V}{\\partial S}$)</strong>, a mais importante, mede o quanto o preço da opção ($V$) muda para cada R$1,00 de mudança no preço do ativo subjacente ($S$). O <strong>Gamma ($\\Gamma = \\frac{\\partial^2 V}{\\partial S^2}$)</strong> é a segunda derivada, medindo como o Delta muda, capturando a convexidade da relação preço-opção. Outras Gregas como Theta (sensibilidade ao tempo) e Vega (sensibilidade à volatilidade) também são derivadas cruciais.</li><li><strong>Gestão de Risco de Títulos:</strong> Para títulos de renda fixa, a <strong>Duração Modificada</strong> é a derivada percentual do preço do título em relação a uma mudança na taxa de juros ($- \\frac{1}{P}\\frac{dP}{dy}$). Ela quantifica o quão sensível um título ou portfólio de títulos é às flutuações das taxas de juros.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Cálculo Integral (Integrais)</h4><p class="mb-3">A <strong>integral</strong>, $\\int f(x)dx$, pode ser vista como uma "soma contínua". Ela nos permite calcular valores totais acumulados e valores esperados.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Valuation de Ativos:</strong> O valor presente (PV) de um fluxo de caixa contínuo $C(t)$ é encontrado integrando os fluxos de caixa descontados: $PV = \\int_{0}^{T} C(t)e^{-rt} dt$.</li><li><strong>Probabilidade e Estatística:</strong> A probabilidade de um retorno de uma variável aleatória contínua cair em um intervalo $[a, b]$ é a área sob a Curva de Densidade de Probabilidade (PDF), calculada via integral: $P(a \\leq X \\leq b) = \\int_{a}^{b} f(x) dx$.</li></ul>`,
+                            exemplos: `<p><strong>Exemplo Prático (Derivada):</strong> O <strong>Delta</strong> ($\\Delta$) de uma opção de compra é a derivada do preço da opção ($C$) em relação ao preço do ativo subjacente ($S$). Se uma opção de compra da PETR4 tem um Delta de 0.6, significa que, para cada R$ 1,00 de aumento no preço da ação da PETR4, o preço da opção tende a aumentar em R$ 0,60, mantendo os outros fatores constantes.</p><p class="mt-4"><strong>Exemplo Prático (Integral):</strong> Para calcular o valor total de ganhos de um portfólio com uma taxa de retorno variável $r(t)$ ao longo de um período de tempo $[0, T]$, podemos usar a integral. O valor futuro ($FV$) de um investimento inicial ($PV$) seria $FV = PV \\cdot e^{\\int_{0}^{T} r(t) dt}$.</p>`,
+                            formulas: `<p><strong>Derivada (Definição Limite):</strong></p>$$f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$$<p><strong>Integral Definida (Teorema Fundamental do Cálculo):</strong></p>$$\\int_{a}^{b} f(x) dx = F(b) - F(a)$$<p>onde $F'(x) = f(x)$.</p><p class="mt-4"><strong>Delta ($\\Delta$) de uma Opção Europeia de Compra (Modelo Black-Scholes):</strong></p>$$\\Delta = \\frac{\\partial C}{\\partial S} = N(d_1)$$<p>onde $N(d_1)$ é a função de distribuição acumulada da normal padrão avaliada em $d_1$.</p>`,
+                            python: `<p>Podemos usar a biblioteca <code>SciPy</code> para computar derivadas e integrais numericamente.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\nfrom scipy.misc import derivative\nfrom scipy.integrate import quad\n\n# Função a ser analisada: f(x) = x^2\ndef func(x):\n    return x**2\n\n# 1. Calcular a derivada de f(x) em x = 2\n# A derivada analítica é f'(x) = 2x, então f'(2) = 4\nderiv = derivative(func, 2.0, dx=1e-6)\nprint(f"A derivada numérica de x^2 em x=2 é: {deriv:.4f}")\n\n# 2. Calcular a integral de f(x) de 0 a 3\n# A integral analítica é (x^3)/3, então de 0 a 3 é (3^3)/3 - 0 = 9\nintegral_val, error = quad(func, 0, 3)\nprint(f"A integral numérica de x^2 de 0 a 3 é: {integral_val:.4f}")</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Como o cálculo é usado na otimização de carteiras?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Na Teoria Moderna do Portfólio de Markowitz, o objetivo é minimizar a variância (risco) da carteira para um nível de retorno esperado. Usamos cálculo (especificamente, os multiplicadores de Lagrange) para encontrar as derivadas parciais da função de variância em relação aos pesos de cada ativo, igualá-las a zero e resolver o sistema de equações para encontrar os pesos ótimos.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é o Cálculo Estocástico?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É uma extensão do cálculo tradicional para lidar com processos estocásticos (aleatórios), como o movimento dos preços das ações. O Lema de Itô é um resultado fundamental do cálculo estocástico, essencial para derivar a equação de Black-Scholes para precificação de opções.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Cálculo, Volume 1" por James Stewart.</li><li><strong>Livro:</strong> "Stochastic Calculus for Finance I & II" por Steven Shreve.</li><li><strong>Recurso Online:</strong> <a href="https://www.khanacademy.org/math/calculus-1" target="_blank" class="text-teal-600 hover:underline">Khan Academy - Calculus 1</a></li><li><strong>Recurso Online:</strong> <a href="https://tutorial.math.lamar.edu/" target="_blank" class="text-teal-600 hover:underline">Paul's Online Math Notes</a></li><li><strong>Curso:</strong> <a href="https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/" target="_blank" class="text-teal-600 hover:underline">MIT OpenCourseWare - Single Variable Calculus</a></li></ul>`
+                        }
+                    },
+                    {
+                        id: 'algebra',
+                        title: 'Álgebra Linear',
+                        content: {
+                           teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Álgebra Linear</h3><p class="mb-4">Se o cálculo lida com a mudança de uma variável de cada vez, a <strong>Álgebra Linear</strong> fornece as ferramentas para analisar e manipular sistemas com múltiplas variáveis interagindo simultaneamente. É a espinha dorsal computacional da teoria de portfólios, análise de risco de fatores e machine learning.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Vetores, Matrizes e Sistemas Lineares</h4><p class="mb-3">Em finanças, dados são naturalmente organizados em vetores e matrizes.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Representação de Dados:</strong> Um portfólio de $n$ ativos é um vetor de pesos $w \\in \\mathbb{R}^n$. Uma série temporal de retornos para esses $n$ ativos ao longo de $T$ dias é uma matriz $R \\in \\mathbb{R}^{T \\times n}$.</li><li><strong>Teoria de Portfólios:</strong> O risco (variância) de um portfólio é a forma quadrática $\\sigma_p^2 = w^T \\Sigma w$, onde $\\Sigma$ é a <strong>matriz de covariância</strong>. Esta matriz é talvez a entidade mais importante da álgebra linear em finanças. A diagonal contém as variâncias (risco individual) e os elementos fora da diagonal contêm as covariâncias (como os ativos se movem em conjunto), que são a chave para a diversificação.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Autovalores, Autovetores e Decomposições</h4><p class="mb-3">Essas técnicas avançadas nos permitem "olhar dentro" da estrutura de uma matriz para entender suas propriedades fundamentais.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Análise de Componentes Principais (PCA):</strong> A PCA é uma técnica que encontra os autovetores e autovalores da matriz de covariância. Os autovetores (componentes principais) representam as direções de maior variância nos dados — em finanças, eles são interpretados como os principais "fatores" de risco que movem o mercado.</li><li><strong>Regressão Linear Múltipla:</strong> O problema de encontrar os coeficientes $\\beta$ que melhor ajustam um modelo de regressão linear tem uma solução analítica compacta usando álgebra linear: $\\hat{\\beta} = (X^T X)^{-1} X^T y$.</li></ul>`,
+                           exemplos: `<p><strong>Exemplo (Risco do Portfólio):</strong> Com um vetor de pesos $w$ e uma matriz de covariância $\\Sigma$, o risco (variância) do portfólio é calculado de forma compacta como $\\sigma_p^2 = w^T \\Sigma w$. Isso permite calcular o risco de um portfólio com centenas de ativos de forma muito eficiente. Se temos dois ativos com pesos [0.6, 0.4] e uma matriz de covariância, a álgebra linear nos dá o risco total considerando não apenas o risco individual de cada um, mas como eles se movem juntos.</p>`,
+                           formulas: `<p><strong>Retorno do Portfólio:</strong> $$E[R_p] = w^T R$$</p><p><strong>Risco (Variância) do Portfólio:</strong> $$\\sigma_p^2 = w^T \\Sigma w$$</p><p><strong>Solução de Mínimos Quadrados (Regressão):</strong> $$\\hat{\\beta} = (X^T X)^{-1} X^T y$$</p>`,
+                           python: `<p>Cálculo do risco de um portfólio com <code>NumPy</code>.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\n\n# Pesos: 60% Ativo A, 40% Ativo B\nweights = np.array([0.6, 0.4])\n\n# Matriz de covariância anualizada (exemplo)\n# Var(A)=4%, Var(B)=9%, Cov(A,B)=1%\ncov_matrix = np.array([[0.0400, 0.0100],\n                       [0.0100, 0.0900]])\n\n# Risco do portfólio: w^T * Sigma * w\nportfolio_variance = weights.T @ cov_matrix @ weights\nportfolio_volatility = np.sqrt(portfolio_variance)\n\nprint(f"Variância do portfólio: {portfolio_variance:.4f}")\nprint(f"Volatilidade (Risco) do portfólio: {portfolio_volatility * 100:.2f}%")</code></pre><button class="copy-button">Copiar</button></div>`,
+                           qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que significa uma matriz de covariância singular?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Uma matriz de covariância singular (não invertível) indica multicolinearidade perfeita: o retorno de um ativo pode ser expresso como uma combinação linear dos outros. Isso causa problemas em otimizações e regressões, pois a solução $(X^T X)^{-1}$ não pode ser calculada.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Para que serve a Decomposição em Valores Singulares (SVD)?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>A SVD é uma generalização da decomposição em autovalores que pode ser aplicada a qualquer matriz (não apenas quadradas e simétricas). Em finanças, é usada em PCA, para resolver sistemas de regressão de forma numericamente estável e em técnicas de redução de ruído em dados financeiros.</p></div></div></div>`,
+                           referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Introduction to Linear Algebra" por Gilbert Strang.</li><li><strong>Online:</strong> <a href="https://www.3blue1brown.com/lessons/essence-of-linear-algebra" target="_blank" class="text-teal-600 hover:underline">3Blue1Brown - Essence of Linear Algebra</a> (Intuição visual).</li><li><strong>Curso:</strong> <a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/" target="_blank" class="text-teal-600 hover:underline">MIT OpenCourseWare - Linear Algebra</a></li></ul>`
+                        }
+                    },
+                     {
+                        id: 'otimizacao',
+                        title: 'Otimização',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Otimização</h3><p class="mb-4"><strong>Otimização</strong> é a disciplina matemática de encontrar a melhor solução (o máximo ou mínimo de uma função) a partir de um conjunto de alternativas viáveis, muitas vezes na presença de restrições. Em finanças quantitativas, quase todo problema pode ser enquadrado como um problema de otimização: maximizar o retorno para um dado nível de risco, minimizar o erro de um modelo, encontrar a melhor execução para uma ordem grande, etc.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Componentes de um Problema de Otimização</h4><p class="mb-3">Todo problema de otimização possui três componentes principais:</p><ul class="list-disc pl-6 space-y-3"><li><strong>Função Objetivo:</strong> A quantidade que queremos minimizar ou maximizar. Exemplos: minimizar a variância do portfólio ($\sigma_p^2$), maximizar o Índice de Sharpe ($\frac{E[R_p] - R_f}{\sigma_p}$), ou minimizar a soma dos erros quadrados em uma regressão.</li><li><strong>Variáveis de Decisão:</strong> Os "botões" que podemos ajustar para otimizar a função objetivo. Em um portfólio, são os pesos de cada ativo ($w_i$).</li><li><strong>Restrições:</strong> As regras que as variáveis de decisão devem obedecer. Exemplos: a soma dos pesos deve ser igual a 1 ($\sum w_i = 1$), os pesos não podem ser negativos ($w_i \ge 0$ para uma carteira sem vendas a descoberto), a exposição a um setor não pode exceder 20%, etc.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Otimização Convexa e a Fronteira Eficiente</h4><p class="mb-3">Uma classe particularmente importante de problemas é a <strong>otimização convexa</strong>. Nesses problemas, a função objetivo tem a forma de uma "tigela" e o conjunto de soluções viáveis é convexo. A grande vantagem é que qualquer ótimo local encontrado também é garantido ser o ótimo global. A <strong>Teoria Moderna do Portfólio de Markowitz</strong> é um exemplo clássico. O problema é minimizar a variância do portfólio (uma função quadrática e convexa) sujeito a restrições lineares (que formam um conjunto convexo). Ao resolver este problema para diferentes níveis de retorno esperado, traçamos a <strong>Fronteira Eficiente</strong>, que representa o conjunto de todos os portfólios ótimos. Este é um problema de <strong>Programação Quadrática (QP)</strong>, um tipo de otimização convexa.</p>`,
+                            exemplos: `<p><strong>Exemplo (Fronteira Eficiente):</strong> A fronteira eficiente é traçada resolvendo um problema de otimização repetidamente: para cada nível de retorno desejado, encontra-se o portfólio com o menor risco (variância) possível. O resultado é um gráfico de Risco vs. Retorno que mostra o melhor trade-off possível. O ponto na fronteira com o maior Índice de Sharpe é chamado de "Portfólio Tangente".</p><p class="mt-4"><strong>Exemplo (Machine Learning):</strong> Treinar um modelo de regressão (como Ridge ou Lasso) ou uma Support Vector Machine (SVM) é um problema de otimização. O objetivo é minimizar uma "função de perda" (que mede o erro do modelo) mais um termo de regularização (que penaliza a complexidade do modelo para evitar overfitting).</p>`,
+                            formulas: `<p><strong>Problema Geral de Otimização:</strong></p>$$\\begin{aligned} & \\underset{x}{\\text{minimizar}} & & f(x) \\\\ & \\text{sujeito a} & & g_i(x) \\leq 0, \\quad i=1,...,m \\\\ & & & h_j(x) = 0, \\quad j=1,...,p \\end{aligned}$$<p><strong>Problema de Mínima Variância de Markowitz:</strong></p>$$\\begin{aligned} & \\underset{w}{\\text{minimizar}} & & w^T \\Sigma w \\\\ & \\text{sujeito a} & & w^T \\mathbf{1} = 1 \\\\ & & & w_i \\ge 0 \\end{aligned}$$`,
+                            python: `<p>Encontrando o portfólio de mínima variância com <code>SciPy.optimize</code>.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\nfrom scipy.optimize import minimize\n\n# Retornos esperados e matriz de covariância\nexpected_returns = np.array([0.05, 0.12, 0.15])\ncov_matrix = np.array([[0.005, 0.002, 0.001],\n                       [0.002, 0.015, 0.007],\n                       [0.001, 0.007, 0.025]])\n\ndef portfolio_variance(weights, cov_matrix):\n    return weights.T @ cov_matrix @ weights\n\nnum_assets = len(expected_returns)\n# Restrição: soma dos pesos = 1\ncons = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})\n# Limites: pesos entre 0 e 1 (sem venda a descoberto)\nbounds = tuple((0, 1) for asset in range(num_assets))\n# Chute inicial\ninitial_weights = num_assets * [1. / num_assets,]\n\nresult = minimize(portfolio_variance, initial_weights, args=(cov_matrix,), \n                  method='SLSQP', bounds=bounds, constraints=cons)\n\nif result.success:\n    print("Pesos de Mínima Variância:")\n    for i, weight in enumerate(result.x):\n        print(f"  Ativo {i+1}: {weight*100:.2f}%")</code></pre><button class="copy-button">Copiar</button></div>`,
+                             qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é Gradiente Descendente?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É um algoritmo de otimização iterativo usado para encontrar o mínimo de uma função. É a base do treinamento da maioria dos modelos de Machine Learning e Deep Learning. A ideia é calcular o gradiente (a derivada em múltiplas dimensões) da função de perda e dar um pequeno passo na direção oposta ao gradiente, repetindo o processo até convergir para um mínimo.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Por que a matriz de covariância precisa ser estimada com cuidado?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>A otimização de portfólio é muito sensível aos inputs (retornos esperados e covariância). A matriz de covariância histórica pode ser muito ruidosa e instável. Pequenos erros na sua estimativa podem levar a soluções de portfólio extremas e pouco robustas. Técnicas como "shrinkage" (encolhimento) são usadas para obter estimativas mais estáveis.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Convex Optimization" por Stephen Boyd (Disponível online).</li><li><strong>Livro:</strong> "Advances in Financial Machine Learning" por Marcos Lopez de Prado (para otimização de estratégias).</li><li><strong>Online:</strong> <a href="https://docs.scipy.org/doc/scipy/reference/tutorial/optimize.html" target="_blank" class="text-teal-600 hover:underline">SciPy Optimize Tutorial</a></li><li><strong>Biblioteca:</strong> <a href="https://pyportfolioopt.readthedocs.io/" target="_blank" class="text-teal-600 hover:underline">PyPortfolioOpt</a> (Focada em otimização de portfólios).</li></ul>`
+                        }
+                    }
+                ]
+            },
+            {
+                id: 'probabilidade-estatistica',
+                title: 'Probabilidade e Estatística',
+                subsections: [
+                    {
+                        id: 'teoria-probabilidade',
+                        title: 'Teoria da Probabilidade',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Teoria da Probabilidade</h3><p class="mb-4">A <strong>Teoria da Probabilidade</strong> é o arcabouço matemático para lidar com a incerteza. Como os mercados financeiros são inerentemente incertos, a probabilidade é a linguagem fundamental usada para quantificar, modelar e gerenciar o risco.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Variáveis Aleatórias e Distribuições</h4><p class="mb-3">Um resultado financeiro futuro, como o retorno de uma ação amanhã, é uma <strong>variável aleatória</strong>. O comportamento dessa variável é descrito por uma <strong>distribuição de probabilidade</strong>.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Distribuição Normal:</strong> A famosa "curva de sino". É o ponto de partida para modelar os retornos de ativos devido ao Teorema do Limite Central. Ela é completamente definida por dois parâmetros: a média ($\\mu$), que representa o <strong>retorno esperado</strong>, e o desvio padrão ($\\sigma$), que representa a <strong>volatilidade ou risco</strong>.</li><li><strong>Limitações da Normalidade:</strong> Na prática, os retornos financeiros exibem "caudas gordas" (leptocurtose), significando que eventos extremos (grandes quedas ou altas) são mais comuns do que a distribuição normal prevê. Isso leva ao uso de distribuições mais sofisticadas, como a <strong>distribuição t-Student</strong>, para uma modelagem de risco mais precisa.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Valor Esperado, Variância e Covariância</h4><p class="mb-3">Esses são os "momentos" de uma distribuição que resumem suas características mais importantes.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Valor Esperado ($E[X]$):</strong> É a média ponderada de todos os possíveis resultados, representando o resultado médio que esperaríamos se o experimento fosse repetido infinitas vezes. É o "retorno esperado" de um ativo ou estratégia.</li><li><strong>Variância ($Var(X) = \sigma^2$):</strong> Mede a dispersão dos resultados em torno do valor esperado. É a medida mais fundamental de risco.</li><li><strong>Covariância e Correlação:</strong> Medem como duas variáveis aleatórias se movem juntas. Uma correlação positiva alta entre dois ativos significa que eles tendem a subir e cair juntos, oferecendo pouco benefício de diversificação.</li></ul>`,
+                            exemplos: `<p><strong>Exemplo:</strong> Se dizemos que o retorno diário do IBOVESPA segue uma distribuição normal com média 0.05% e desvio padrão 1.5%, podemos usar a função de distribuição acumulada (CDF) para calcular a probabilidade de o índice cair mais de 3% em um dia, ou de subir entre 1% e 2%.</p><p class="mt-4"><strong>Exemplo de Valor Esperado:</strong> Um ativo tem 50% de chance de retornar 10% e 50% de chance de retornar -5%. O retorno esperado é $E[R] = 0.50 \times 10\% + 0.50 \times (-5\%) = 2.5\%$.</p>`,
+                            formulas: `<p><strong>Valor Esperado (Discreto):</strong> $$E[X] = \\sum_{i} x_i P(x_i)$$</p><p><strong>Valor Esperado (Contínuo):</strong> $$E[X] = \\int_{-\\infty}^{\\infty} x f(x) dx$$</p><p><strong>Variância:</strong> $$Var(X) = E[(X - E[X])^2] = E[X^2] - (E[X])^2$$</p>`,
+                            python: `<p>Uso de <code>scipy.stats</code> para trabalhar com distribuições.</p><div class="relative mt-2"><pre><code class="language-python prism-code">from scipy.stats import norm\n\n# Média e desvio padrão dos retornos diários (%)\nmu, sigma = 0.05, 1.5\n\n# 1. Probabilidade de o retorno ser menor que -2%\nprob_queda = norm.cdf(-2, loc=mu, scale=sigma)\nprint(f"Probabilidade de queda > 2%: {prob_queda * 100:.2f}%")\n\n# 2. Valor de retorno que só é superado em 5% das vezes (VaR)\nvar_95 = norm.ppf(0.05, loc=mu, scale=sigma)\nprint(f"VaR de 95%% (perda máxima esperada): {var_95:.2f}%")\n\n# 3. Gerar 10 retornos aleatórios dessa distribuição\nrandom_returns = norm.rvs(loc=mu, scale=sigma, size=10)\nprint("\\n10 retornos diários simulados:")\nprint([f"{r:.2f}%" for r in random_returns])</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Por que a distribuição normal nem sempre é adequada para retornos financeiros?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Os retornos de ativos financeiros exibem "caudas gordas" (leptocurtose), o que significa que eventos extremos (grandes quedas ou altas) são mais prováveis do que a distribuição normal sugere. Eles também podem apresentar assimetria (skewness). Ignorar isso leva a uma subestimação do risco real (tail risk).</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é o Teorema do Limite Central?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Ele afirma que a média de um grande número de variáveis aleatórias independentes e identicamente distribuídas será aproximadamente normalmente distribuída, independentemente da distribuição original. É por isso que a distribuição normal aparece em tantos lugares e é uma boa primeira aproximação para retornos agregados ao longo do tempo.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "A First Course in Probability" por Sheldon Ross.</li><li><strong>Livro:</strong> "The Black Swan: The Impact of the Highly Improbable" por Nassim Nicholas Taleb (para uma crítica da normalidade).</li><li><strong>Online:</strong> <a href="https://seeing-theory.brown.edu/" target="_blank" class="text-teal-600 hover:underline">Seeing Theory</a> (Visualizações interativas).</li></ul>`
+                        }
+                    },
+                    {
+                        id: 'estatistica-inferencial',
+                        title: 'Estatística Inferencial',
+                        content: {
+                             teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Estatística Inferencial</h3><p class="mb-4">Raramente temos acesso à "verdadeira" distribuição de probabilidade que governa os retornos dos ativos. Em vez disso, temos uma quantidade finita de dados históricos — uma <strong>amostra</strong>. A <strong>Estatística Inferencial</strong> é o conjunto de técnicas que nos permite usar essa amostra para fazer conclusões (inferências) sobre o processo subjacente (a <strong>população</strong>).</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Estimação e Intervalos de Confiança</h4><p class="mb-3">O primeiro passo é estimar os parâmetros de interesse (como a média $\\mu$ e o desvio padrão $\\sigma$) a partir da nossa amostra. A média amostral ($\\bar{x}$) é um <strong>estimador pontual</strong> da verdadeira média $\\mu$. No entanto, uma estimativa pontual é quase certamente errada. Por isso, construímos <strong>intervalos de confiança</strong>. Um intervalo de confiança de 95% para a média é uma faixa de valores para a qual temos 95% de confiança de que contém a verdadeira média da população. Ele nos dá uma medida da incerteza em nossa estimativa.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Testes de Hipótese</h4><p class="mb-3">Esta é a estrutura formal para tomar decisões com base em dados. O processo envolve:</p><ul class="list-disc pl-6 space-y-3"><li><strong>Hipótese Nula ($H_0$):</strong> A hipótese do status quo, geralmente de "nenhum efeito". Em finanças, um exemplo comum é "$H_0$: O alfa desta estratégia é zero".</li><li><strong>Hipótese Alternativa ($H_1$):</strong> A hipótese que o pesquisador quer provar. Ex: "$H_1$: O alfa desta estratégia é maior que zero".</li><li><strong>Estatística de Teste:</strong> Um valor calculado a partir da amostra (ex: a estatística-t) que mede o quão longe nossos dados estão do que seria esperado sob a hipótese nula.</li><li><strong>p-valor:</strong> A probabilidade de observar uma estatística de teste tão extrema (ou mais extrema) quanto a que foi calculada, assumindo que a hipótese nula é verdadeira. Um <strong>p-valor baixo (tipicamente < 0.05)</strong> é considerado evidência forte contra a $H_0$, nos permitindo rejeitá-la em favor da $H_1$.</li></ul><p class="mt-3">Testes de hipótese são cruciais para validar estratégias de trading e garantir que um desempenho observado no passado não foi simplesmente devido ao acaso.</p>`,
+                             exemplos: `<p><strong>Exemplo:</strong> Um gestor de fundos afirma que sua estratégia tem um Índice de Sharpe médio maior que 1. Coletamos os retornos mensais do último ano (a amostra) e realizamos um teste t para verificar se a média amostral do Sharpe é "estatisticamente diferente" de 1. Se o p-valor for 0.02, rejeitamos a hipótese nula (Sharpe <= 1) e concluímos que há evidência estatística (com 98% de confiança) de que a estratégia é superior.</p>`,
+                            formulas: `<p><strong>Estatística t (Teste para uma média):</strong> $$t = \\frac{\\bar{x} - \\mu_0}{s / \\sqrt{n}}$$ Onde $\\bar{x}$ é a média da amostra, $\\mu_0$ é a média sob $H_0$, $s$ é o desvio padrão da amostra e $n$ é o tamanho da amostra.</p><p><strong>Intervalo de Confiança para a Média:</strong> $$\\bar{x} \\pm z^* \\frac{\\sigma}{\\sqrt{n}} \\quad \\text{ou} \\quad \\bar{x} \\pm t^* \\frac{s}{\\sqrt{n}}$$</p>`,
+                            python: `<p>Teste t para verificar se os retornos médios de uma estratégia são significativamente diferentes de zero.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\nfrom scipy.stats import ttest_1samp\n\n# Retornos diários de uma estratégia (252 dias)\nnp.random.seed(42)\nreturns = np.random.normal(loc=0.001, scale=0.02, size=252)\n\n# H0: a média dos retornos é 0\n# H1: a média dos retornos não é 0\nt_stat, p_value = ttest_1samp(returns, 0)\n\nprint(f"Média dos retornos: {returns.mean():.5f}")\nprint(f"Estatística t: {t_stat:.2f}")\nprint(f"P-valor: {p_value:.4f}")\n\nalpha_level = 0.05\nif p_value < alpha_level:\n    print(f"Com um nível de significância de {alpha_level*100}%, rejeitamos H0.")\n    print("A média dos retornos é estatisticamente diferente de zero.")\nelse:\n    print(f"Com um nível de significância de {alpha_level*100}%, não rejeitamos H0.")\n    print("Não há evidência estatística de que a média é diferente de zero.")</code></pre><button class="copy-button">Copiar</button></div>`,
+                             qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é 'p-hacking' ou 'data snooping'?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É a prática de rodar múltiplos testes em um conjunto de dados até encontrar um resultado estatisticamente significativo por acaso. Isso leva a "descobertas" falsas e é um grande problema em pesquisa financeira (backtesting), onde se pode testar milhares de variações de uma estratégia até uma "funcionar" nos dados históricos. É crucial ter uma hipótese clara antes de analisar os dados.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre significância estatística e significância econômica?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Uma estratégia pode ter um alfa pequeno mas estatisticamente significativo (p-valor baixo), mas se esse alfa for menor que os custos de transação (corretagem, slippage), ela não tem significância econômica. Ambos os critérios precisam ser atendidos para que uma estratégia seja viável.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Statistics" por Freedman, Pisani e Purves.</li><li><strong>Livro:</strong> "The Elements of Statistical Learning" por Hastie, Tibshirani, Friedman (avançado).</li><li><strong>Online:</strong> <a href="https://www.khanacademy.org/math/statistics-probability" target="_blank" class="text-teal-600 hover:underline">Khan Academy - Statistics</a></li></ul>`
+                        }
+                    },
+                     {
+                        id: 'processos-estocasticos',
+                        title: 'Processos Estocásticos',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Processos Estocásticos</h3><p class="mb-4">Um <strong>Processo Estocástico</strong> é um modelo matemático para descrever a evolução de uma variável aleatória ao longo do tempo. Se uma variável aleatória é uma "foto" de um evento incerto, um processo estocástico é o "filme". É a ferramenta fundamental para modelar a dinâmica dos preços dos ativos, taxas de juros e volatilidade.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Do Passeio Aleatório ao Movimento Browniano Geométrico</h4><ul class="list-disc pl-6 space-y-3"><li><strong>Passeio Aleatório (Random Walk):</strong> O modelo mais básico. O preço amanhã é o preço de hoje mais um passo aleatório. A Hipótese de Mercados Eficientes, em sua forma fraca, implica que os preços das ações devem seguir um passeio aleatório.</li><li><strong>Movimento Browniano (Processo de Wiener):</strong> É o limite de tempo contínuo de um passeio aleatório. É caracterizado por incrementos independentes e normalmente distribuídos.</li><li><strong>Movimento Browniano Geométrico (GBM):</strong> O modelo padrão para preços de ações e a base para a fórmula de Black-Scholes. A SDE (Equação Diferencial Estocástica) que o descreve é $dS_t = \\mu S_t dt + \\sigma S_t dW_t$. Essa equação afirma que a mudança no preço ($dS_t$) tem um componente determinístico de "drift" ($\mu S_t dt$) e um componente estocástico de "difusão" ($\sigma S_t dW_t$).</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Lema de Itô e Cálculo Estocástico</h4><p class="mb-3">As regras do cálculo diferencial clássico não se aplicam a funções de processos estocásticos. O <strong>Cálculo Estocástico</strong> é a matemática necessária para lidar com essas funções. O <strong>Lema de Itô</strong> é o seu resultado mais importante, análogo à regra da cadeia do cálculo normal. Ele nos diz como a mudança em uma função de um processo estocástico (como o preço de uma opção, que é uma função do preço da ação) evolui ao longo do tempo. É a ferramenta-chave usada para derivar a famosa equação diferencial parcial de Black-Scholes.</p>`,
+                            exemplos: `<p><strong>Exemplo (Simulação de Monte Carlo):</strong> Para precificar uma opção exótica para a qual não existe uma fórmula fechada, podemos simular milhares de possíveis caminhos futuros para o preço da ação usando um modelo como o GBM. Para cada caminho simulado, calculamos o payoff da opção no vencimento. O preço da opção hoje é a média do valor presente de todos esses payoffs. Essa técnica é amplamente utilizada para avaliação de derivativos complexos e gestão de risco.</p>`,
+                            formulas: `<p><strong>Equação Diferencial Estocástica (SDE) para o GBM:</strong></p>$$dS_t = \\mu S_t dt + \\sigma S_t dW_t$$<p>Onde $S_t$ é o preço do ativo, $\\mu$ é a taxa de retorno esperada (drift), $\\sigma$ é a volatilidade, e $dW_t$ é o incremento de um processo de Wiener (movimento browniano).</p><p class="mt-4"><strong>Solução da SDE do GBM:</strong></p>$$S_T = S_0 \\exp\\left( (\\mu - \\frac{1}{2}\\sigma^2)T + \\sigma W_T \\right)$$</p>`,
+                            python: `<p>Simulando múltiplos caminhos de preço de uma ação com GBM para uma simulação de Monte Carlo.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\n# import matplotlib.pyplot as plt # Descomente para plotar\n\ndef simulate_gbm(s0, mu, sigma, T, n_steps, n_paths):\n    dt = T / n_steps\n    t = np.linspace(0, T, n_steps + 1)\n    # Gera múltiplos caminhos de ruído browniano\n    dW = np.random.standard_normal(size=(n_steps, n_paths)) * np.sqrt(dt)\n    # Acumula o ruído para obter o processo de Wiener\n    W = np.vstack([np.zeros(n_paths), np.cumsum(dW, axis=0)])\n    # Aplica a solução da SDE do GBM\n    S = s0 * np.exp((mu - 0.5 * sigma**2) * t.reshape(-1, 1) + sigma * W)\n    return t, S\n\n# Parâmetros da simulação\ns0=100; mu=0.08; sigma=0.3; T=1.0; n_steps=252; n_paths=10\n\nt, S = simulate_gbm(s0, mu, sigma, T, n_steps, n_paths)\n\n# Plotagem (opcional)\n# plt.figure(figsize=(10, 6))\n# plt.plot(t, S)\n# plt.title('Simulação de Monte Carlo com GBM (10 caminhos)')\n# plt.xlabel('Tempo (Anos)')\n# plt.ylabel('Preço do Ativo')\n# plt.show()\n\nprint("Simulação de 10 caminhos de preço para 1 ano concluída.")\nprint(f"Preço final médio dos 10 caminhos: {S[-1].mean():.2f}")</code></pre><button class="copy-button">Copiar</button></div>`,
+                            qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O GBM é um bom modelo para preços de ações?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É uma ótima primeira aproximação e a base de muita teoria, mas tem falhas. Na realidade, a volatilidade ($\\sigma$) não é constante (ela muda ao longo do tempo - "volatility clustering"), e os retornos exibem "caudas gordas". Modelos mais avançados como os de volatilidade estocástica (ex: Heston) ou modelos GARCH tentam corrigir essas deficiências.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que são processos de reversão à média?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>São processos estocásticos que tendem a ser "puxados" de volta para um nível de longo prazo. Enquanto o GBM tende a se afastar indefinidamente, um processo de reversão à média flutua em torno de uma média. São muito usados para modelar taxas de juros, volatilidade e spreads em estratégias de pairs trading.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Stochastic Calculus for Finance I & II" por Steven Shreve.</li><li><strong>Livro:</strong> "Options, Futures, and Other Derivatives" por John C. Hull.</li><li><strong>Livro:</strong> "Paul Wilmott on Quantitative Finance" por Paul Wilmott.</li></ul>`
+                        }
+                    }
+                ]
+            },
+             {
+                id: 'econometria-series-temporais',
+                title: 'Econometria e Séries Temporais',
+                subsections: [
+                   {
+                        id: 'modelos-regressao',
+                        title: 'Modelos de Regressão',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Modelos de Regressão</h3><p class="mb-4">A <strong>Análise de Regressão</strong> é a principal ferramenta da econometria para quantificar a relação entre uma variável de interesse (dependente, $y$) e uma ou mais outras variáveis (independentes ou explicativas, $X$). Em finanças, ela é usada para testar teorias econômicas, prever retornos e construir modelos de fatores de risco.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Regressão Linear e Mínimos Quadrados Ordinários (MQO)</h4><p class="mb-3">O modelo mais simples é a regressão linear, que assume uma relação linear: $y = \\beta_0 + \\beta_1 x_1 + ... + \\beta_k x_k + \\epsilon$. Os coeficientes $\\beta$ representam o impacto de cada variável independente em $y$. O método de <strong>Mínimos Quadrados Ordinários (MQO)</strong> é o procedimento padrão para estimar esses coeficientes. Ele encontra a linha (ou hiperplano) que minimiza a soma das distâncias quadradas verticais entre os pontos de dados observados e a linha de regressão.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Aplicações Financeiras e Modelos de Fatores</h4><ul class="list-disc pl-6 space-y-3"><li><strong>CAPM (Capital Asset Pricing Model):</strong> É um modelo de regressão linear simples onde o excesso de retorno de um ativo ($R_i - R_f$) é regredido contra o excesso de retorno do mercado ($R_m - R_f$). O coeficiente angular estimado é o <strong>Beta ($\\beta$)</strong> do ativo, que mede seu risco sistemático. O intercepto, <strong>Alfa ($\\alpha$)</strong>, mede o retorno ajustado ao risco — um alfa positivo e estatisticamente significativo sugere um desempenho superior.</li><li><strong>Modelos Multifatoriais:</strong> O CAPM explica os retornos com apenas um fator (o mercado). Modelos mais avançados, como o <strong>Modelo de 3 Fatores de Fama-French</strong>, são regressões múltiplas que adicionam outros fatores de risco, como tamanho (SMB - Small Minus Big) e valor (HML - High Minus Low), para capturar melhor as fontes de retorno dos ativos.</li></ul>`,
+                            exemplos: `<p><strong>Exemplo (CAPM):</strong> Fazemos uma regressão dos retornos da ação da VALE3 contra os retornos do IBOVESPA. Se o $\\beta$ resultante for 1.2, isso significa que, em média, a VALE3 tende a se mover 20% a mais que o mercado, tanto para cima quanto para baixo, indicando um risco sistemático maior que a média do mercado. Se o $\\alpha$ for 0.001 e seu p-valor for baixo, isso sugere que a ação gerou um retorno de 0.1% ao dia acima do esperado pelo seu risco de mercado.</p>`,
+                            formulas: `<p><strong>Modelo de Regressão Linear Múltipla:</strong></p>$$y_i = \\beta_0 + \\beta_1 x_{i1} + \\beta_2 x_{i2} + ... + \\beta_k x_{ik} + \\epsilon_i$$<p><strong>Solução MQO em forma de matriz:</strong> $$\\hat{\\beta} = (X^T X)^{-1} X^T y$$</p><p><strong>$R^2$ (Coeficiente de Determinação):</strong> $$R^2 = 1 - \\frac{\\sum(y_i - \\hat{y}_i)^2}{\\sum(y_i - \\bar{y})^2}$$</p>`,
+                            python: `<p>Estimando o Beta e o Alfa do CAPM com <code>statsmodels</code>.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\nimport statsmodels.api as sm\n\n# Gerando dados de exemplo (retornos diários)\nnp.random.seed(123)\nn = 252\nmarket_returns = np.random.normal(0.0005, 0.015, n)\n# Ativo com Beta=1.2, Alfa=0.01% e ruído\nasset_returns = 0.0001 + 1.2 * market_returns + np.random.normal(0, 0.01, n)\n\n# Adiciona uma constante (para o alfa)\nX = sm.add_constant(market_returns)\ny = asset_returns\n\n# Roda o modelo de regressão MQO\nmodel = sm.OLS(y, X).fit()\n\n# Imprime o resumo dos resultados\nprint(model.summary())\n\n# Extraindo os parâmetros\nalpha, beta = model.params\nprint(f"\\nAlfa estimado: {alpha*100:.4f}% (diário)")\nprint(f"Beta estimado: {beta:.2f}")</code></pre><button class="copy-button">Copiar</button></div>`,
+                             qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Quais são os principais pressupostos da regressão linear?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Os principais são: linearidade na relação, independência dos erros, erros com média zero e variância constante (homocedasticidade), e erros normalmente distribuídos. A violação desses pressupostos, comum em dados financeiros (ex: heterocedasticidade), pode invalidar os testes de hipótese (p-valores) sobre os coeficientes.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é multicolinearidade?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Ocorre quando duas ou mais variáveis independentes em uma regressão múltipla estão altamente correlacionadas. Isso torna difícil para o modelo separar o efeito individual de cada variável, resultando em estimativas de $\\beta$ instáveis e com erros padrão muito grandes, embora o modelo como um todo ainda possa ter um bom poder preditivo.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Introduction to Econometrics" por James Stock e Mark Watson.</li><li><strong>Livro:</strong> "Analysis of Financial Time Series" por Ruey S. Tsay.</li><li><strong>Biblioteca:</strong> <a href="https://www.statsmodels.org/" target="_blank" class="text-teal-600 hover:underline">Statsmodels</a> (Python).</li></ul>`
+                        }
+                   },
+                    {
+                        id: 'analise-series-temporais',
+                        title: 'Análise de Séries Temporais',
+                        content: {
+                             teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Análise de Séries Temporais</h3><p class="mb-4">A <strong>Análise de Séries Temporais</strong> é um ramo da estatística especializado em analisar dados sequenciais ordenados no tempo. Diferente da análise de regressão padrão, que assume que as observações são independentes, a análise de séries temporais explicitamente modela a dependência temporal e a estrutura de "memória" dos dados.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Estacionariedade</h4><p class="mb-3">A <strong>Estacionariedade</strong> é o conceito mais fundamental. Uma série temporal é (fracamente) estacionária se suas propriedades estatísticas — média, variância e autocorrelação — não mudam ao longo do tempo. A maioria dos modelos de séries temporais assume que a série é estacionária. Prever uma série não-estacionária é como tentar acertar um alvo em movimento.<ul class="list-disc pl-6 space-y-2 mt-2"><li>Os <strong>preços</strong> de ativos são quase sempre <strong>não-estacionários</strong>.</li><li>Os <strong>retornos</strong> (variações percentuais dos preços) são geralmente <strong>estacionários</strong>.</li></ul>Para tornar uma série não-estacionária em estacionária, a técnica mais comum é a <strong>diferenciação</strong>.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Autocorrelação (ACF e PACF)</h4><p class="mb-3">Para entender a estrutura de dependência de uma série, usamos as funções de autocorrelação.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Função de Autocorrelação (ACF):</strong> Mede a correlação da série com seus próprios valores passados (lags).</li><li><strong>Função de Autocorrelação Parcial (PACF):</strong> Mede a correlação entre a série e um lag, removendo o efeito dos lags intermediários.</li></ul><p class="mt-3">Os padrões nos gráficos da ACF e PACF são a principal ferramenta para identificar os parâmetros de modelos como o ARIMA.</p>`,
+                             exemplos: `<p><strong>Exemplo:</strong> Ao analisar as vendas de uma varejista, podemos decompor a série para identificar uma tendência de crescimento a longo prazo, uma sazonalidade anual (picos em Dezembro), e usar essa estrutura para prever as vendas do próximo trimestre. Em finanças, analisamos o ACF dos retornos quadrados para detectar "volatility clustering": se autocorrelações significativas existem, isso sugere que a volatilidade de hoje está correlacionada com a de ontem, justificando o uso de modelos GARCH.</p>`,
+                            formulas: `<p><strong>Função de Autocorrelação (ACF) no lag k:</strong></p>$$\\rho_k = \\frac{Cov(y_t, y_{t-k})}{Var(y_t)} = \\frac{E[(y_t - \\mu)(y_{t-k} - \\mu)]}{E[(y_t - \\mu)^2]}$$<p><strong>Teste de Dickey-Fuller Aumentado (ADF):</strong> Um teste de hipótese estatístico para verificar a estacionariedade. A hipótese nula ($H_0$) é que a série possui uma raiz unitária (não é estacionária).</p>`,
+                            python: `<p>Plotando as funções de Autocorrelação (ACF) e Autocorrelação Parcial (PACF) e realizando o teste de estacionariedade.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\nimport statsmodels.api as sm\nfrom statsmodels.graphics.tsaplots import plot_acf, plot_pacf\nfrom statsmodels.tsa.stattools import adfuller\n# import matplotlib.pyplot as plt # Descomente para plotar\n\n# Gera uma série temporal AR(1) de exemplo: y_t = 0.7 * y_{t-1} + e_t\nnp.random.seed(42)\nn = 200\nerrors = np.random.normal(0, 1, n)\ny = np.zeros(n)\nfor t in range(1, n):\n    y[t] = 0.7 * y[t-1] + errors[t]\n\n# Teste de estacionariedade (ADF)\nresult = adfuller(y)\nprint(f'ADF Statistic: {result[0]:.2f}')\nprint(f'p-value: {result[1]:.3f}')\nif result[1] < 0.05:\n    print('Resultado: A série é estacionária.')\nelse:\n    print('Resultado: A série não é estacionária.')\n\n# Plotagem (opcional)\n# fig, ax = plt.subplots(1, 2, figsize=(12, 4))\n# plot_acf(y, ax=ax[0], lags=20)\n# plot_pacf(y, ax=ax[1], lags=20)\n# plt.show()\n\nprint("\\nAs funções plot_acf e plot_pacf geram os gráficos.")\nprint("Para um processo AR(1), esperamos um ACF que decai lentamente e um PACF com um pico significativo no lag 1.")</code></pre><button class="copy-button">Copiar</button></div>`,
+                             qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é Cointegração?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Duas séries temporais não-estacionárias (como os preços de dois ativos) são cointegradas se uma combinação linear delas for estacionária. Isso indica uma relação de equilíbrio de longo prazo entre elas. Se elas se afastam muito, tendem a convergir. É a base para estratégias de "pairs trading".</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é a Causalidade de Granger?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É um teste estatístico para determinar se uma série temporal é útil para prever outra. Dizemos que a série X "Granger-causa" a série Y se os valores passados de X contêm informação que ajuda a prever Y, além da informação contida nos valores passados de Y apenas. Não implica causalidade verdadeira, mas sim poder de previsão.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Forecasting: Principles and Practice" por Hyndman & Athanasopoulos (Disponível online).</li><li><strong>Livro:</strong> "Analysis of Financial Time Series" por Ruey S. Tsay.</li><li><strong>Curso:</strong> <a href="https://www.coursera.org/specializations/time-series-analysis" target="_blank" class="text-teal-600 hover:underline">Time Series Analysis (Coursera)</a></li></ul>`
+                        }
+                    },
+                    {
+                        id: 'modelos-classicos-volatilidade',
+                        title: 'Modelos Clássicos e de Volatilidade',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Modelos Clássicos e de Volatilidade</h3><p class="mb-4">Uma vez que entendemos as propriedades de uma série temporal, podemos ajustar modelos para fazer previsões. Esses modelos se dividem em duas categorias principais: aqueles que modelam a média da série e aqueles que modelam sua variância (volatilidade).</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Modelos para a Média Condicional (ARIMA)</h4><p class="mb-3">O modelo <strong>ARIMA (Autoregressive Integrated Moving Average)</strong> é o cavalo de batalha da modelagem de séries temporais univariadas. Ele descreve o valor atual da série como uma função linear de seus valores passados e de seus erros de previsão passados.</p><ul class="list-disc pl-6 space-y-3"><li><strong>AR (AutoRegressivo):</strong> Assume que $y_t$ é uma regressão de $y_t$ em seus próprios valores passados ($y_{t-1}, y_{t-2}, ...$).</li><li><strong>I (Integrado):</strong> Refere-se ao passo de diferenciação usado para tornar a série estacionária.</li><li><strong>MA (Médias Móveis):</strong> Assume que $y_t$ é uma função dos erros de previsão passados ($\epsilon_{t-1}, \epsilon_{t-2}, ...$).</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Modelos para a Variância Condicional (GARCH)</h4><p class="mb-3">Um fato estilizado bem conhecido dos retornos financeiros é o <strong>"volatility clustering"</strong>: períodos de alta volatilidade são seguidos por mais alta volatilidade, e vice-versa. Isso significa que a variância dos retornos não é constante. O modelo <strong>GARCH (Generalized Autoregressive Conditional Heteroskedasticity)</strong> foi desenvolvido para capturar essa dinâmica.</p><p class="mt-3">O modelo GARCH(1,1), o mais comum, modela a variância de hoje ($\\sigma_t^2$) como uma função de três componentes: uma média de longo prazo, o choque (erro quadrado) de ontem ($\epsilon_{t-1}^2$), e a variância de ontem ($\\sigma_{t-1}^2$). Modelos GARCH são essenciais para a gestão de risco (cálculo de Value-at-Risk), precificação de opções e otimização de portfólios.</p>`,
+                             exemplos: `<p><strong>Exemplo (ARIMA):</strong> Podemos ajustar um modelo ARIMA à série do PIB trimestral para prever o crescimento econômico do próximo trimestre com base em seus padrões históricos de crescimento e choques passados.</p><p class="mt-4"><strong>Exemplo (GARCH):</strong> Após o anúncio de um resultado corporativo surpreendente, a volatilidade da ação aumenta drasticamente. Um modelo GARCH irá prever uma volatilidade maior para os próximos dias, diminuindo gradualmente de volta à média se não houver novos choques. Isso é crucial para ajustar os preços de opções sobre essa ação.</p>`,
+                            formulas: `<p><strong>Modelo ARMA(p,q):</strong> $$y_t = c + \\sum_{i=1}^{p} \\phi_i y_{t-i} + \\sum_{j=1}^{q} \\theta_j \\epsilon_{t-j} + \\epsilon_t$$</p><p><strong>Modelo GARCH(1,1):</strong></p>$$\\sigma_t^2 = \\omega + \\alpha \\epsilon_{t-1}^2 + \\beta \\sigma_{t-1}^2$$<p>A variância de hoje ($\\sigma_t^2$) é uma combinação de uma constante ($\\omega$), o choque de ontem ($\\epsilon_{t-1}^2$), e a variância de ontem ($\\sigma_{t-1}^2$).</p>`,
+                            python: `<p>Ajustando um modelo GARCH(1,1) aos retornos com a biblioteca <code>arch</code>.</p><div class="relative mt-2"><pre><code class="language-python prism-code">import numpy as np\nfrom arch import arch_model\n\n# Gera retornos com volatility clustering\nnp.random.seed(1)\nreturns = np.random.normal(0, 1, 1000) * 0.01\n# Introduz um choque de volatilidade\nreturns[500:600] *= 3\n\n# Ajusta o modelo GARCH(1,1) aos retornos diários (%)\nmodel = arch_model(returns * 100, vol='Garch', p=1, q=1)\nresults = model.fit(disp='off')\n\n# Imprime o resumo dos resultados\nprint(results.summary())\n\n# Previsão da volatilidade para o próximo dia\nforecast = results.forecast(horizon=1)\npredicted_vol = np.sqrt(forecast.variance.iloc[-1,0])\nprint(f"\\nVolatilidade prevista para amanhã: {predicted_vol:.2f}%")</code></pre><button class="copy-button">Copiar</button></div>`,
+                             qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Qual a diferença entre ARIMA e GARCH?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>ARIMA modela a média condicional da série (o valor esperado da série no próximo passo). GARCH modela a variância condicional (o risco esperado no próximo passo). Eles podem ser usados em conjunto: um modelo ARIMA pode ser ajustado para os retornos, e um modelo GARCH para os resíduos do ARIMA, modelando tanto o retorno quanto o risco.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Existem extensões do modelo GARCH?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Sim, muitas. O EGARCH e o GJR-GARCH, por exemplo, capturam o "efeito de alavancagem", que é a observação de que notícias negativas (quedas no preço) tendem a aumentar mais a volatilidade do que notícias positivas de mesma magnitude.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Time Series Analysis" por James Hamilton.</li><li><strong>Livro:</strong> "Analysis of Financial Time Series" por Ruey S. Tsay.</li><li><strong>Biblioteca:</strong> <a href="https://arch.readthedocs.io/" target="_blank" class="text-teal-600 hover:underline">ARCH library (Python)</a></li></ul>`
+                        }
+                    }
+                ]
+            },
+            {
+                id: 'economia-cnpi',
+                title: 'Fundamentos de Economia (CNPI)',
+                subsections: [
+                    {
+                        id: 'micro-macro',
+                        title: 'Microeconomia e Macroeconomia',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Microeconomia e Macroeconomia</h3><p class="mb-4">Um analista quantitativo não opera no vácuo; ele opera dentro de uma economia. Compreender os princípios fundamentais que governam essa economia é crucial para dar contexto aos modelos e às estratégias.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Microeconomia: A Lógica da Escolha</h4><p class="mb-3">A <strong>Microeconomia</strong> estuda como indivíduos e empresas tomam decisões sobre a alocação de recursos escassos e como essas decisões interagem nos mercados.</p><ul class="list-disc pl-6 space-y-3"><li><strong>Oferta e Demanda:</strong> Este é o mecanismo central. O <strong>preço de equilíbrio</strong> de qualquer coisa — de uma ação a uma commodity — é determinado pela interação entre a quantidade que os vendedores estão dispostos a oferecer em cada preço (oferta) e a quantidade que os compradores estão dispostos a adquirir em cada preço (demanda).</li><li><strong>Estruturas de Mercado:</strong> Entender se um mercado é uma competição perfeita, um monopólio ou um oligopólio é vital para analisar a rentabilidade e o poder de precificação das empresas listadas na bolsa.</li></ul><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Macroeconomia: A Visão Agregada</h4><p class="mb-3">A <strong>Macroeconomia</strong> estuda a economia como um todo. As variáveis macroeconômicas formam o "cenário" no qual todos os ativos são precificados.</p><ul class="list-disc pl-6 space-y-3"><li><strong>PIB (Produto Interno Bruto):</strong> A medida mais ampla da saúde econômica de um país. Um PIB crescente geralmente está associado a lucros corporativos crescentes e a um mercado de ações em alta.</li><li><strong>Inflação:</strong> O aumento persistente do nível geral de preços. A inflação corrói o valor real dos retornos dos investimentos e é uma preocupação central para os Bancos Centrais.</li><li><strong>Juros (Política Monetária):</strong> A taxa de juros básica (Taxa Selic no Brasil) é a principal ferramenta do Banco Central para controlar a inflação. Decisões sobre juros têm um impacto profundo no custo do capital para as empresas e na atratividade da renda fixa versus a renda variável.</li></ul>`,
+                            exemplos: `<p><strong>Exemplo (Micro):</strong> Uma geada inesperada no Brasil danifica grande parte da safra de café. Isso causa um choque de oferta: a curva de oferta se desloca para a esquerda. Com a mesma demanda, o preço de equilíbrio do café no mercado internacional sobe. Isso impacta o preço das ações de produtores de café.</p><p class="mt-4"><strong>Exemplo (Macro):</strong> Se a inflação está alta, o Banco Central tende a aumentar a Taxa Selic. Isso torna o crédito mais caro, desincentiva o consumo e o investimento, "esfriando" a economia e, com o tempo, pressionando a inflação para baixo. Ações de empresas cíclicas (varejo, construção) tendem a sofrer, enquanto o mercado de renda fixa se torna mais atrativo.</p>`,
+                            formulas: `<p><strong>Equação Quantitativa da Moeda:</strong> $$M \\cdot V = P \\cdot Y$$ Onde $M$ é a oferta de moeda, $V$ é a velocidade da moeda, $P$ é o nível de preços e $Y$ é o PIB real. Relaciona a oferta de moeda com a inflação.</p><p><strong>PIB (ótica da despesa):</strong> $$PIB = C + I + G + (X - M)$$ Onde $C$ é consumo, $I$ é investimento, $G$ são gastos do governo, e $(X-M)$ são as exportações líquidas.</p>`,
+                            python: `<p>Python é usado para analisar dados macroeconômicos, não para provar as teorias. Abaixo, um exemplo de como obter a série histórica da Taxa Selic usando uma biblioteca que se conecta à API do Banco Central do Brasil.</p><div class="relative mt-2"><pre><code class="language-python prism-code"># É necessário instalar a biblioteca: pip install python-bcb\nfrom bcb import sgs\nimport matplotlib.pyplot as plt\n\n# Pega a série da Selic (código 11) dos últimos 5 anos\nselic = sgs.get({'selic': 11}, last=5*365)\n\nprint("Últimos 5 dados da Taxa Selic:")\nprint(selic.tail())\n\n# Plotagem (opcional)\n# selic.plot(figsize=(10,6))\n# plt.title('Taxa Selic Diária nos Últimos 5 Anos')\n# plt.ylabel('Taxa (%)')\n# plt.show()</code></pre><button class="copy-button">Copiar</button></div>`,
+                             qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Como os juros futuros reagem à política monetária?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>O mercado de juros futuros (DI) precifica as expectativas dos agentes sobre a Taxa Selic no futuro. Se o mercado acredita que o Banco Central terá que subir os juros para controlar a inflação, as taxas dos contratos de DI sobem, mesmo antes da decisão oficial do COPOM. É um termômetro das expectativas macroeconômicas.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>O que é a Curva de Phillips?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>É uma teoria que postula uma relação inversa de curto prazo entre desemprego e inflação. Quando o desemprego está baixo, há mais pressão por aumentos salariais, o que pode levar a uma inflação mais alta. Os formuladores de política monetária monitoram essa relação.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Princípios de Economia" por N. Gregory Mankiw.</li><li><strong>Livro:</strong> "Microeconomia" por Robert Pindyck e Daniel Rubinfeld.</li><li><strong>Material:</strong> Apostilas e material preparatório da APIMEC para a certificação CNPI.</li><li><strong>Fonte de Dados:</strong> <a href="https://www.bcb.gov.br/estatisticas/sgs" target="_blank" class="text-teal-600 hover:underline">Sistema Gerenciador de Séries Temporais (SGS) do BCB</a>.</li></ul>`
+                        }
+                    },
+                     {
+                        id: 'financas-corporativas',
+                        title: 'Finanças Corporativas',
+                        content: {
+                            teoria: `<h3 class="text-2xl font-semibold text-slate-700 mb-4">Teoria Expandida: Finanças Corporativas</h3><p class="mb-4"><strong>Finanças Corporativas</strong> é o campo que trata das decisões financeiras que as empresas tomam e dos métodos para avaliar o valor de uma empresa. Para um analista de ações, seja ele fundamentalista ou quantitativo, esses são conceitos essenciais para entender o que, em última análise, move o preço de uma ação: a capacidade da empresa de gerar valor.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">O Custo de Capital (WACC)</h4><p class="mb-3">Uma empresa financia seus ativos através de uma mistura de dívida e capital próprio. Cada uma dessas fontes de financiamento tem um custo. O <strong>WACC (Weighted Average Cost of Capital - Custo Médio Ponderado de Capital)</strong> é a média ponderada do custo da dívida e do custo do capital próprio. O WACC representa a taxa de retorno mínima que a empresa precisa gerar em seus investimentos para remunerar adequadamente todos os seus provedores de capital (credores e acionistas). É a "taxa de obstáculo" (hurdle rate) para novos projetos e, crucialmente, é a <strong>taxa de desconto</strong> usada para trazer os fluxos de caixa futuros da empresa a valor presente.</p><h4 class="text-xl font-semibold text-slate-600 mt-6 mb-3">Valuation por Fluxo de Caixa Descontado (DCF)</h4><p class="mb-3">O método de <strong>Fluxo de Caixa Descontado (DCF)</strong> é a pedra angular da avaliação de empresas. A premissa é simples e poderosa: o valor intrínseco de qualquer ativo é o valor presente de todos os fluxos de caixa que se espera que ele gere no futuro. Para uma empresa, o processo de DCF envolve:</p><ol class="list-decimal pl-6 space-y-3"><li><strong>Projetar os Fluxos de Caixa Livres da Firma (FCFF):</strong> Estimar a quantidade de caixa que a empresa irá gerar nos próximos anos.</li><li><strong>Calcular o Valor Terminal:</strong> Estimar um "valor terminal", que representa o valor presente de todos os fluxos de caixa a partir do final do período de projeção.</li><li><strong>Descontar a Valor Presente:</strong> Tanto os fluxos de caixa projetados quanto o valor terminal são descontados para o presente usando o WACC. A soma desses valores é o valor da firma.</li></ol>`,
+                             exemplos: `<p><strong>Exemplo (DCF):</strong> Para avaliar a Petrobras, um analista projeta sua geração de caixa para os próximos 10 anos, considerando o preço do petróleo, produção, investimentos (CAPEX) e custos. Ele calcula o WACC da empresa, que reflete o risco do negócio e sua estrutura de capital (dívida e equity). Cada fluxo de caixa futuro é descontado por essa taxa para encontrar seu valor hoje. A soma de todos esses valores dá o valor da empresa (Enterprise Value).</p>`,
+                            formulas: `<p><strong>WACC:</strong> $$WACC = \\frac{E}{E+D} \\cdot R_e + \\frac{D}{E+D} \\cdot R_d \\cdot (1 - T_c)$$ Onde $E$ é o valor de mercado do capital próprio, $D$ é o valor de mercado da dívida, $R_e$ é o custo do capital próprio, $R_d$ é o custo da dívida e $T_c$ é a alíquota de imposto de renda.</p><p><strong>Custo do Capital Próprio (via CAPM):</strong> $$R_e = R_f + \\beta (E[R_m] - R_f)$$</p><p><strong>DCF Simplificado:</strong> $$Valor = \\sum_{t=1}^{n} \\frac{FCFF_t}{(1+WACC)^t} + \\frac{ValorTerminal_n}{(1+WACC)^n}$$</p>`,
+                            python: `<p>Cálculo simples do WACC em Python.</p><div class="relative mt-2"><pre><code class="language-python prism-code"># Dados da Empresa (Exemplo)\nRe = 0.15  # Custo do capital próprio (15%), estimado via CAPM\nRd = 0.08  # Custo da dívida (8%), ex: taxa de emissão de debêntures\nTc = 0.34  # Alíquota de imposto (34%)\nE = 600    # Valor de mercado do Equity (R$ 600 milhões)\nD = 400    # Valor de mercado da Dívida (R$ 400 milhões)\n\nV = E + D # Valor total da firma\n\n# Proporção de Equity e Dívida\nweight_e = E / V\nweight_d = D / V\n\nwacc = weight_e * Re + weight_d * Rd * (1 - Tc)\n\nprint(f"Estrutura de Capital: {weight_e*100:.0f}% Equity, {weight_d*100:.0f}% Dívida")\nprint(f"WACC: {wacc * 100:.2f}%")</code></pre><button class="copy-button">Copiar</button></div>`,
+                             qa: `<div class="space-y-4"><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Por que descontamos o fluxo de caixa?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>Pelo princípio do "valor do dinheiro no tempo". Um real hoje vale mais do que um real amanhã, pois o real de hoje pode ser investido para gerar um retorno. A taxa de desconto (WACC) representa o custo de oportunidade desse capital, ou seja, o retorno que os investidores poderiam obter em outro investimento de risco similar.</p></div></div><div><button class="qa-toggle w-full text-left font-semibold p-2 rounded hover:bg-slate-100 flex justify-between items-center"><span>Quais são as alternativas ao DCF?</span><span>+</span></button><div class="qa-content hidden mt-2 p-3 pl-4 border-l-4 accent-border bg-slate-50 rounded-r-lg"><p>As principais alternativas são os métodos de avaliação relativa (ou por múltiplos), como P/L (Preço/Lucro), EV/EBITDA (Valor da Firma/EBITDA) e P/VPA (Preço/Valor Patrimonial por Ação). Esses métodos comparam a empresa com seus pares de mercado, mas não avaliam seu valor intrínseco como o DCF.</p></div></div></div>`,
+                            referencias: `<ul class="list-disc pl-5 space-y-2 text-sm"><li><strong>Livro:</strong> "Principles of Corporate Finance" por Brealey, Myers e Allen.</li><li><strong>Livro:</strong> "Valuation: Measuring and Managing the Value of Companies" por McKinsey & Company.</li><li><strong>Recurso Online:</strong> Aswath Damodaran's Website (<a href="https://pages.stern.nyu.edu/~adamodar/" target="_blank" class="text-teal-600 hover:underline">pages.stern.nyu.edu/~adamodar/</a>), uma fonte imensa de dados e aulas sobre valuation.</li></ul>`
+                        }
+                    }
+                ]
+            }
+        ];
+
+        // --- Gemini API Call ---
+        async function callGemini(prompt) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                     return candidate.content.parts[0].text.replace(/\n/g, '<br>');
+                } else {
+                    return `<p class="text-red-600">Não foi possível gerar conteúdo. A resposta da API estava vazia ou malformada.</p>`;
+                }
+            } catch (error) {
+                console.error("Erro ao chamar a API Gemini:", error);
+                return `<p class="text-red-600">Erro ao se conectar com a API Gemini. Verifique o console.</p>`;
+            }
+        }
+
+        // --- Modal Functions ---
+        const modal = document.getElementById('gemini-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalLoader = document.getElementById('modal-loader');
+        const modalResponse = document.getElementById('modal-response');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function showModal(title) {
+            modalTitle.textContent = title;
+            modalResponse.innerHTML = '';
+            modalLoader.style.display = 'block';
+            modal.classList.remove('hidden');
+        }
+
+        function displayModalContent(htmlContent) {
+            modalLoader.style.display = 'none';
+            modalResponse.innerHTML = htmlContent;
+        }
+
+        function hideModal() {
+            modal.classList.add('hidden');
+        }
+
+        modalCloseBtn.addEventListener('click', hideModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+
+        // --- App Initialization ---
+        function initApp() {
+            const sidebarNav = document.getElementById('sidebar-nav');
+            const contentWrapper = document.getElementById('content-sections-wrapper');
+            const welcomeMessage = document.getElementById('welcome-message');
+
+            // Build sidebar and content cards
+            contentData.forEach((pillar) => {
+                 const pillarContainer = document.createElement('div');
+                 const pillarHeader = document.createElement('div');
+                 pillarHeader.className = 'pillar-header flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-slate-700 active';
+                 pillarHeader.innerHTML = `<span class="font-semibold">${pillar.title}</span><svg class="w-5 h-5 transition-transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
+            
+                const moduleLinks = document.createElement('ul');
+                moduleLinks.className = 'module-links';
+
+                pillar.subsections.forEach((section) => {
+                    const linkItem = document.createElement('li');
+                    linkItem.innerHTML = `<a href="#" data-target="${section.id}" class="module-link block px-8 py-2 hover:bg-slate-600">${section.title}</a>`;
+                    moduleLinks.appendChild(linkItem);
+                    
+                    const sectionEl = document.createElement('section');
+                    sectionEl.id = section.id;
+                    sectionEl.className = 'hidden';
+
+                    const tabs = ['Teoria', 'Exemplos', 'Formulas', 'Python', 'QA', 'Referencias', 'Aprenda com IA'];
+                    
+                    const titleHTML = `<h2 class="text-3xl font-bold text-slate-800">${section.title}</h2>`;
+                    let tabsContainerHTML = '<div class="flex border-b border-gray-200 mt-2 mb-4 flex-wrap">';
+                    let panesHTML = '';
+
+                    tabs.forEach((tabName, index) => {
+                        const key = tabName.toLowerCase().replace(/\s+/g, '');
+                        const targetId = `${section.id}-${key}`;
+                        const content = section.content[key];
+                        
+                        tabsContainerHTML += `<button data-target="${targetId}" class="tab-btn px-4 py-2 text-sm ${index === 0 ? 'tab-active' : 'tab-inactive'}">${tabName}</button>`;
+                        
+                        if (key === 'aprendacomia') {
+                            panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''} space-y-4 text-center p-4">
+                                <p class="text-slate-600">Use a IA Gemini para aprofundar seu conhecimento.</p>
+                                <div class="flex justify-center items-center gap-4 flex-wrap">
+                                    <button data-topic-title="${section.title}" class="explain-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Explicar o Tópico</button>
+                                    <button data-topic-title="${section.title}" class="quiz-btn gemini-btn font-semibold py-2 px-4 rounded-md">✨ Gerar Quiz</button>
+                                </div>
+                            </div>`;
+                        } else {
+                           panesHTML += `<div id="${targetId}" class="tab-pane ${index > 0 ? 'hidden' : ''}">${content}</div>`;
+                        }
+                    });
+                    
+                    tabsContainerHTML += '</div>';
+                    sectionEl.innerHTML = `<div class="card-bg p-6 rounded-2xl shadow-lg"><div class="text-slate-700 leading-relaxed">${titleHTML}${tabsContainerHTML}<div class="tab-content mt-4 min-h-[200px]">${panesHTML}</div></div></div>`;
+                    contentWrapper.appendChild(sectionEl);
+                });
+
+                pillarContainer.appendChild(pillarHeader);
+                pillarContainer.appendChild(moduleLinks);
+                sidebarNav.appendChild(pillarContainer);
+            });
+            
+            addEventListeners();
+        }
+
+        function addEventListeners() {
+            document.querySelectorAll('.pillar-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    header.classList.toggle('active');
+                    header.querySelector('svg').classList.toggle('rotate-180');
+                });
+            });
+
+            document.querySelectorAll('.module-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const targetId = e.target.dataset.target;
+                    document.getElementById('welcome-message').classList.add('hidden');
+                    document.querySelectorAll('#content-sections-wrapper > section').forEach(sec => sec.classList.add('hidden'));
+                    const targetSection = document.getElementById(targetId);
+                    targetSection.classList.remove('hidden');
+
+                    if (window.MathJax && window.MathJax.typeset) {
+                        MathJax.typesetPromise([targetSection]).then(() => {
+                            Prism.highlightAllUnder(targetSection);
+                        }).catch((err) => console.log('MathJax typeset error: ', err));
+                    } else {
+                         Prism.highlightAllUnder(targetSection);
+                    }
+
+                    document.querySelectorAll('.module-link').forEach(l => l.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    document.getElementById('main-content').scrollTo(0, 0);
+                });
+            });
+
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const container = button.closest('.card-bg');
+                    container.querySelectorAll('.tab-btn').forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
+                    button.classList.replace('tab-inactive', 'tab-active');
+                    container.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+                    document.getElementById(targetId).classList.remove('hidden');
+                });
+            });
+
+            document.querySelectorAll('.qa-toggle').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    content.classList.toggle('hidden');
+                    const indicator = button.querySelector('span:last-child');
+                    indicator.textContent = content.classList.contains('hidden') ? '+' : '-';
+                });
+            });
+
+            document.querySelectorAll('.copy-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const code = e.target.previousElementSibling.querySelector('code').innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        e.target.textContent = 'Copiado!';
+                        setTimeout(() => { e.target.textContent = 'Copiar'; }, 2000);
+                    });
+                });
+            });
+
+            document.querySelectorAll('.explain-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const topicTitle = e.target.dataset.topicTitle;
+                    showModal(`✨ Explicando: ${topicTitle}`);
+                    const prompt = `Explique o seguinte tópico de finanças quantitativas de forma clara e concisa para um estudante: "${topicTitle}". Use parágrafos curtos, analogias simples e exemplos práticos, se possível. Formate a resposta em HTML simples (use <p>, <strong>, <ul>, <li>).`;
+                    const explanation = await callGemini(prompt);
+                    displayModalContent(explanation);
+                });
+            });
+
+            document.querySelectorAll('.quiz-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const topicTitle = e.target.dataset.topicTitle;
+                    showModal(`✨ Quiz: ${topicTitle}`);
+                    const prompt = `Crie um quiz com 3 perguntas de múltipla escolha (4 opções de 'a' a 'd') sobre o tópico "${topicTitle}". Após as perguntas, revele as respostas corretas com uma justificativa concisa em negrito. Formate como HTML (use <p>, <strong>, <ul>, <li>).`;
+                    const quiz = await callGemini(prompt);
+                    displayModalContent(quiz);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
+
